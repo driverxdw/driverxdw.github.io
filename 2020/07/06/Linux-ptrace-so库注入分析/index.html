@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html  lang="zh">
+<head>
+    <meta charset="utf-8" />
+
+<meta name="generator" content="Hexo 4.2.1" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+<title>Linux ptrace so库注入分析 - in0va&#39;S Blog  JustLearnM0re</title>
+
+
+    <meta name="description" content="前言hw期间需要准备红队不同生命周期中使用的工具，作为一名二进制选手（伪），理所应当的承担起了主机层内网权限维持这块的工作输出，包括手法、自动化工具（开源、自写）、rootkit、多版本适配的魔改系统so等等。整理的过程也是学习的过程，这里打算分三部分进行记录，主要包括ptrace注入、预加载、rootkit三块。以下首先进行的是ptrace注入这块的分析，包括原理、源码、其它三个部分。 原理在l">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux ptrace so库注入分析">
+<meta property="og:url" content="https://driverxdw.github.io/2020/07/06/Linux-ptrace-so%E5%BA%93%E6%B3%A8%E5%85%A5%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
+<meta property="og:description" content="前言hw期间需要准备红队不同生命周期中使用的工具，作为一名二进制选手（伪），理所应当的承担起了主机层内网权限维持这块的工作输出，包括手法、自动化工具（开源、自写）、rootkit、多版本适配的魔改系统so等等。整理的过程也是学习的过程，这里打算分三部分进行记录，主要包括ptrace注入、预加载、rootkit三块。以下首先进行的是ptrace注入这块的分析，包括原理、源码、其它三个部分。 原理在l">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://driverxdw.github.io/images/og_image.png">
+<meta property="article:published_time" content="2020-07-06T05:03:54.000Z">
+<meta property="article:modified_time" content="2020-07-06T05:19:50.522Z">
+<meta property="article:author" content="xdw">
+<meta property="article:tag" content="源码分析">
+<meta property="article:tag" content="二进制">
+<meta property="article:tag" content="攻防">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://driverxdw.github.io/images/og_image.png">
+
+
+
+
+
+
+
+<link rel="icon" href="/images/author.jpg">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+<style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+
+    
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+    
+    
+    
+    
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+    
+    
+    
+    
+    
+    
+    
+    <link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+    
+    <script async="" src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-3-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.svg" alt="Linux ptrace so库注入分析" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item"
+                href="/">Home</a>
+                
+                <a class="navbar-item"
+                href="/archives">Archives</a>
+                
+                <a class="navbar-item"
+                href="/categories">Categories</a>
+                
+                <a class="navbar-item"
+                href="/tags">Tags</a>
+                
+                <a class="navbar-item"
+                href="/about">About</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                    
+                    <a class="navbar-item" target="_blank" title="Download on GitHub" href="https://github.com/driverxdw">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                    
+                
+                
+                
+                <a class="navbar-item search" title="搜索" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main">
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+				<span class="level-item has-text-grey">写于2020-07-06</span>
+				
+    <i class="fas fa-calendar-check">&nbsp</i>
+    <time class="level-item has-text-grey" datetime="2020-07-06T05:19:50.522Z">2020-07-06</time>
+	
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/HIDS/">HIDS</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    19 分钟 读完 (大约 2789 个字)
+                </span>
+                
+                
+                <span class="level-item has-text-grey" id="busuanzi_container_page_pv">
+                    <i class="far fa-eye"></i>
+                    <span id="busuanzi_value_page_pv">0</span>次访问
+                </span>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                Linux ptrace so库注入分析
+            
+        </h1>
+        <div class="content">
+            <html><head></head><body><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>hw期间需要准备红队不同生命周期中使用的工具，作为一名二进制选手（伪），理所应当的承担起了主机层内网权限维持这块的工作输出，包括手法、自动化工具（开源、自写）、rootkit、多版本适配的魔改系统so等等。整理的过程也是学习的过程，这里打算分三部分进行记录，主要包括ptrace注入、预加载、rootkit三块。以下首先进行的是ptrace注入这块的分析，包括原理、源码、其它三个部分。</p>
+<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>在linux上，想要去做so库的动态注入无非这么几步：<br>1、注入器（injector）使用ptrace挂载目标进程<br>2、注入器注入加载器（loader）到目标进程<br>3、加载器被触发进行so库注入<br>4、目标进程初始状态还原和卸载ptrace</p>
+<p>下面简单展开一下：</p>
+<a id="more"></a>
+<ul>
+<li>挂载目标进程</li>
+</ul>
+<p>首先需要使用ptrace挂载目标进程。我们的目标是在待注入目标进程调用加载外部的（恶意）so库，这需要我们去修改目标进程的内存空间，使其能够去执行加载恶意so库的libc api；而一般情况下一个进程是无法修改另一个毫不相干的进程内存写入数据的。ptrace的作用这时就体现了出来。ptrace是linux上一个调试专用的系统调用，类似gdb、strace等跟踪调试工具基本都使用到了ptrace，它的功能是通过挂载（attach）指定进程让其成为当前进程的子进程，linux下父进程可以修改子进程的内存空间，ptrace就是利用这一点，让被挂载进程的内存空间可以被修改。<br>如下是ptrace的api（<a href="https://linux.die.net/man/2/ptrace" target="_blank" rel="noopener">https://linux.die.net/man/2/ptrace</a>）：</p>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string"><sys/ptrace.h></span></span></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">long</span> <span class="hljs-title">ptrace</span><span class="hljs-params">(<span class="hljs-keyword">enum</span> __ptrace_request request, <span class="hljs-keyword">pid_t</span> pid, <span class="hljs-keyword">void</span> *addr, <span class="hljs-keyword">void</span> *data)</span></span>;</span><br></pre></td></tr></tbody></table></figure>
+<p>此处的__ptrace_request枚举类型的request参数决定了ptrace将要去执行的动作，ptrace注入需要用到的如下：</p>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">PTRACE_ATTACH（挂载指定pid的进程）</span><br><span class="line">PTRACE_GETREGSET（读取目标进程的寄存器值）</span><br><span class="line">PTRACE_SETREGSET（设置目标进程的寄存器值）</span><br><span class="line">PTRACE_CONT（将控制权扔给目标进程运行）</span><br><span class="line">PTRACE_DETACH（结束卸载跟踪）</span><br><span class="line">PTRACE_PEEKTEXT（读取内容）</span><br><span class="line">PTRACE_POKETEXT（写入内容）</span><br></pre></td></tr></tbody></table></figure>
+
+
+<ul>
+<li>加载器注入</li>
+</ul>
+<p>目标进程被挂载以后，注入器进程就可以修改目标进程内存空间去注入加载器了，一般来说可以将加载器代码注入到进程的头部（未开始运行），或一段连续的nop区，如果注入的是其它位置，可能会出现被修改内存的二次使用等问题。如果将加载器注入到进程头部，则需要做下内存数据备份，保证ptrace退出后的子进程正常运行。加载器注入后，注入器将修改子进程当前程序计数器（eip）的值，使其指向加载器，最后将控制权移交给子进程。</p>
+<ul>
+<li>加载器触发</li>
+</ul>
+<p>正常情况下子进程将顺利执行加载器代码，加载器会为待加载的so库路径字符串分配内存空间，并获取其参数内存地址；之后调用<strong>libc_dlopen_mode函数去加载指定路径的so库。一般来说加载so库可以选择进程默认链接的libc.so中自带的</strong>libc_dlopen_mode函数，而不使用非默认加载的libdl.so中的dlopen。加载器要注意结束后需要将控制权交给注入器进程（int3中断），因为还要去恢复一下原始状态。</p>
+<ul>
+<li>状态还原</li>
+</ul>
+<p>so库注入完毕后要注意恢复原本的进程内存空间状态，包括被修改的寄存器以及被覆写的内存。还原完成后结束ptrace的跟踪，将控制权最终返回给子进程。</p>
+<h1 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h1><p>这边拿开源的linux-inject项目做一波分析：<br><img src="https://cdn.nlark.com/yuque/0/2020/png/1567215/1593965721819-f578407f-951b-47db-a97d-5f728e0e8731.png#align=left&display=inline&height=307&margin=%5Bobject%20Object%5D&name=image.png&originHeight=614&originWidth=610&size=64725&status=done&style=none&width=305" alt="image.png"><br>项目结构还是很清晰的，三种架构的injector注入器实现，封装的ptrace、utils函数调用的头文件和函数实现，以及测试so库和测试目标程序。主要关注点还是注入器的实现。<br>injector部分的代码非常简单清晰，先从main开始：</p>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span>(argc < <span class="hljs-number">4</span>)</span><br><span class="line">{</span><br><span class="line">    usage(argv[<span class="hljs-number">0</span>]);</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;</span><br><span class="line">}</span><br><span class="line"><span class="hljs-keyword">char</span>* command = argv[<span class="hljs-number">1</span>];</span><br><span class="line"><span class="hljs-keyword">char</span>* commandArg = argv[<span class="hljs-number">2</span>];</span><br><span class="line"><span class="hljs-keyword">char</span>* libname = argv[<span class="hljs-number">3</span>];</span><br><span class="line"><span class="hljs-keyword">char</span>* libPath = realpath(libname, <span class="hljs-literal">NULL</span>);</span><br><span class="line"><span class="hljs-keyword">char</span>* processName = <span class="hljs-literal">NULL</span>;</span><br><span class="line"><span class="hljs-keyword">pid_t</span> target = <span class="hljs-number">0</span>;</span><br><span class="line"><span class="hljs-keyword">if</span>(!libPath)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">"can't find file \"%s\"\n"</span>, libname);</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;</span><br><span class="line">}</span><br><span class="line"><span class="hljs-keyword">if</span>(!<span class="hljs-built_in">strcmp</span>(command, <span class="hljs-string">"-n"</span>))</span><br><span class="line">{</span><br><span class="line">    processName = commandArg;</span><br><span class="line">    target = findProcessByName(processName);</span><br><span class="line">    <span class="hljs-keyword">if</span>(target == <span class="hljs-number">-1</span>)</span><br><span class="line">    {</span><br><span class="line">        <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">"doesn't look like a process named \"%s\" is running right now\n"</span>, processName);</span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;</span><br><span class="line">    }</span><br><span class="line">    <span class="hljs-built_in">printf</span>(<span class="hljs-string">"targeting process \"%s\" with pid %d\n"</span>, processName, target);</span><br><span class="line">}</span><br><span class="line"><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(!<span class="hljs-built_in">strcmp</span>(command, <span class="hljs-string">"-p"</span>))</span><br><span class="line">{</span><br><span class="line">    target = atoi(commandArg);</span><br><span class="line">    <span class="hljs-built_in">printf</span>(<span class="hljs-string">"targeting process with pid %d\n"</span>, target);</span><br><span class="line">}</span><br><span class="line"><span class="hljs-keyword">else</span></span><br><span class="line">{</span><br><span class="line">    usage(argv[<span class="hljs-number">0</span>]);</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>这边没啥好说的，主要是根据参数确定不同模式，分别使用不同方式获取进程pid。</p>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">int</span> libPathLength = <span class="hljs-built_in">strlen</span>(libPath) + <span class="hljs-number">1</span>;</span><br><span class="line"><span class="hljs-keyword">int</span> mypid = getpid();</span><br><span class="line"><span class="hljs-keyword">long</span> mylibcaddr = getlibcaddr(mypid);</span><br><span class="line"><span class="hljs-keyword">long</span> mallocAddr = getFunctionAddress(<span class="hljs-string">"malloc"</span>);</span><br><span class="line"><span class="hljs-keyword">long</span> freeAddr = getFunctionAddress(<span class="hljs-string">"free"</span>);</span><br><span class="line"><span class="hljs-keyword">long</span> dlopenAddr = getFunctionAddress(<span class="hljs-string">"__libc_dlopen_mode"</span>);</span><br><span class="line"><span class="hljs-keyword">long</span> mallocOffset = mallocAddr - mylibcaddr;</span><br><span class="line"><span class="hljs-keyword">long</span> freeOffset = freeAddr - mylibcaddr;</span><br><span class="line"><span class="hljs-keyword">long</span> dlopenOffset = dlopenAddr - mylibcaddr;</span><br><span class="line"><span class="hljs-keyword">long</span> targetLibcAddr = getlibcaddr(target);</span><br><span class="line"><span class="hljs-keyword">long</span> targetMallocAddr = targetLibcAddr + mallocOffset;</span><br><span class="line"><span class="hljs-keyword">long</span> targetFreeAddr = targetLibcAddr + freeOffset;</span><br><span class="line"><span class="hljs-keyword">long</span> targetDlopenAddr = targetLibcAddr + dlopenOffset;</span><br></pre></td></tr></tbody></table></figure>
+<p>这边是通过自写函数（/proc/pid/maps下取数据）去获取malloc、free及__libc_dlopen_mode的libc函数地址，之后减去libc的加载地址得到偏移，之后加上目标进程libc基址得到三函数在目标进程libc中的真实地址。</p>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">user_regs_struct</span> <span class="hljs-title">oldregs</span>, <span class="hljs-title">regs</span>;</span></span><br><span class="line"><span class="hljs-built_in">memset</span>(&oldregs, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(struct user_regs_struct));</span><br><span class="line"><span class="hljs-built_in">memset</span>(&regs, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(struct user_regs_struct));</span><br><span class="line">ptrace_attach(target);</span><br><span class="line">ptrace_getregs(target, &oldregs);</span><br><span class="line"><span class="hljs-built_in">memcpy</span>(&regs, &oldregs, <span class="hljs-keyword">sizeof</span>(struct user_regs_struct));</span><br><span class="line"><span class="hljs-keyword">long</span> addr = freespaceaddr(target) + <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">long</span>);</span><br><span class="line">regs.rip = addr + <span class="hljs-number">2</span>;</span><br><span class="line">regs.rdi = targetMallocAddr;</span><br><span class="line">regs.rsi = targetFreeAddr;</span><br><span class="line">regs.rdx = targetDlopenAddr;</span><br><span class="line">regs.rcx = libPathLength;</span><br><span class="line">ptrace_setregs(target, &regs);</span><br></pre></td></tr></tbody></table></figure>
+<p>这边开始ptrace挂载目标进程了，获取目标进程当前的所有寄存器状态并保存，然后去/proc/pid/maps下拿到目标进程代码段首地址，因为eip要指向的是当前指令的下一条指令，所以需要将当前地址+2的值赋给eip，让eip指向进程代码段收地址，最后将之前拿到的malloc、free及__libc_dlopen_mode的地址赋给目标进程当前环境下的寄存器，为加载器的代码执行做铺垫。</p>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">size_t</span> injectSharedLibrary_size = (<span class="hljs-keyword">intptr_t</span>)injectSharedLibrary_end - (<span class="hljs-keyword">intptr_t</span>)injectSharedLibrary;</span><br><span class="line"><span class="hljs-keyword">intptr_t</span> injectSharedLibrary_ret = (<span class="hljs-keyword">intptr_t</span>)findRet(injectSharedLibrary_end) - (<span class="hljs-keyword">intptr_t</span>)injectSharedLibrary;</span><br><span class="line"><span class="hljs-keyword">char</span>* backup = <span class="hljs-built_in">malloc</span>(injectSharedLibrary_size * <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">char</span>));</span><br><span class="line">ptrace_read(target, addr, backup, injectSharedLibrary_size);</span><br><span class="line"><span class="hljs-keyword">char</span>* newcode = <span class="hljs-built_in">malloc</span>(injectSharedLibrary_size * <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">char</span>));</span><br><span class="line"><span class="hljs-built_in">memset</span>(newcode, <span class="hljs-number">0</span>, injectSharedLibrary_size * <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">char</span>));</span><br><span class="line"><span class="hljs-built_in">memcpy</span>(newcode, injectSharedLibrary, injectSharedLibrary_size - <span class="hljs-number">1</span>);</span><br><span class="line">newcode[injectSharedLibrary_ret] = INTEL_INT3_INSTRUCTION;</span><br><span class="line">ptrace_write(target, addr, newcode, injectSharedLibrary_size);</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">injectSharedLibrary</span><span class="hljs-params">(<span class="hljs-keyword">long</span> mallocaddr, <span class="hljs-keyword">long</span> freeaddr, <span class="hljs-keyword">long</span> dlopenaddr)</span></span></span><br><span class="line"><span class="hljs-function"></span>{</span><br><span class="line">	<span class="hljs-keyword">asm</span>(</span><br><span class="line">		<span class="hljs-string">"push %rsi \n"</span></span><br><span class="line">		<span class="hljs-string">"push %rdx"</span></span><br><span class="line">	);</span><br><span class="line">	<span class="hljs-keyword">asm</span>(</span><br><span class="line">		<span class="hljs-string">"push %r9 \n"</span></span><br><span class="line">		<span class="hljs-string">"mov %rdi,%r9 \n"</span></span><br><span class="line">		<span class="hljs-string">"mov %rcx,%rdi \n"</span>	</span><br><span class="line">		<span class="hljs-string">"callq *%r9 \n"</span> # <span class="hljs-built_in">malloc</span></span><br><span class="line">		<span class="hljs-string">"pop %r9 \n"</span></span><br><span class="line">		<span class="hljs-string">"int $3"</span></span><br><span class="line">	);</span><br><span class="line">	<span class="hljs-keyword">asm</span>(</span><br><span class="line">		<span class="hljs-string">"pop %rdx \n"</span></span><br><span class="line">		<span class="hljs-string">"push %r9 \n"</span></span><br><span class="line">		<span class="hljs-string">"mov %rdx,%r9 \n"</span></span><br><span class="line">		<span class="hljs-string">"mov %rax,%rdi \n</span></span><br><span class="line"><span class="hljs-string">		"</span>movabs $<span class="hljs-number">1</span>,%rsi \n<span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">		"</span>callq *%r9 \n<span class="hljs-string">" # dlopenaddr</span></span><br><span class="line"><span class="hljs-string">		"</span>pop %r9 \n<span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">		"</span><span class="hljs-keyword">int</span> $<span class="hljs-number">3</span><span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">	);</span></span><br><span class="line"><span class="hljs-string">	asm(</span></span><br><span class="line"><span class="hljs-string">		"</span>mov %rax,%rdi \n<span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">		"</span>pop %rsi \n<span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">		"</span>push %rbx \n<span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">		"</span>mov %rsi,%rbx \n<span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">		"</span><span class="hljs-keyword">xor</span> %rsi,%rsi \n<span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">		"</span><span class="hljs-keyword">int</span> $<span class="hljs-number">3</span> \n<span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">		"</span>callq *%rbx \n<span class="hljs-string">" # free</span></span><br><span class="line"><span class="hljs-string">		"</span>pop %rbx<span class="hljs-string">"</span></span><br><span class="line"><span class="hljs-string">	);</span></span><br><span class="line"><span class="hljs-string">}</span></span><br><span class="line"><span class="hljs-string">void injectSharedLibrary_end()</span></span><br><span class="line"><span class="hljs-string">{</span></span><br><span class="line"><span class="hljs-string">}</span></span><br></pre></td></tr></tbody></table></figure>
+<p>injectSharedLibrary就是加载器负责加载so，这边首先将injectSharedLibrary与injectSharedLibrary_end地址相减拿到injectSharedLibrary函数的字节码长度，之后在加载器代码底部插入int3指令（加载器代码执行完后将控制权交给控制器进行内存空间恢复），同时备份目标进程首地址与injectSharedLibrary代码长度相同size的字节码，最后将加载器代码覆写进子进程首地址后injectSharedLibrary_size大小的内存空间，完成加载器的代码注入。</p>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">ptrace_cont(target);</span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">user_regs_struct</span> <span class="hljs-title">malloc_regs</span>;</span></span><br><span class="line"><span class="hljs-built_in">memset</span>(&malloc_regs, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(struct user_regs_struct));</span><br><span class="line">ptrace_getregs(target, &malloc_regs);</span><br><span class="line"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> targetBuf = malloc_regs.rax;</span><br><span class="line"><span class="hljs-keyword">if</span>(targetBuf == <span class="hljs-number">0</span>)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">"malloc() failed to allocate memory\n"</span>);</span><br><span class="line">    restoreStateAndDetach(target, addr, backup, injectSharedLibrary_size, oldregs);</span><br><span class="line">    <span class="hljs-built_in">free</span>(backup);</span><br><span class="line">    <span class="hljs-built_in">free</span>(newcode);</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;</span><br><span class="line">}</span><br><span class="line">ptrace_write(target, targetBuf, libPath, libPathLength);</span><br><span class="line">ptrace_cont(target);</span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">user_regs_struct</span> <span class="hljs-title">dlopen_regs</span>;</span></span><br><span class="line"><span class="hljs-built_in">memset</span>(&dlopen_regs, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(struct user_regs_struct));</span><br><span class="line">ptrace_getregs(target, &dlopen_regs);</span><br><span class="line"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> libAddr = dlopen_regs.rax;</span><br><span class="line"><span class="hljs-keyword">if</span>(libAddr == <span class="hljs-number">0</span>)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">"__libc_dlopen_mode() failed to load %s\n"</span>, libname);</span><br><span class="line">    restoreStateAndDetach(target, addr, backup, injectSharedLibrary_size, oldregs);</span><br><span class="line">    <span class="hljs-built_in">free</span>(backup);</span><br><span class="line">    <span class="hljs-built_in">free</span>(newcode);</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;</span><br><span class="line">}</span><br><span class="line"><span class="hljs-keyword">if</span>(checkloaded(target, libname))</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-built_in">printf</span>(<span class="hljs-string">"\"%s\" successfully injected\n"</span>, libname);</span><br><span class="line">}</span><br><span class="line"><span class="hljs-keyword">else</span></span><br><span class="line">{</span><br><span class="line">    <span class="hljs-built_in">fprintf</span>(<span class="hljs-built_in">stderr</span>, <span class="hljs-string">"could not inject \"%s\"\n"</span>, libname);</span><br><span class="line">}</span><br><span class="line">ptrace_cont(target);</span><br></pre></td></tr></tbody></table></figure>
+<p>这边执行ptrace_cont将控制权交给目标进程，目标进程执行加载器代码首先执行malloc，为待加载so库字符串分配（libPathLength大小的）地址空间，之后int3中断返回注入器上下文根据寄存器中的函数返回值判断malloc是否成功，然后执行ptrace_write将待加载字符串写到前面分配的内存空间中，继续ptrace_cont执行目标进程；目标进程使用__libc_dlpoen_mode打开指定so库后继续中断返回调用进程，同样的，通过寄存器中的函数返回值判断so库是否加载成功，最后继续ptrace_cont调用free释放分配的内存空间（这边貌似没执行到call就返回了）。</p>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">restoreStateAndDetach(target, addr, backup, injectSharedLibrary_size, oldregs);</span><br><span class="line"><span class="hljs-built_in">free</span>(backup);</span><br><span class="line"><span class="hljs-built_in">free</span>(newcode);</span><br><span class="line"><span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">restoreStateAndDetach</span><span class="hljs-params">(<span class="hljs-keyword">pid_t</span> target, <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> addr, <span class="hljs-keyword">void</span>* backup, <span class="hljs-keyword">int</span> datasize, struct REG_TYPE oldregs)</span></span></span><br><span class="line"><span class="hljs-function"></span>{</span><br><span class="line">	ptrace_write(target, addr, backup, datasize);</span><br><span class="line">	ptrace_setregs(target, &oldregs);</span><br><span class="line">	ptrace_detach(target);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>最后恢复被注入进程的环境，包括代码段内存和寄存器，然后ptrace_detach结束ptrace。</p>
+<h1 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h1><p>一般来说so库注入用在攻击上听到的比较多，经常是在拿到主机权限后进行权限维持和后渗透，以及给游戏做破解做热补丁等等。在权限维持领域来说，与ld_preload技术相比较而言各有优劣，展开来讲，so注入可以去动态修改目标进程，即使目标进程已经运行，而ld_preload无法对当前未创建的进程生效；so库注入相比ld_preload而言更隐蔽；同时如果想要改变程序的执行流程一般so注入是要去做hook的，相对来说比较复杂；ptrace过程中的中断和执行流程改变在多线程环境下也容易出现并发问题。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>业务导向的结果就是小本本上记下的待研究todolist越来越多，感慨时间有限而学海无涯，东西太多，学不完了。</p>
+<p>参考链接：<br><a href="https://jmpews.github.io/2016/12/27/pwn/linux%E8%BF%9B%E7%A8%8B%E5%8A%A8%E6%80%81so%E6%B3%A8%E5%85%A5/" target="_blank" rel="noopener">https://jmpews.github.io/2016/12/27/pwn/linux%E8%BF%9B%E7%A8%8B%E5%8A%A8%E6%80%81so%E6%B3%A8%E5%85%A5/</a><br><a href="https://github.com/gaffe23/linux-inject/blob/master/slides_BHArsenal2015.pdf" target="_blank" rel="noopener">https://github.com/gaffe23/linux-inject/blob/master/slides_BHArsenal2015.pdf</a><br><a href="https://payloads.online/archivers/2020-01-01/2" target="_blank" rel="noopener">https://payloads.online/archivers/2020-01-01/2</a></p>
+</body></html>
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/" rel="tag">二进制</a>, <a class="has-link-grey -link" href="/tags/%E6%94%BB%E9%98%B2/" rel="tag">攻防</a>, <a class="has-link-grey -link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>支付宝</span>
+    <div class="qrcode"><img src="/images/alipay.png" alt="支付宝"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>微信</span>
+    <div class="qrcode"><img src="/images/weixin.png" alt="微信"></div>
+</a>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2020/07/06/Clion%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">Clion源码调试问题记录</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/10/29/DameWare-Remote-Support%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+                <span class="level-item">DameWare Remote Support缓冲区溢出漏洞复现</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered" style="flex-shrink: 1">
+                <div>
+                    
+                    <figure class="image is-128x128 has-mb-6">
+                        <img class="" src="/images/author.jpg" alt="XDW">
+                    </figure>
+                    
+                    <p class="is-size-4 is-block">
+                        XDW
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        Security/HIDS/Kernel
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>China,Hangzhou</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        文章
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        52
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        分类
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        29
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        标签
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        43
+                    </p>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/driverxdw" target="_blank">
+                关注我</a>
+        </div>
+        
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank"
+                title="Github" href="https://github.com/ppoffice">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank"
+                title="Facebook" href="https://facebook.com">
+                
+                <i class="fab fa-facebook"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank"
+                title="Twitter" href="https://twitter.com">
+                
+                <i class="fab fa-twitter"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank"
+                title="Dribbble" href="https://dribbble.com">
+                
+                <i class="fab fa-dribbble"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank"
+                title="RSS" href="/">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            友链
+        </h3>
+        <ul class="menu-list">
+        
+            <li>
+                <a class="level is-mobile" href="https://blog.ixuchao.cn/" target="_blank">
+                    <span class="level-left">
+                        <span class="level-item">Archerx&#39;s Blog</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">blog.ixuchao.cn</span>
+                    </span>
+                </a>
+            </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                分类
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/2018%E5%9B%BD%E8%B5%9B/">
+            <span class="level-start">
+                <span class="level-item">2018国赛</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/2019%E5%9B%BD%E8%B5%9B/">
+            <span class="level-start">
+                <span class="level-item">2019国赛</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/CTF/">
+            <span class="level-start">
+                <span class="level-item">CTF</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Defcon-Group-010/">
+            <span class="level-start">
+                <span class="level-item">Defcon_Group_010</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Fuzz/">
+            <span class="level-start">
+                <span class="level-item">Fuzz</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/HIDS/">
+            <span class="level-start">
+                <span class="level-item">HIDS</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/HTTP/">
+            <span class="level-start">
+                <span class="level-item">HTTP</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/ISITDTU-CTF/">
+            <span class="level-start">
+                <span class="level-item">ISITDTU_CTF</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/IoT/">
+            <span class="level-start">
+                <span class="level-item">IoT</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/PWN%E7%BB%83%E4%B9%A0/">
+            <span class="level-start">
+                <span class="level-item">PWN练习</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">6</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Python/">
+            <span class="level-start">
+                <span class="level-item">Python</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/RE/">
+            <span class="level-start">
+                <span class="level-item">RE</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Tools/">
+            <span class="level-start">
+                <span class="level-item">Tools</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/XMAN%E5%A4%8F%E4%BB%A4%E8%90%A5/">
+            <span class="level-start">
+                <span class="level-item">XMAN夏令营</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">5</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/pwn%E7%BB%83%E4%B9%A0/">
+            <span class="level-start">
+                <span class="level-item">pwn练习</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E4%B8%8A%E6%B5%B7%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E8%B5%9B/">
+            <span class="level-start">
+                <span class="level-item">上海网络安全大赛</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E4%B8%96%E5%AE%89%E6%9D%AF/">
+            <span class="level-start">
+                <span class="level-item">世安杯</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E5%8D%8F%E8%AE%AE/">
+            <span class="level-start">
+                <span class="level-item">协议</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%80%BB%E7%BB%93/">
+            <span class="level-start">
+                <span class="level-item">总结</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%B5%85%E8%B0%88%E9%9A%8F%E7%AC%94/">
+            <span class="level-start">
+                <span class="level-item">浅谈随笔</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E6%BC%8F%E6%B4%9E/">
+            <span class="level-start">
+                <span class="level-item">漏洞</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E7%9C%81%E4%BF%A1%E5%AE%89/">
+            <span class="level-start">
+                <span class="level-item">省信安</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E7%A0%B4%E8%A7%A3%E4%B9%8B%E8%B7%AF/">
+            <span class="level-start">
+                <span class="level-item">破解之路</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">2</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E7%BD%91%E9%BC%8E%E6%9D%AF/">
+            <span class="level-start">
+                <span class="level-item">网鼎杯</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E8%99%9A%E6%8B%9F%E5%8C%96/">
+            <span class="level-start">
+                <span class="level-item">虚拟化</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E8%99%9A%E6%8B%9F%E6%9C%BA/">
+            <span class="level-start">
+                <span class="level-item">虚拟机</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
+            <span class="level-start">
+                <span class="level-item">读书笔记</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E9%9D%A2%E8%AF%95/">
+            <span class="level-start">
+                <span class="level-item">面试</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE/">
+            <span class="level-start">
+                <span class="level-item">项目</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            最新文章
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/2020/07/07/%E5%85%B3%E4%BA%8E%E6%AF%95%E4%B8%9A%E5%85%A5%E8%81%8C%E5%90%8E%E7%9A%84%E6%96%B0%E8%A7%84%E5%88%92/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="关于毕业入职后的新规划">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-07-06T17:22:25.000Z">2020-07-07</time></div>
+                    <a href="/2020/07/07/%E5%85%B3%E4%BA%8E%E6%AF%95%E4%B8%9A%E5%85%A5%E8%81%8C%E5%90%8E%E7%9A%84%E6%96%B0%E8%A7%84%E5%88%92/" class="title has-link-black-ter is-size-6 has-text-weight-normal">关于毕业入职后的新规划</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/%E6%80%BB%E7%BB%93/">总结</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/07/06/Clion%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Clion源码调试问题记录">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-07-06T14:48:32.000Z">2020-07-06</time></div>
+                    <a href="/2020/07/06/Clion%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95/" class="title has-link-black-ter is-size-6 has-text-weight-normal">Clion源码调试问题记录</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/HIDS/">HIDS</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2020/07/06/Linux-ptrace-so%E5%BA%93%E6%B3%A8%E5%85%A5%E5%88%86%E6%9E%90/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Linux ptrace so库注入分析">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2020-07-06T05:03:54.000Z">2020-07-06</time></div>
+                    <a href="/2020/07/06/Linux-ptrace-so%E5%BA%93%E6%B3%A8%E5%85%A5%E5%88%86%E6%9E%90/" class="title has-link-black-ter is-size-6 has-text-weight-normal">Linux ptrace so库注入分析</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/HIDS/">HIDS</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/10/29/DameWare-Remote-Support%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/gallery/thumbnails/4.png" alt="DameWare Remote Support缓冲区溢出漏洞复现">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-10-29T15:55:57.000Z">2019-10-29</time></div>
+                    <a href="/2019/10/29/DameWare-Remote-Support%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="title has-link-black-ter is-size-6 has-text-weight-normal">DameWare Remote Support缓冲区溢出漏洞复现</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2019/10/22/BadUsb%E4%BB%8E%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90%E5%88%B0%E5%AE%9E%E6%88%98%E6%B8%97%E9%80%8F/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/gallery/thumbnails/3.png" alt="BadUsb从协议分析到实战渗透">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-10-22T15:58:39.000Z">2019-10-22</time></div>
+                    <a href="/2019/10/22/BadUsb%E4%BB%8E%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90%E5%88%B0%E5%AE%9E%E6%88%98%E6%B8%97%E9%80%8F/" class="title has-link-black-ter is-size-6 has-text-weight-normal">BadUsb从协议分析到实战渗透</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+            <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            标签云
+        </h3>
+        <a href="/tags/AWD/" style="font-size: 10px;">AWD</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CTF/" style="font-size: 20px;">CTF</a> <a href="/tags/Fuzz/" style="font-size: 13.33px;">Fuzz</a> <a href="/tags/IDA/" style="font-size: 10px;">IDA</a> <a href="/tags/IoT/" style="font-size: 11.67px;">IoT</a> <a href="/tags/NTP/" style="font-size: 10px;">NTP</a> <a href="/tags/OD/" style="font-size: 10px;">OD</a> <a href="/tags/PWN/" style="font-size: 18.33px;">PWN</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RE/" style="font-size: 16.67px;">RE</a> <a href="/tags/Tools/" style="font-size: 13.33px;">Tools</a> <a href="/tags/WP/" style="font-size: 10px;">WP</a> <a href="/tags/Windows%E9%80%86%E5%90%91/" style="font-size: 10px;">Windows逆向</a> <a href="/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/" style="font-size: 11.67px;">二进制</a> <a href="/tags/%E4%BA%BA%E7%94%9F/" style="font-size: 10px;">人生</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E4%BF%9D%E6%8A%A4/" style="font-size: 10px;">代码保护</a> <a href="/tags/%E5%8D%8F%E8%AE%AE/" style="font-size: 10px;">协议</a> <a href="/tags/%E5%8E%9F%E7%90%86/" style="font-size: 10px;">原理</a> <a href="/tags/%E5%A4%8D%E7%8E%B0/" style="font-size: 10px;">复现</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 10px;">工具</a> <a href="/tags/%E5%BC%80%E5%8F%91/" style="font-size: 11.67px;">开发</a> <a href="/tags/%E6%80%BB%E7%BB%93/" style="font-size: 15px;">总结</a> <a href="/tags/%E6%84%9F%E6%82%9F/" style="font-size: 11.67px;">感悟</a> <a href="/tags/%E6%94%BB%E9%98%B2/" style="font-size: 10px;">攻防</a> <a href="/tags/%E6%97%A0%E7%BA%BF/" style="font-size: 10px;">无线</a> <a href="/tags/%E6%9C%BA%E5%88%B6/" style="font-size: 10px;">机制</a> <a href="/tags/%E6%B5%85%E8%B0%88%E9%9A%8F%E7%AC%94/" style="font-size: 10px;">浅谈随笔</a> <a href="/tags/%E6%B8%97%E9%80%8F/" style="font-size: 10px;">渗透</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8/" style="font-size: 11.67px;">游戏安全</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 11.67px;">源码分析</a> <a href="/tags/%E6%BC%8F%E6%B4%9E/" style="font-size: 11.67px;">漏洞</a> <a href="/tags/%E7%90%86%E6%83%B3/" style="font-size: 11.67px;">理想</a> <a href="/tags/%E7%A0%B4%E8%A7%A3/" style="font-size: 10px;">破解</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 10px;">硬件</a> <a href="/tags/%E7%BA%A6%E6%9D%9F%E6%B1%82%E8%A7%A3/" style="font-size: 10px;">约束求解</a> <a href="/tags/%E7%BA%BF%E4%B8%8B%E6%94%BB%E9%98%B2/" style="font-size: 10px;">线下攻防</a> <a href="/tags/%E7%BC%96%E8%AF%91%E5%99%A8/" style="font-size: 10px;">编译器</a> <a href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA/" style="font-size: 10px;">虚拟机</a> <a href="/tags/%E8%B0%83%E8%AF%95/" style="font-size: 10px;">调试</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;">路由器</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 10px;">面试</a> <a href="/tags/%E9%A1%B9%E7%9B%AE/" style="font-size: 10px;">项目</a>
+    </div>
+</div>
+        
+            <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            归档
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">4</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">10</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/03/">
+                <span class="level-start">
+                    <span class="level-item">三月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">4</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/08/">
+                <span class="level-start">
+                    <span class="level-item">八月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">9</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">6</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2017/11/">
+                <span class="level-start">
+                    <span class="level-item">十一月 2017</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">5</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2017/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2017</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2017/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2017</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+        
+            <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/AWD/">
+                        <span class="tag">AWD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/C/">
+                        <span class="tag">C++</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/CTF/">
+                        <span class="tag">CTF</span>
+                        <span class="tag is-grey">28</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Fuzz/">
+                        <span class="tag">Fuzz</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/IDA/">
+                        <span class="tag">IDA</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/IoT/">
+                        <span class="tag">IoT</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/NTP/">
+                        <span class="tag">NTP</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/OD/">
+                        <span class="tag">OD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/PWN/">
+                        <span class="tag">PWN</span>
+                        <span class="tag is-grey">24</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Python/">
+                        <span class="tag">Python</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/RE/">
+                        <span class="tag">RE</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Tools/">
+                        <span class="tag">Tools</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/WP/">
+                        <span class="tag">WP</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Windows%E9%80%86%E5%90%91/">
+                        <span class="tag">Windows逆向</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/">
+                        <span class="tag">二进制</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E4%BA%BA%E7%94%9F/">
+                        <span class="tag">人生</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E4%BB%A3%E7%A0%81%E4%BF%9D%E6%8A%A4/">
+                        <span class="tag">代码保护</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%8D%8F%E8%AE%AE/">
+                        <span class="tag">协议</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%8E%9F%E7%90%86/">
+                        <span class="tag">原理</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%A4%8D%E7%8E%B0/">
+                        <span class="tag">复现</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
+                        <span class="tag">工具</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%BC%80%E5%8F%91/">
+                        <span class="tag">开发</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%80%BB%E7%BB%93/">
+                        <span class="tag">总结</span>
+                        <span class="tag is-grey">4</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%84%9F%E6%82%9F/">
+                        <span class="tag">感悟</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%94%BB%E9%98%B2/">
+                        <span class="tag">攻防</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%97%A0%E7%BA%BF/">
+                        <span class="tag">无线</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%9C%BA%E5%88%B6/">
+                        <span class="tag">机制</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%B5%85%E8%B0%88%E9%9A%8F%E7%AC%94/">
+                        <span class="tag">浅谈随笔</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%B8%97%E9%80%8F/">
+                        <span class="tag">渗透</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8/">
+                        <span class="tag">游戏安全</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+                        <span class="tag">源码分析</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BC%8F%E6%B4%9E/">
+                        <span class="tag">漏洞</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%90%86%E6%83%B3/">
+                        <span class="tag">理想</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%A0%B4%E8%A7%A3/">
+                        <span class="tag">破解</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%A1%AC%E4%BB%B6/">
+                        <span class="tag">硬件</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%A6%E6%9D%9F%E6%B1%82%E8%A7%A3/">
+                        <span class="tag">约束求解</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%BF%E4%B8%8B%E6%94%BB%E9%98%B2/">
+                        <span class="tag">线下攻防</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BC%96%E8%AF%91%E5%99%A8/">
+                        <span class="tag">编译器</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA/">
+                        <span class="tag">虚拟机</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E8%B0%83%E8%AF%95/">
+                        <span class="tag">调试</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/">
+                        <span class="tag">路由器</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9D%A2%E8%AF%95/">
+                        <span class="tag">面试</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%A1%B9%E7%9B%AE/">
+                        <span class="tag">项目</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+        
+        </div>
+    
+</div>
+
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen is-hidden-touch is-hidden-desktop-only has-order-3 column-right ">
+    
+        <div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            标签云
+        </h3>
+        <a href="/tags/AWD/" style="font-size: 10px;">AWD</a> <a href="/tags/C/" style="font-size: 10px;">C++</a> <a href="/tags/CTF/" style="font-size: 20px;">CTF</a> <a href="/tags/Fuzz/" style="font-size: 13.33px;">Fuzz</a> <a href="/tags/IDA/" style="font-size: 10px;">IDA</a> <a href="/tags/IoT/" style="font-size: 11.67px;">IoT</a> <a href="/tags/NTP/" style="font-size: 10px;">NTP</a> <a href="/tags/OD/" style="font-size: 10px;">OD</a> <a href="/tags/PWN/" style="font-size: 18.33px;">PWN</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/RE/" style="font-size: 16.67px;">RE</a> <a href="/tags/Tools/" style="font-size: 13.33px;">Tools</a> <a href="/tags/WP/" style="font-size: 10px;">WP</a> <a href="/tags/Windows%E9%80%86%E5%90%91/" style="font-size: 10px;">Windows逆向</a> <a href="/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/" style="font-size: 11.67px;">二进制</a> <a href="/tags/%E4%BA%BA%E7%94%9F/" style="font-size: 10px;">人生</a> <a href="/tags/%E4%BB%A3%E7%A0%81%E4%BF%9D%E6%8A%A4/" style="font-size: 10px;">代码保护</a> <a href="/tags/%E5%8D%8F%E8%AE%AE/" style="font-size: 10px;">协议</a> <a href="/tags/%E5%8E%9F%E7%90%86/" style="font-size: 10px;">原理</a> <a href="/tags/%E5%A4%8D%E7%8E%B0/" style="font-size: 10px;">复现</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 10px;">工具</a> <a href="/tags/%E5%BC%80%E5%8F%91/" style="font-size: 11.67px;">开发</a> <a href="/tags/%E6%80%BB%E7%BB%93/" style="font-size: 15px;">总结</a> <a href="/tags/%E6%84%9F%E6%82%9F/" style="font-size: 11.67px;">感悟</a> <a href="/tags/%E6%94%BB%E9%98%B2/" style="font-size: 10px;">攻防</a> <a href="/tags/%E6%97%A0%E7%BA%BF/" style="font-size: 10px;">无线</a> <a href="/tags/%E6%9C%BA%E5%88%B6/" style="font-size: 10px;">机制</a> <a href="/tags/%E6%B5%85%E8%B0%88%E9%9A%8F%E7%AC%94/" style="font-size: 10px;">浅谈随笔</a> <a href="/tags/%E6%B8%97%E9%80%8F/" style="font-size: 10px;">渗透</a> <a href="/tags/%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8/" style="font-size: 11.67px;">游戏安全</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 11.67px;">源码分析</a> <a href="/tags/%E6%BC%8F%E6%B4%9E/" style="font-size: 11.67px;">漏洞</a> <a href="/tags/%E7%90%86%E6%83%B3/" style="font-size: 11.67px;">理想</a> <a href="/tags/%E7%A0%B4%E8%A7%A3/" style="font-size: 10px;">破解</a> <a href="/tags/%E7%A1%AC%E4%BB%B6/" style="font-size: 10px;">硬件</a> <a href="/tags/%E7%BA%A6%E6%9D%9F%E6%B1%82%E8%A7%A3/" style="font-size: 10px;">约束求解</a> <a href="/tags/%E7%BA%BF%E4%B8%8B%E6%94%BB%E9%98%B2/" style="font-size: 10px;">线下攻防</a> <a href="/tags/%E7%BC%96%E8%AF%91%E5%99%A8/" style="font-size: 10px;">编译器</a> <a href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA/" style="font-size: 10px;">虚拟机</a> <a href="/tags/%E8%B0%83%E8%AF%95/" style="font-size: 10px;">调试</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 10px;">路由器</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 10px;">面试</a> <a href="/tags/%E9%A1%B9%E7%9B%AE/" style="font-size: 10px;">项目</a>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            归档
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">4</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">10</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/03/">
+                <span class="level-start">
+                    <span class="level-item">三月 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">4</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/08/">
+                <span class="level-start">
+                    <span class="level-item">八月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">9</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/07/">
+                <span class="level-start">
+                    <span class="level-item">七月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">6</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/05/">
+                <span class="level-start">
+                    <span class="level-item">五月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/04/">
+                <span class="level-start">
+                    <span class="level-item">四月 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2017/11/">
+                <span class="level-start">
+                    <span class="level-item">十一月 2017</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">5</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2017/10/">
+                <span class="level-start">
+                    <span class="level-item">十月 2017</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2017/09/">
+                <span class="level-start">
+                    <span class="level-item">九月 2017</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                标签
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/AWD/">
+                        <span class="tag">AWD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/C/">
+                        <span class="tag">C++</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/CTF/">
+                        <span class="tag">CTF</span>
+                        <span class="tag is-grey">28</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Fuzz/">
+                        <span class="tag">Fuzz</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/IDA/">
+                        <span class="tag">IDA</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/IoT/">
+                        <span class="tag">IoT</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/NTP/">
+                        <span class="tag">NTP</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/OD/">
+                        <span class="tag">OD</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/PWN/">
+                        <span class="tag">PWN</span>
+                        <span class="tag is-grey">24</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Python/">
+                        <span class="tag">Python</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/RE/">
+                        <span class="tag">RE</span>
+                        <span class="tag is-grey">5</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Tools/">
+                        <span class="tag">Tools</span>
+                        <span class="tag is-grey">3</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/WP/">
+                        <span class="tag">WP</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Windows%E9%80%86%E5%90%91/">
+                        <span class="tag">Windows逆向</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/">
+                        <span class="tag">二进制</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E4%BA%BA%E7%94%9F/">
+                        <span class="tag">人生</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E4%BB%A3%E7%A0%81%E4%BF%9D%E6%8A%A4/">
+                        <span class="tag">代码保护</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%8D%8F%E8%AE%AE/">
+                        <span class="tag">协议</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%8E%9F%E7%90%86/">
+                        <span class="tag">原理</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%A4%8D%E7%8E%B0/">
+                        <span class="tag">复现</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%B7%A5%E5%85%B7/">
+                        <span class="tag">工具</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E5%BC%80%E5%8F%91/">
+                        <span class="tag">开发</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%80%BB%E7%BB%93/">
+                        <span class="tag">总结</span>
+                        <span class="tag is-grey">4</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%84%9F%E6%82%9F/">
+                        <span class="tag">感悟</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%94%BB%E9%98%B2/">
+                        <span class="tag">攻防</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%97%A0%E7%BA%BF/">
+                        <span class="tag">无线</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%9C%BA%E5%88%B6/">
+                        <span class="tag">机制</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%B5%85%E8%B0%88%E9%9A%8F%E7%AC%94/">
+                        <span class="tag">浅谈随笔</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%B8%97%E9%80%8F/">
+                        <span class="tag">渗透</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8/">
+                        <span class="tag">游戏安全</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+                        <span class="tag">源码分析</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E6%BC%8F%E6%B4%9E/">
+                        <span class="tag">漏洞</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%90%86%E6%83%B3/">
+                        <span class="tag">理想</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%A0%B4%E8%A7%A3/">
+                        <span class="tag">破解</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%A1%AC%E4%BB%B6/">
+                        <span class="tag">硬件</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%A6%E6%9D%9F%E6%B1%82%E8%A7%A3/">
+                        <span class="tag">约束求解</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BA%BF%E4%B8%8B%E6%94%BB%E9%98%B2/">
+                        <span class="tag">线下攻防</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E7%BC%96%E8%AF%91%E5%99%A8/">
+                        <span class="tag">编译器</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA/">
+                        <span class="tag">虚拟机</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E8%B0%83%E8%AF%95/">
+                        <span class="tag">调试</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E8%B7%AF%E7%94%B1%E5%99%A8/">
+                        <span class="tag">路由器</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%9D%A2%E8%AF%95/">
+                        <span class="tag">面试</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/%E9%A1%B9%E7%9B%AE/">
+                        <span class="tag">项目</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+</div>
+
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <img src="/images/logo.svg" alt="Linux ptrace so库注入分析" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2020 xdw&nbsp;
+                Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> & <a
+                        href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a>
+                
+                <br>
+                <span id="busuanzi_container_site_uv">
+                共<span id="busuanzi_value_site_uv">0</span>个访客
+                </span>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("zh-CN");</script>
+
+<script>
+var IcarusThemeSettings = {
+    article: {
+        highlight: {
+            clipboard: true,
+            fold: 'folded'
+        }
+    }
+};
+</script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+
+
+
+    
+    
+<script src="/js/animation.js"></script>
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+<script src="/js/gallery.js" defer></script>
+
+    
+    
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/" target="_blank" rel="noopener">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+    
+    
+<a id="back-to-top" title="回到顶端" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="想要查找什么..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: '文章',
+                PAGES: '页面',
+                CATEGORIES: '分类',
+                TAGS: '标签',
+                UNTITLED: '(无标题)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

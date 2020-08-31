@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x01 AFL-Fuzz介绍模糊测试(Fuzzing)技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究员发现漏洞的首选技术。AFL-Fuzz、LibFuzzer、honggFuzz等操作简单友好的工具相继出现，大大降低了漏洞挖掘的门槛。AFL(American Fuzzy Lop)是由安全研究员Michał Zalewski（@lcamtuf）开发的一款基于覆盖引导(Coverage-">
@@ -40,7 +40,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2019/04/17/AFL-Fuzz%E6%8A%80%E6%9C%AF%E5%88%9D%E6%8E%A2/%E5%B4%A9%E6%BA%83.png">
 <meta property="article:published_time" content="2019-04-16T16:18:51.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.368Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="Fuzz">
 <meta property="article:tag" content="总结">
 <meta name="twitter:card" content="summary">
@@ -154,29 +154,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -214,7 +194,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -228,7 +210,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -242,6 +223,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -274,8 +265,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/17/AFL-Fuzz%E6%8A%80%E6%9C%AF%E5%88%9D%E6%8E%A2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -318,6 +309,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -327,7 +325,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="0x01-AFL-Fuzz介绍"><a href="#0x01-AFL-Fuzz介绍" class="headerlink" title="0x01 AFL-Fuzz介绍"></a>0x01 AFL-Fuzz介绍</h2><p>模糊测试(Fuzzing)技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究员发现漏洞的首选技术。AFL-Fuzz、LibFuzzer、honggFuzz等操作简单友好的工具相继出现，大大降低了漏洞挖掘的门槛。AFL(American Fuzzy Lop)是由安全研究员Michał Zalewski（@lcamtuf）开发的一款基于覆盖引导(Coverage-guided)的模糊测试工具，它通过记录输入样本的代码覆盖率，从而调整输入样本以提高覆盖率，增加发现漏洞的概率。AFL-Fuzz通过在相关代码处进行插桩，来对程序内部的执行路径进行探索，挖掘可能存在的漏洞如栈溢出、堆溢出、UAF、DOUBLEFREE等等，由于要对程序进行插桩，所以AFL-Fuzz主要用于对开源软件进行测试，当然配合QEMU等工具也可以对闭源代码进行Fuzzing，不过执行效率会受影响。<br>组成：</p>
+        <h2 id="0x01-AFL-Fuzz介绍"><a href="#0x01-AFL-Fuzz介绍" class="headerlink" title="0x01 AFL-Fuzz介绍"></a>0x01 AFL-Fuzz介绍</h2><p>模糊测试(Fuzzing)技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究员发现漏洞的首选技术。AFL-Fuzz、LibFuzzer、honggFuzz等操作简单友好的工具相继出现，大大降低了漏洞挖掘的门槛。AFL(American Fuzzy Lop)是由安全研究员Michał Zalewski（@lcamtuf）开发的一款基于覆盖引导(Coverage-guided)的模糊测试工具，它通过记录输入样本的代码覆盖率，从而调整输入样本以提高覆盖率，增加发现漏洞的概率。AFL-Fuzz通过在相关代码处进行插桩，来对程序内部的执行路径进行探索，挖掘可能存在的漏洞如栈溢出、堆溢出、UAF、DOUBLEFREE等等，由于要对程序进行插桩，所以AFL-Fuzz主要用于对开源软件进行测试，当然配合QEMU等工具也可以对闭源代码进行Fuzzing，不过执行效率会受影响。<br>组成：</p>
 <ul>
 <li>编译器wrapper，该部分用于编译目标代码(afl-gcc、afl-clang等)</li>
 <li>Fuzzer：afl-fuzz，fuzzing的主要工具</li>
@@ -362,7 +360,7 @@
 <p>如果fuzz的程序是从标准输入获取的，那么这边不需要@@，如果是从文件进行读取的，这边需要用@@进行一个替换。  </p>
 <p>这边报错了<br><img src="./%E6%8A%A5%E9%94%99.png" alt="image"><br>设置一下core转储路径  </p>
 <blockquote>
-<p>sudo su<br>echo core >/proc/sys/kernel/core_pattern  </p>
+<p>sudo su<br>echo core &gt;/proc/sys/kernel/core_pattern  </p>
 </blockquote>
 <p>这边又报错了<br><img src="./%E6%8A%A5%E9%94%992.png" alt="iamge"><br>看了下好像bmp2tiff用到了so库，由于没有对so库进行插桩，所以这边出现了错误。解决方法有两个：  </p>
 <ul>
@@ -388,7 +386,7 @@
 <p>这边<a href="http://lcamtuf.coredump.cx/afl/status_screen.txt" target="_blank" rel="noopener">官网</a>有详述。 </p>
 <h2 id="0x07-Crash"><a href="#0x07-Crash" class="headerlink" title="0x07 Crash"></a>0x07 Crash</h2><p>可以看到AFL在output文件夹下生成了crash和hangs的样本<br><img src="./%E5%B4%A9%E6%BA%83.png" alt="image"><br>拿到样本以后可以动态调试走一波，找到崩溃点，看能否进行利用。<br>这边有个相关的内存检测框架Valgrind，它能根据提供的样本进行异常检测，并将漏洞类型和产生漏洞的地址进行输出，测试者可以直接定位。  </p>
 <h2 id="0x08-黑盒"><a href="#0x08-黑盒" class="headerlink" title="0x08 黑盒"></a>0x08 黑盒</h2><p>AFL也支持无源码插桩，这边利用了qemu进行动态二进制插桩，看dalao博客的解释有点类似JIT，贴一下回去慢慢理解  </p>
-<figure class="highlight armasm hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">这是因为QEMU使用<span class="hljs-keyword">basic </span><span class="hljs-keyword">blocks作为翻译单元，利用QEMU做instrumentation，启动很慢的QEMU </span>mode同样使用了一个fork server，和编译期一样，通过把一个已经初始化好的进程镜像，直接拷贝到新的进程中。</span><br><span class="line">所以相当于第一次翻译一个新的<span class="hljs-keyword">basic </span><span class="hljs-keyword">block，这肯定会有必要的延迟，为了解决这个问题AFL </span>forkserver在emulator和父进程之间提供了一个信息管道。</span><br><span class="line">这个信息管道用来通知父进程新添加的<span class="hljs-keyword">blocks的地址，之后把这些blocks放到一个缓存中，以便直接复制到将来的子进程中。</span></span><br><span class="line"><span class="hljs-keyword">但这样处理之后，QEMU模式对目标程序造成2-5倍的减速。</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">这是因为QEMU使用<span class="keyword">basic </span><span class="keyword">blocks作为翻译单元，利用QEMU做instrumentation，启动很慢的QEMU </span>mode同样使用了一个fork server，和编译期一样，通过把一个已经初始化好的进程镜像，直接拷贝到新的进程中。</span><br><span class="line">所以相当于第一次翻译一个新的<span class="keyword">basic </span><span class="keyword">block，这肯定会有必要的延迟，为了解决这个问题AFL </span>forkserver在emulator和父进程之间提供了一个信息管道。</span><br><span class="line">这个信息管道用来通知父进程新添加的<span class="keyword">blocks的地址，之后把这些blocks放到一个缓存中，以便直接复制到将来的子进程中。</span></span><br><span class="line"><span class="keyword">但这样处理之后，QEMU模式对目标程序造成2-5倍的减速。</span></span><br></pre></td></tr></table></figure>
 
 <p>无源码状态下二进制程序的Fuzz首先需要安装QEMU虚拟机，Fuzz的时候著需要增加-Q选项就能在qemu模式下进行fuzzing了。  </p>
 <blockquote>
@@ -397,7 +395,7 @@
 <h2 id="0x09-总结"><a href="#0x09-总结" class="headerlink" title="0x09 总结"></a>0x09 总结</h2><p>听说跑Fuzz烧硬盘，阔怕，以后得上服务器跑了23333333  </p>
 <p>基本就是这样子了，希望能早日挖到属于自己的洞，拿到属于自己的CVE号~  </p>
 <p>队友：醒醒，该敲代码了!!!</p>
-</body></html>
+
     </div>
 
     
@@ -472,10 +470,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -501,6 +529,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

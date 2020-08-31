@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x01 angr简介angr是一个基于python的二进制代码分析工具，能够通过符号执行自动完成对二进制文件的分析。早期的符号执行是静态的，依靠分析程序代码来进行工作，之后引入了动态符号执行，通过模拟指令来运行程序，找出控制流。符号执行:">
@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2019/04/17/angr%E5%88%9D%E6%8E%A2/ais3.png">
 <meta property="article:published_time" content="2019-04-16T16:18:51.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.262Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="Fuzz">
 <meta property="article:tag" content="Tools">
 <meta name="twitter:card" content="summary">
@@ -146,29 +146,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -206,7 +186,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -220,7 +202,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -234,6 +215,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -266,8 +257,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/17/angr%E5%88%9D%E6%8E%A2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -310,6 +301,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -319,9 +317,9 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="0x01-angr简介"><a href="#0x01-angr简介" class="headerlink" title="0x01 angr简介"></a>0x01 angr简介</h2><p>angr是一个基于python的二进制代码分析工具，能够通过符号执行自动完成对二进制文件的分析。早期的符号执行是静态的，依靠分析程序代码来进行工作，之后引入了动态符号执行，通过模拟指令来运行程序，找出控制流。<br>符号执行:</p>
+        <h2 id="0x01-angr简介"><a href="#0x01-angr简介" class="headerlink" title="0x01 angr简介"></a>0x01 angr简介</h2><p>angr是一个基于python的二进制代码分析工具，能够通过符号执行自动完成对二进制文件的分析。早期的符号执行是静态的，依靠分析程序代码来进行工作，之后引入了动态符号执行，通过模拟指令来运行程序，找出控制流。<br>符号执行:</p>
 <a id="more"></a>
-<figure class="highlight angelscript hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">来自维基百科</span><br><span class="line">符号执行 （Symbolic Execution）是一种程序分析技术。其可以通过分析程序来得到让特定代码区域执行的输入。使用符号执行分析一个程序时，该程序会使用符号值作为输入，而非一般执行程序时使用的具体值。在达到目标代码时，分析器可以得到相应的路径约束，然后通过约束求解器来得到可以触发目标代码的具体值。[<span class="hljs-number">1</span>]</span><br><span class="line">符号模拟技术（symbolic simulation）则把类似的思想用于硬件分析。符号计算（Symbolic computation）则用于数学表达式分析。</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">来自维基百科</span><br><span class="line">符号执行 （Symbolic Execution）是一种程序分析技术。其可以通过分析程序来得到让特定代码区域执行的输入。使用符号执行分析一个程序时，该程序会使用符号值作为输入，而非一般执行程序时使用的具体值。在达到目标代码时，分析器可以得到相应的路径约束，然后通过约束求解器来得到可以触发目标代码的具体值。[<span class="number">1</span>]</span><br><span class="line">符号模拟技术（symbolic simulation）则把类似的思想用于硬件分析。符号计算（Symbolic computation）则用于数学表达式分析。</span><br></pre></td></tr></table></figure>
 <p>angr分析程序过程:<br>1、将二进制文件载入angr分析系统<br>2、将二进制程序语言被VEX IR转换为中间语言(IR)<br>3、将IR转化成语义较强的表达形式，方便进一步的分析<br>4、执行分析(静态分析、程序空间符号探索)<br>5、求解，根据符号建立约束关系(claripy)  </p>
 <h2 id="0x02-angr安装"><a href="#0x02-angr安装" class="headerlink" title="0x02 angr安装"></a>0x02 angr安装</h2><p>首先安装依赖库:  </p>
 <blockquote>
@@ -359,10 +357,10 @@
 <p><img src="./ais3.png" alt="image">  </p>
 <p>这个函数本身不复杂，这边手逆也是毫无问题，但如果angr的话，其实可以不用看逻辑，直接跑出来的。  </p>
 <p>这边贴下脚本:  </p>
-<figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">#!/usr/bin/env python</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-string">'''</span></span><br><span class="line"><span class="hljs-string">ais3_crackme has been developed by Tyler Nighswander (tylerni7) for ais3.</span></span><br><span class="line"><span class="hljs-string"></span></span><br><span class="line"><span class="hljs-string">It is an easy crackme challenge. It checks the command line argument.</span></span><br><span class="line"><span class="hljs-string">'''</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">import</span> angr</span><br><span class="line"><span class="hljs-keyword">import</span> claripy</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">main</span><span class="hljs-params">()</span>:</span></span><br><span class="line">    project = angr.Project(<span class="hljs-string">"./ais3_crackme"</span>)</span><br><span class="line">    <span class="hljs-comment">#把ais3载入angr系统</span></span><br><span class="line">    argv1 = claripy.BVS(<span class="hljs-string">"argv1"</span>,<span class="hljs-number">100</span>*<span class="hljs-number">8</span>) <span class="hljs-comment">#因为我们不知道长度，所以这边给100bytes</span></span><br><span class="line">    initial_state = project.factory.entry_state(args=[<span class="hljs-string">"./crackme1"</span>,argv1])<span class="hljs-comment">#获取函数初始化状态</span></span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">#根据初始化的状态创建一条程序执行路径</span></span><br><span class="line">    sm = project.factory.simulation_manager(initial_state)</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">#符号执行程序，直到我们找到通向我们所期望的值的路径</span></span><br><span class="line">    sm.explore(find=<span class="hljs-number">0x400602</span>) <span class="hljs-comment">#0x400602是指向correct的那条路径</span></span><br><span class="line"></span><br><span class="line">    found = sm.found[<span class="hljs-number">0</span>]</span><br><span class="line">    <span class="hljs-comment">#sm.found表示所有通向我们指定地址的路径，一般来说CTF只会有唯一解，也就是路径只会有一条，所以用found[0]</span></span><br><span class="line">    solution = found.solver.eval(argv1, cast_to=bytes)<span class="hljs-comment">#符号解析器solver对argv1进行解析</span></span><br><span class="line"></span><br><span class="line">    print(repr(solution))</span><br><span class="line">    solution = solution[:solution.find(<span class="hljs-string">b"\x00"</span>)]</span><br><span class="line">    print(solution)</span><br><span class="line">    <span class="hljs-keyword">return</span> solution</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">test</span><span class="hljs-params">()</span>:</span></span><br><span class="line">    res = main()</span><br><span class="line">    <span class="hljs-keyword">assert</span> res == <span class="hljs-string">b"ais3{I_tak3_g00d_n0t3s}"</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">'__main__'</span>:</span><br><span class="line">    print(repr(main()))</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">ais3_crackme has been developed by Tyler Nighswander (tylerni7) for ais3.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">It is an easy crackme challenge. It checks the command line argument.</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    project = angr.Project(<span class="string">"./ais3_crackme"</span>)</span><br><span class="line">    <span class="comment">#把ais3载入angr系统</span></span><br><span class="line">    argv1 = claripy.BVS(<span class="string">"argv1"</span>,<span class="number">100</span>*<span class="number">8</span>) <span class="comment">#因为我们不知道长度，所以这边给100bytes</span></span><br><span class="line">    initial_state = project.factory.entry_state(args=[<span class="string">"./crackme1"</span>,argv1])<span class="comment">#获取函数初始化状态</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#根据初始化的状态创建一条程序执行路径</span></span><br><span class="line">    sm = project.factory.simulation_manager(initial_state)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#符号执行程序，直到我们找到通向我们所期望的值的路径</span></span><br><span class="line">    sm.explore(find=<span class="number">0x400602</span>) <span class="comment">#0x400602是指向correct的那条路径</span></span><br><span class="line"></span><br><span class="line">    found = sm.found[<span class="number">0</span>]</span><br><span class="line">    <span class="comment">#sm.found表示所有通向我们指定地址的路径，一般来说CTF只会有唯一解，也就是路径只会有一条，所以用found[0]</span></span><br><span class="line">    solution = found.solver.eval(argv1, cast_to=bytes)<span class="comment">#符号解析器solver对argv1进行解析</span></span><br><span class="line"></span><br><span class="line">    print(repr(solution))</span><br><span class="line">    solution = solution[:solution.find(<span class="string">b"\x00"</span>)]</span><br><span class="line">    print(solution)</span><br><span class="line">    <span class="keyword">return</span> solution</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test</span><span class="params">()</span>:</span></span><br><span class="line">    res = main()</span><br><span class="line">    <span class="keyword">assert</span> res == <span class="string">b"ais3&#123;I_tak3_g00d_n0t3s&#125;"</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    print(repr(main()))</span><br></pre></td></tr></table></figure>
 
 <h2 id="0x05-局限"><a href="#0x05-局限" class="headerlink" title="0x05 局限"></a>0x05 局限</h2><p>angr目前还是用在CTF中比较多，它的局限性很大，一旦程序路径过多，限制条件太复杂，由于其是通过遍历路径和约束求解符号，将会消耗大量的时间和内存。  </p>
-</body></html>
+
     </div>
 
     
@@ -437,10 +435,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -466,6 +494,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

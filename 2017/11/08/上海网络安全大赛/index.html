@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="这道juckcode当时没有做出来，一开始是用ida打开的，然后发现关键函数无法反编译(后来知道是加了花)，后来扔到od里面一步一步也也没有还原出主要逻辑，哎我还是太菜了。之后看了王子昂dalao和画眉师傅写的wp终于成功复现了一波。这道题原理应该是这样的，这个juckcode是一个勒索病毒程序，能把文件加密成.enc(加密英文的简写)格式的文件，我们要做的就是分析出勒索软件的加密逻辑然后还原出原">
@@ -39,7 +39,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2017/11/08/%E4%B8%8A%E6%B5%B7%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E8%B5%9B/8.png">
 <meta property="article:published_time" content="2017-11-07T20:19:55.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.349Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="CTF">
 <meta property="article:tag" content="RE">
 <meta name="twitter:card" content="summary">
@@ -153,29 +153,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -212,7 +192,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -226,7 +208,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -240,6 +221,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -272,8 +263,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2017/11/08/%E4%B8%8A%E6%B5%B7%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E8%B5%9B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -316,6 +307,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -325,15 +323,15 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><p>这道juckcode当时没有做出来，一开始是用ida打开的，然后发现关键函数无法反编译(后来知道是加了花)，后来扔到od里面一步一步也也没有还原出主要逻辑，哎我还是太菜了。之后看了王子昂dalao和画眉师傅写的wp终于成功复现了一波。这道题原理应该是这样的，这个juckcode是一个勒索病毒程序，能把文件加密成.enc(加密英文的简写)格式的文件，我们要做的就是分析出勒索软件的加密逻辑然后还原出原来文件中的内容。<br>我们是首先自己构造一个flag原文件，里面的字符一定不要多，因为这样的话我们在调试程序的时候就可以知道哪里是程序对我们构造的文件进行</p>
+        <p>这道juckcode当时没有做出来，一开始是用ida打开的，然后发现关键函数无法反编译(后来知道是加了花)，后来扔到od里面一步一步也也没有还原出主要逻辑，哎我还是太菜了。之后看了王子昂dalao和画眉师傅写的wp终于成功复现了一波。这道题原理应该是这样的，这个juckcode是一个勒索病毒程序，能把文件加密成.enc(加密英文的简写)格式的文件，我们要做的就是分析出勒索软件的加密逻辑然后还原出原来文件中的内容。<br>我们是首先自己构造一个flag原文件，里面的字符一定不要多，因为这样的话我们在调试程序的时候就可以知道哪里是程序对我们构造的文件进行</p>
 <a id="more"></a>
-<p>操作，不能太多的话是因为字符一多逻辑也就越多，也就越难以分析，所以这里的flag文件中我放的是’hello’这个字符串。将程序扔到od中，首先查找字符串(2333dalao勿喷),发现有./flag,双击找到指令所在地，f8一步步跟下去，然后在01013143这个位置我们突然发现栈上出现了”aGVsbG8=”这个类似base64编码<br><img src="./1.png" alt="logo"><br>在python中用base64 decode解了一下发现果然是base64,然后我们就知道了call 01011350这个函数原来是将flag文件中字符串储存的位置以及ss:[ebp-0x840]这个地址作为参数，将“hello” base64后储存在ebp-0x840为开头的内存空间。<br><img src="./2.png" alt="logo"><br>然后我们继续f8往下走发现程序进行了3次类似的操作:<br>1.对hello的每一个字符进行add 0x40操作，base64后储存在一块新的空间，内容为qKWsrK8=<br><img src="./3.png" alt="logo"><br>2.对1中+0x40以后的数据依次<<0x7，base64后存储在一块新的空间，内容为AIAAAIA=<br><img src="./4.png" alt="logo"><br>3.对2中<<0x7以后的数据进行sub 0x9e，base64后存储在一块新的空间，内容为YuJiYuI=<br>以上操作结束后继续f8跟进发现程序依次循环取四个base64后的字符串的字符拼接成了一个新的字符串’aqYAGKuIVWJAssiAbrYAGKuI88IA’，<br><img src="./5.png" alt="logo"><br>之后通过给’aqYAGKuIVWJAssiAbrYAGKuI88IA’所在的地址下内存访问断点找到了对拼接字符串的操作，但是始终分析不出来进行了什么操作，后来看了两位dalao的wp才知道是对这个字符串进行base64的解码操作。不知道dalao是怎么看出来的，对hello的base64 encode能猜出来，这边的解码就不好猜了，不过这边有个循环计数器的值是0x15，’aqYAGKuIVWJAssiAbrYAGKuI88IA’解码后发现长度刚好也是0x15，要靠猜的话这脑洞也太大了，dalao们肯定不是猜的，回去了解下base64汇编表示。<br><img src="./6.png" alt="logo"><br>解码后继续f8发现有对decode后的字符依次进行add 0x10操作，这是最后一步，得到的结果就是flag.enc的内容。<br><img src="./7.png" alt="logo"><br>知道了加密算法解密就很容易了。再次描述一下加密算法:1.对flag原文件中的内容base64 2.对原文件的字符依次add 0x40后（存储）再次base64 3.对2中存储后的内容依次shl 0x7后(存储)再次进行base64  4.对3中shl 0x7后的数据 sub 0x9e后（存储）再次base64<br>一共进行了四次base64，然后将每次得到的base64后的结果组成一个新的字符串(每个字符串依次取一个)，之后对新拼接成的字符串进行解码操作，解完码后每个字符依次+0x10后输出。</p>
+<p>操作，不能太多的话是因为字符一多逻辑也就越多，也就越难以分析，所以这里的flag文件中我放的是’hello’这个字符串。将程序扔到od中，首先查找字符串(2333dalao勿喷),发现有./flag,双击找到指令所在地，f8一步步跟下去，然后在01013143这个位置我们突然发现栈上出现了”aGVsbG8=”这个类似base64编码<br><img src="./1.png" alt="logo"><br>在python中用base64 decode解了一下发现果然是base64,然后我们就知道了call 01011350这个函数原来是将flag文件中字符串储存的位置以及ss:[ebp-0x840]这个地址作为参数，将“hello” base64后储存在ebp-0x840为开头的内存空间。<br><img src="./2.png" alt="logo"><br>然后我们继续f8往下走发现程序进行了3次类似的操作:<br>1.对hello的每一个字符进行add 0x40操作，base64后储存在一块新的空间，内容为qKWsrK8=<br><img src="./3.png" alt="logo"><br>2.对1中+0x40以后的数据依次&lt;&lt;0x7，base64后存储在一块新的空间，内容为AIAAAIA=<br><img src="./4.png" alt="logo"><br>3.对2中&lt;&lt;0x7以后的数据进行sub 0x9e，base64后存储在一块新的空间，内容为YuJiYuI=<br>以上操作结束后继续f8跟进发现程序依次循环取四个base64后的字符串的字符拼接成了一个新的字符串’aqYAGKuIVWJAssiAbrYAGKuI88IA’，<br><img src="./5.png" alt="logo"><br>之后通过给’aqYAGKuIVWJAssiAbrYAGKuI88IA’所在的地址下内存访问断点找到了对拼接字符串的操作，但是始终分析不出来进行了什么操作，后来看了两位dalao的wp才知道是对这个字符串进行base64的解码操作。不知道dalao是怎么看出来的，对hello的base64 encode能猜出来，这边的解码就不好猜了，不过这边有个循环计数器的值是0x15，’aqYAGKuIVWJAssiAbrYAGKuI88IA’解码后发现长度刚好也是0x15，要靠猜的话这脑洞也太大了，dalao们肯定不是猜的，回去了解下base64汇编表示。<br><img src="./6.png" alt="logo"><br>解码后继续f8发现有对decode后的字符依次进行add 0x10操作，这是最后一步，得到的结果就是flag.enc的内容。<br><img src="./7.png" alt="logo"><br>知道了加密算法解密就很容易了。再次描述一下加密算法:1.对flag原文件中的内容base64 2.对原文件的字符依次add 0x40后（存储）再次base64 3.对2中存储后的内容依次shl 0x7后(存储)再次进行base64  4.对3中shl 0x7后的数据 sub 0x9e后（存储）再次base64<br>一共进行了四次base64，然后将每次得到的base64后的结果组成一个新的字符串(每个字符串依次取一个)，之后对新拼接成的字符串进行解码操作，解完码后每个字符依次+0x10后输出。</p>
 <p>解密脚本如下:</p>
-<figure class="highlight nginx hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-attribute">import</span> base64</span><br><span class="line">import binascii</span><br><span class="line">s=<span class="hljs-string">'FFIF@<span class="hljs-variable">@IqqIH</span><span class="hljs-variable">@sGBBsBHFAHH</span><span class="hljs-variable">@FFIuB</span><span class="hljs-variable">@tvrrHHrFuBD</span><span class="hljs-variable">@qqqHH</span><span class="hljs-variable">@GFtuB</span><span class="hljs-variable">@EIqrHHCDuBsBqurHH</span><span class="hljs-variable">@EuGuB</span><span class="hljs-variable">@trqrHHCDuBsBruvHH</span><span class="hljs-variable">@FFIF</span>@<span class="hljs-variable">@AHqrHHEEFBsBGtvHH</span><span class="hljs-variable">@FBHuB</span><span class="hljs-variable">@trqrHHADFBD</span><span class="hljs-variable">@rquHH</span><span class="hljs-variable">@FurF</span>@<span class="hljs-variable">@IqqrHHvGuBD</span><span class="hljs-variable">@tCDHH</span><span class="hljs-variable">@EuGuB</span><span class="hljs-variable">@tvrrHHCDuBD</span><span class="hljs-variable">@tCDHH</span><span class="hljs-variable">@FuruB</span><span class="hljs-variable">@tvrIH</span>@<span class="hljs-variable">@DBBsBGtvHH</span><span class="hljs-variable">@GquuB</span><span class="hljs-variable">@EIqrHHvGuBsBtGEHH</span><span class="hljs-variable">@EuGuB</span><span class="hljs-variable">@tvrIH</span><span class="hljs-variable">@BDqBsBIFEHH</span><span class="hljs-variable">@GFtF</span>@<span class="hljs-variable">@IqqrHHEEFBD</span><span class="hljs-variable">@srBHH</span><span class="hljs-variable">@GBsuB</span><span class="hljs-variable">@trqrHHIFFBD</span><span class="hljs-variable">@rquHH</span><span class="hljs-variable">@FFIuB</span><span class="hljs-variable">@tvrrHHtCDB</span>@@'</span></span><br><span class="line">p=<span class="hljs-string">''</span></span><br><span class="line">for i in range(len(s)):</span><br><span class="line">    p += chr(ord(s[i])-0x10)</span><br><span class="line">a=binascii.a2b_hex(p)</span><br><span class="line">m=base64.b64encode(a)</span><br><span class="line">q=<span class="hljs-string">''</span></span><br><span class="line">for i in range(<span class="hljs-number">0</span>,len(m),<span class="hljs-number">4</span>):</span><br><span class="line">        q+=m[i]</span><br><span class="line">print base64.b64decode(q+<span class="hljs-string">'=='</span>)</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">import</span> base64</span><br><span class="line">import binascii</span><br><span class="line">s=<span class="string">'FFIF@<span class="variable">@IqqIH</span><span class="variable">@sGBBsBHFAHH</span><span class="variable">@FFIuB</span><span class="variable">@tvrrHHrFuBD</span><span class="variable">@qqqHH</span><span class="variable">@GFtuB</span><span class="variable">@EIqrHHCDuBsBqurHH</span><span class="variable">@EuGuB</span><span class="variable">@trqrHHCDuBsBruvHH</span><span class="variable">@FFIF</span>@<span class="variable">@AHqrHHEEFBsBGtvHH</span><span class="variable">@FBHuB</span><span class="variable">@trqrHHADFBD</span><span class="variable">@rquHH</span><span class="variable">@FurF</span>@<span class="variable">@IqqrHHvGuBD</span><span class="variable">@tCDHH</span><span class="variable">@EuGuB</span><span class="variable">@tvrrHHCDuBD</span><span class="variable">@tCDHH</span><span class="variable">@FuruB</span><span class="variable">@tvrIH</span>@<span class="variable">@DBBsBGtvHH</span><span class="variable">@GquuB</span><span class="variable">@EIqrHHvGuBsBtGEHH</span><span class="variable">@EuGuB</span><span class="variable">@tvrIH</span><span class="variable">@BDqBsBIFEHH</span><span class="variable">@GFtF</span>@<span class="variable">@IqqrHHEEFBD</span><span class="variable">@srBHH</span><span class="variable">@GBsuB</span><span class="variable">@trqrHHIFFBD</span><span class="variable">@rquHH</span><span class="variable">@FFIuB</span><span class="variable">@tvrrHHtCDB</span>@@'</span></span><br><span class="line">p=<span class="string">''</span></span><br><span class="line">for i in range(len(s)):</span><br><span class="line">    p += chr(ord(s[i])-0x10)</span><br><span class="line">a=binascii.a2b_hex(p)</span><br><span class="line">m=base64.b64encode(a)</span><br><span class="line">q=<span class="string">''</span></span><br><span class="line">for i in range(<span class="number">0</span>,len(m),<span class="number">4</span>):</span><br><span class="line">        q+=m[i]</span><br><span class="line">print base64.b64decode(q+<span class="string">'=='</span>)</span><br></pre></td></tr></table></figure>
 
 <p><img src="./8.png" alt="logo"></p>
 <p>哎我还是太菜了，待会去研究一下base64的汇编下的加解密。什么时候看汇编能跟看c语言一样就好了<del>~</del></p>
-</body></html>
+
     </div>
 
     
@@ -408,10 +406,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -437,6 +465,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

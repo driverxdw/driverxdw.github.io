@@ -339,15 +339,13 @@ td {
   margin-top: 3px;
 }
 .toggle.toggle-arrow .toggle-line:first-child {
-  left: 50%;
   top: 2px;
-  transform: rotate(45deg);
+  transform: rotate(-45deg);
   width: 50%;
 }
 .toggle.toggle-arrow .toggle-line:last-child {
-  left: 50%;
   top: -2px;
-  transform: rotate(-45deg);
+  transform: rotate(45deg);
   width: 50%;
 }
 .toggle.toggle-close .toggle-line:nth-child(2) {
@@ -355,11 +353,11 @@ td {
 }
 .toggle.toggle-close .toggle-line:first-child {
   top: 5px;
-  transform: rotate(45deg);
+  transform: rotate(-45deg);
 }
 .toggle.toggle-close .toggle-line:last-child {
   top: -5px;
-  transform: rotate(-45deg);
+  transform: rotate(45deg);
 }
 /*
 
@@ -1324,6 +1322,7 @@ pre code {
   border: 2px solid #333;
   max-width: 96px;
   padding: 2px;
+  border-radius: 50%;
 }
 .site-author-name {
   color: #f5f5f5;
@@ -1459,11 +1458,11 @@ pre code {
   opacity: 0.8;
   position: fixed;
   z-index: 1300;
-  left: 30px;
+  right: 30px;
 }
 @media (max-width: 991px) {
   .sidebar-toggle {
-    left: 20px;
+    right: 20px;
   }
 }
 .sidebar-toggle:hover {
@@ -1479,15 +1478,13 @@ pre code {
 }
 @media (any-hover: hover) {
   body:not(.sidebar-active) .sidebar-toggle:hover .toggle-line:first-child {
-    left: 50%;
     top: 2px;
-    transform: rotate(45deg);
+    transform: rotate(-45deg);
     width: 50%;
   }
   body:not(.sidebar-active) .sidebar-toggle:hover .toggle-line:last-child {
-    left: 50%;
     top: -2px;
-    transform: rotate(-45deg);
+    transform: rotate(45deg);
     width: 50%;
   }
 }
@@ -1496,11 +1493,11 @@ pre code {
 }
 .sidebar-active .sidebar-toggle .toggle-line:first-child {
   top: 5px;
-  transform: rotate(45deg);
+  transform: rotate(-45deg);
 }
 .sidebar-active .sidebar-toggle .toggle-line:last-child {
   top: -5px;
-  transform: rotate(-45deg);
+  transform: rotate(45deg);
 }
 .post-toc {
   font-size: 0.875em;
@@ -1693,12 +1690,12 @@ pre code {
   opacity: 0.8;
   position: fixed;
   z-index: 1300;
-  left: 30px;
+  right: 30px;
   width: 24px;
 }
 @media (max-width: 991px) {
   .back-to-top {
-    left: 20px;
+    right: 20px;
   }
 }
 .back-to-top:hover {
@@ -2578,14 +2575,14 @@ ul.breadcrumb li:last-child {
 }
 @media (min-width: 992px) {
   .sidebar-active {
-    margin-left: 320px;
+    margin-right: 320px;
   }
 }
 .sidebar {
-  left: -320px;
+  right: -320px;
 }
 .sidebar-active .sidebar {
-  left: 0;
+  right: 0;
 }
 .sidebar {
   background: #222;
@@ -2620,7 +2617,7 @@ ul.breadcrumb li:last-child {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #edff67;
+  background: #49f2aa;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);

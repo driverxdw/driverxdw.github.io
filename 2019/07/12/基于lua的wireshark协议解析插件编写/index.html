@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x00 楔子之前接到一个专网测试项目，其使用的是376.1协议进行通信，为了对其进行测试，这边选择对其进行协议分析，wireshark观察dump下来的数据包发现数据量并不多，所以打算写插件解析下。 0x01 协议介绍376.1协议全称 国家电网公司企业标准(Q&#x2F;GDW 376.1-2009):电力用户用电信息采集系统通信协议 目前最新的是2013版本。">
@@ -39,7 +39,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2019/07/12/%E5%9F%BA%E4%BA%8Elua%E7%9A%84wireshark%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/9.png">
 <meta property="article:published_time" content="2019-07-12T05:43:59.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.379Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="开发">
 <meta property="article:tag" content="协议">
 <meta name="twitter:card" content="summary">
@@ -153,29 +153,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -213,7 +193,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -227,7 +209,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -241,6 +222,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -273,8 +264,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/07/12/%E5%9F%BA%E4%BA%8Elua%E7%9A%84wireshark%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -317,6 +308,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -326,7 +324,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="0x00-楔子"><a href="#0x00-楔子" class="headerlink" title="0x00 楔子"></a>0x00 楔子</h2><p>之前接到一个专网测试项目，其使用的是376.1协议进行通信，为了对其进行测试，这边选择对其进行协议分析，wireshark观察dump下来的数据包发现数据量并不多，所以打算写插件解析下。</p>
+        <h2 id="0x00-楔子"><a href="#0x00-楔子" class="headerlink" title="0x00 楔子"></a>0x00 楔子</h2><p>之前接到一个专网测试项目，其使用的是376.1协议进行通信，为了对其进行测试，这边选择对其进行协议分析，wireshark观察dump下来的数据包发现数据量并不多，所以打算写插件解析下。</p>
 <h2 id="0x01-协议介绍"><a href="#0x01-协议介绍" class="headerlink" title="0x01 协议介绍"></a>0x01 协议介绍</h2><p>376.1协议全称 <code>国家电网公司企业标准(Q/GDW 376.1-2009):电力用户用电信息采集系统通信协议</code> 目前最新的是2013版本。<a id="more"></a>这边贴下2009版的<a href="https://doc.mbalib.com/view/6a2bca897b9da1c07251c68eb38112ba.html" target="_blank" rel="noopener">协议规约</a>。</p>
 <h2 id="0x02-帧格式"><a href="#0x02-帧格式" class="headerlink" title="0x02 帧格式"></a>0x02 帧格式</h2><p>格式如下:    </p>
 <table>
@@ -395,20 +393,20 @@
 <p>贴下开<a href="https://www.wireshark.org/docs/wsdg_html_chunked/" target="_blank" rel="noopener">发者文档</a>，10-11章讲协议解析，可以重点关注。</p>
 <p><img src="3.png" alt="3"></p>
 <h2 id="0x05-插件编写"><a href="#0x05-插件编写" class="headerlink" title="0x05 插件编写"></a>0x05 插件编写</h2><p>协议中通常碰到一种情况，一个字节中按比特拆分成好几个字段，所以这边需要bit库通过位操作对数据进行解析。</p>
-<p><img src="4.png" alt>  </p>
+<p><img src="4.png" alt="">  </p>
 <p>之后新建字段，字段类型需要根据规约给的信息进行精确分配</p>
-<p><img src="5.png" alt></p>
+<p><img src="5.png" alt=""></p>
 <p>新建完字段后对字段进行注册绑定</p>
-<p><img src="6.png" alt>  </p>
+<p><img src="6.png" alt="">  </p>
 <p>接下来是每个字段的函数实现</p>
-<p><img src="7.png" alt>  </p>
+<p><img src="7.png" alt="">  </p>
 <p>最后对实现完成的字段进行树节点的可视化处理，需要对应好节点上下层之间的关系</p>
-<p><img src="8.png" alt>  </p>
+<p><img src="8.png" alt="">  </p>
 <p>这边是效果:</p>
-<p><img src="9.png" alt>  </p>
+<p><img src="9.png" alt="">  </p>
 <p>由于字段用英文加注释的话可能很让人疑惑，而加中文坑又很多，所以这边解析出来后仍然需要根据afn和fn等内容去查找字段的含义，来让用户知道解析出来的字段代表的内容。</p>
 <h2 id="0x06-总结"><a href="#0x06-总结" class="headerlink" title="0x06  总结"></a>0x06  总结</h2><p>由于内容涉及公司业务，所以未将代码托管到github；代码未进行结构化处理，后期打算进行代码格式化；总的来说其实实现就是调API，之后就是位操作解析数据，还是很简单的。这次项目了解到了wireshark插件实现，以及lua的代码编写，用惯了python还是感觉lua用着不顺手，233333333，加油加油。</p>
-</body></html>
+
     </div>
 
     
@@ -483,10 +481,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -512,6 +540,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="一枚很菜但是仍在学习的二进制菜逼">
@@ -29,7 +29,7 @@
 <meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
 <meta property="og:description" content="一枚很菜但是仍在学习的二进制菜逼">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="hacker 底层 漏洞挖掘">
 <meta name="twitter:card" content="summary">
 
@@ -141,29 +141,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -200,7 +180,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -214,7 +196,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -228,6 +209,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -259,8 +250,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/17/AFL-Fuzz%E6%8A%80%E6%9C%AF%E5%88%9D%E6%8E%A2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -313,11 +304,11 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h2 id="0x01-AFL-Fuzz介绍"><a href="#0x01-AFL-Fuzz介绍" class="headerlink" title="0x01 AFL-Fuzz介绍"></a>0x01 AFL-Fuzz介绍</h2><p>模糊测试(Fuzzing)技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究员发现漏洞的首选技术。AFL-Fuzz、LibFuzzer、honggFuzz等操作简单友好的工具相继出现，大大降低了漏洞挖掘的门槛。AFL(American Fuzzy Lop)是由安全研究员Michał Zalewski（@lcamtuf）开发的一款基于覆盖引导(Coverage-guided)的模糊测试工具，它通过记录输入样本的代码覆盖率，从而调整输入样本以提高覆盖率，增加发现漏洞的概率。AFL-Fuzz通过在相关代码处进行插桩，来对程序内部的执行路径进行探索，挖掘可能存在的漏洞如栈溢出、堆溢出、UAF、DOUBLEFREE等等，由于要对程序进行插桩，所以AFL-Fuzz主要用于对开源软件进行测试，当然配合QEMU等工具也可以对闭源代码进行Fuzzing，不过执行效率会受影响。<br>组成：</p>
+          <h2 id="0x01-AFL-Fuzz介绍"><a href="#0x01-AFL-Fuzz介绍" class="headerlink" title="0x01 AFL-Fuzz介绍"></a>0x01 AFL-Fuzz介绍</h2><p>模糊测试(Fuzzing)技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究员发现漏洞的首选技术。AFL-Fuzz、LibFuzzer、honggFuzz等操作简单友好的工具相继出现，大大降低了漏洞挖掘的门槛。AFL(American Fuzzy Lop)是由安全研究员Michał Zalewski（@lcamtuf）开发的一款基于覆盖引导(Coverage-guided)的模糊测试工具，它通过记录输入样本的代码覆盖率，从而调整输入样本以提高覆盖率，增加发现漏洞的概率。AFL-Fuzz通过在相关代码处进行插桩，来对程序内部的执行路径进行探索，挖掘可能存在的漏洞如栈溢出、堆溢出、UAF、DOUBLEFREE等等，由于要对程序进行插桩，所以AFL-Fuzz主要用于对开源软件进行测试，当然配合QEMU等工具也可以对闭源代码进行Fuzzing，不过执行效率会受影响。<br>组成：</p>
 <ul>
 <li>编译器wrapper，该部分用于编译目标代码(afl-gcc、afl-clang等)</li>
 <li>Fuzzer：afl-fuzz，fuzzing的主要工具</li>
-<li>afl-cmin、afl-tmin等</li></ul></body></html>
+<li>afl-cmin、afl-tmin等
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/04/17/AFL-Fuzz%E6%8A%80%E6%9C%AF%E5%88%9D%E6%8E%A2/#more" rel="contents">
@@ -349,8 +340,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/17/Pwnable-tw-orw/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -403,8 +394,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h2 id="0x01-IDA分析"><a href="#0x01-IDA分析" class="headerlink" title="0x01 IDA分析"></a>0x01 IDA分析</h2><p>拿到程序不多bb，首先DIE看一波文件类型，发现是gcc编译的32位的文件，没加壳。直接拖进IDA，发现前面有个seccomp函数，并不知道做了什么操作，先不管，继续往下看，发现有个直接往bss上写shellcode，然后执行shellcode的操作。  </p>
-<h2 id="0x02-SECCOMP"><a href="#0x02-SECCOMP" class="headerlink" title="0x02 SECCOMP"></a>0x02 SECCOMP</h2><p>EXP写完后跑了一下发下并没有弹shell，奇怪，进去跟了一下，发现int 80调用execve执行/bin/sh后一条指令报错，怀疑是shellcode的原因，更换了几个shellcode发现仍然不行，这时猜测是SECCOMP的原因，查了一下发现这是个类似黑白名单的东西，把一些危险函数过滤掉，在pwn题中此工具做沙箱保护很常见，通常禁用一部分syscall，比如execve等，这样就没法直接弹shell了。</p></body></html>
+          <h2 id="0x01-IDA分析"><a href="#0x01-IDA分析" class="headerlink" title="0x01 IDA分析"></a>0x01 IDA分析</h2><p>拿到程序不多bb，首先DIE看一波文件类型，发现是gcc编译的32位的文件，没加壳。直接拖进IDA，发现前面有个seccomp函数，并不知道做了什么操作，先不管，继续往下看，发现有个直接往bss上写shellcode，然后执行shellcode的操作。  </p>
+<h2 id="0x02-SECCOMP"><a href="#0x02-SECCOMP" class="headerlink" title="0x02 SECCOMP"></a>0x02 SECCOMP</h2><p>EXP写完后跑了一下发下并没有弹shell，奇怪，进去跟了一下，发现int 80调用execve执行/bin/sh后一条指令报错，怀疑是shellcode的原因，更换了几个shellcode发现仍然不行，这时猜测是SECCOMP的原因，查了一下发现这是个类似黑白名单的东西，把一些危险函数过滤掉，在pwn题中此工具做沙箱保护很常见，通常禁用一部分syscall，比如execve等，这样就没法直接弹shell了。
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/04/17/Pwnable-tw-orw/#more" rel="contents">
@@ -436,8 +427,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/17/angr%E5%88%9D%E6%8E%A2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -490,7 +481,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h2 id="0x01-angr简介"><a href="#0x01-angr简介" class="headerlink" title="0x01 angr简介"></a>0x01 angr简介</h2><p>angr是一个基于python的二进制代码分析工具，能够通过符号执行自动完成对二进制文件的分析。早期的符号执行是静态的，依靠分析程序代码来进行工作，之后引入了动态符号执行，通过模拟指令来运行程序，找出控制流。<br>符号执行:</p></body></html>
+          <h2 id="0x01-angr简介"><a href="#0x01-angr简介" class="headerlink" title="0x01 angr简介"></a>0x01 angr简介</h2><p>angr是一个基于python的二进制代码分析工具，能够通过符号执行自动完成对二进制文件的分析。早期的符号执行是静态的，依靠分析程序代码来进行工作，之后引入了动态符号执行，通过模拟指令来运行程序，找出控制流。<br>符号执行:</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/04/17/angr%E5%88%9D%E6%8E%A2/#more" rel="contents">
@@ -522,8 +513,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/11/IdaPython%E4%BD%BF%E7%94%A8%E5%B0%8F%E7%BB%93/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -576,10 +567,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h2 id="0x01-介绍"><a href="#0x01-介绍" class="headerlink" title="0x01 介绍"></a>0x01 介绍</h2><p>IdaPython是ida内置的一个强大工具，可以自动化处理繁琐的逆向工程任务。之前一直觉得IdaPython太过小众，一直没有去学习相关的操作，最近才有时间了解了个大概，这边做一个小小的总结。  </p>
+          <h2 id="0x01-介绍"><a href="#0x01-介绍" class="headerlink" title="0x01 介绍"></a>0x01 介绍</h2><p>IdaPython是ida内置的一个强大工具，可以自动化处理繁琐的逆向工程任务。之前一直觉得IdaPython太过小众，一直没有去学习相关的操作，最近才有时间了解了个大概，这边做一个小小的总结。  </p>
 <p>IdaPython和IDC同样都是利用Ida的api进行自动化操作的工具，其中IdaPython基于Python，而IDC是基于C的。  </p>
 <p>IdaPython在2004年被开发出来，其目的是为了将Python简洁的语法和Ida支持的IDC语言结合起来。  </p>
-<p>IdaPython由三个独立的模块组成：</p></body></html>
+<p>IdaPython由三个独立的模块组成：
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/04/11/IdaPython%E4%BD%BF%E7%94%A8%E5%B0%8F%E7%BB%93/#more" rel="contents">
@@ -611,8 +602,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/03/LLVM%E5%88%9D%E6%8E%A2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -665,7 +656,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h2 id="0x01-LLVM简介"><a href="#0x01-LLVM简介" class="headerlink" title="0x01 LLVM简介"></a>0x01 LLVM简介</h2><blockquote>
+          <h2 id="0x01-LLVM简介"><a href="#0x01-LLVM简介" class="headerlink" title="0x01 LLVM简介"></a>0x01 LLVM简介</h2><blockquote>
 <p>The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.  </p>
 </blockquote>
 <p>LLVM是模块化、可重用的编译器以及工具链的集合，有些人把LLVM当成是一个低层的虚拟机(low level virtual machine)，但官方给出的解释是这样的:  </p>
@@ -673,7 +664,7 @@
 <p>The name “LLVM” itself is not an acronym; it is the full name of the project.  </p>
 </blockquote>
 <p>也就是说LLVM并不是一个缩写，而是整个项目的全名。<br>LLVM和传统的编译器(GCC)是有差别的  </p>
-<h3 id="传统的编译器架构"><a href="#传统的编译器架构" class="headerlink" title="传统的编译器架构"></a>传统的编译器架构</h3><p><img src="./%E4%BC%A0%E7%BB%9F%E7%BC%96%E8%AF%91%E5%99%A8%E6%9E%B6%E6%9E%84.jpg" alt="image"></p></body></html>
+<h3 id="传统的编译器架构"><a href="#传统的编译器架构" class="headerlink" title="传统的编译器架构"></a>传统的编译器架构</h3><p><img src="./%E4%BC%A0%E7%BB%9F%E7%BC%96%E8%AF%91%E5%99%A8%E6%9E%B6%E6%9E%84.jpg" alt="image">
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/04/03/LLVM%E5%88%9D%E6%8E%A2/#more" rel="contents">
@@ -705,8 +696,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/03/26/%E4%BB%A3%E7%A0%81%E4%BF%9D%E6%8A%A4%E6%8A%80%E6%9C%AF-%E4%B8%80/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -759,9 +750,9 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h2 id="0x00-代码虚拟化简介"><a href="#0x00-代码虚拟化简介" class="headerlink" title="0x00 代码虚拟化简介"></a>0x00 代码虚拟化简介</h2><p>代码虚拟化通过对原生的native指令集代码进行自定义字节码替换，在执行的时候由虚拟机中的解释器来执行，由于是用户自定义的字节码，基于本地native指令集的反汇编器无法进行识别，所以虚拟机保护下的代码相对来说更能延缓攻击者的分析与破解。目前虚拟机技术常用于代码虚拟化、加密壳、沙盒、解释器如JVM等等。</p>
+          <h2 id="0x00-代码虚拟化简介"><a href="#0x00-代码虚拟化简介" class="headerlink" title="0x00 代码虚拟化简介"></a>0x00 代码虚拟化简介</h2><p>代码虚拟化通过对原生的native指令集代码进行自定义字节码替换，在执行的时候由虚拟机中的解释器来执行，由于是用户自定义的字节码，基于本地native指令集的反汇编器无法进行识别，所以虚拟机保护下的代码相对来说更能延缓攻击者的分析与破解。目前虚拟机技术常用于代码虚拟化、加密壳、沙盒、解释器如JVM等等。</p>
 <h2 id="0x01-代码代码虚拟化的混淆"><a href="#0x01-代码代码虚拟化的混淆" class="headerlink" title="0x01 代码代码虚拟化的混淆"></a>0x01 代码代码虚拟化的混淆</h2><p>代码虚拟化也可以算作是混淆的一种，能够有效延缓攻击者的分析时间，但是由于解释器是基于native指令，所以通过动态调试可以得到native指令和字节码之间的映射关系，所以说到底代码虚拟化的混淆并不是无解的，常见的代码虚拟化保护有两种，一种是通过给壳进行虚拟化，让程序的解密过程变得复杂，从而让攻击者分析起来有难度，但是这种保护方式对动态调试来说效果不大，因为程序脱下解密壳以后能被dump下来，程序的逻辑也就一清二楚了；第二种是将程序的源代码转化为字节码通过解释器解释，这种保护无论静态还是动态都是有效的。</p>
-<h2 id="0x02-如何实现"><a href="#0x02-如何实现" class="headerlink" title="0x02 如何实现"></a>0x02 如何实现</h2><p>虚拟机主要有三个部分，字节码、CPU、解析器。<br>1、首先需要实现一套字节码</p></body></html>
+<h2 id="0x02-如何实现"><a href="#0x02-如何实现" class="headerlink" title="0x02 如何实现"></a>0x02 如何实现</h2><p>虚拟机主要有三个部分，字节码、CPU、解析器。<br>1、首先需要实现一套字节码
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/03/26/%E4%BB%A3%E7%A0%81%E4%BF%9D%E6%8A%A4%E6%8A%80%E6%9C%AF-%E4%B8%80/#more" rel="contents">
@@ -793,8 +784,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/03/26/%E7%A8%8B%E5%BA%8F%E5%91%98%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -847,13 +838,13 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>从入CTF这个大坑以来，读过不少书，要说印象最深刻，非程序员的自我修养这本书莫属。为何非钟情此书，因为这本书真正带我突破瓶颈，步入底层的世界。刚入手的时候发现内容晦涩难以下咽，越往后看越难以理解，但是不得不承认这本书有着神奇的吸引力，让当时的我一次次放下，又一次次拿起，磕磕绊绊之下，对程序的运行原理也算是有个一个大概。下面打算根据自己的理解大概讲讲程序从编写到装载执行的过程  </p>
+          <h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>从入CTF这个大坑以来，读过不少书，要说印象最深刻，非程序员的自我修养这本书莫属。为何非钟情此书，因为这本书真正带我突破瓶颈，步入底层的世界。刚入手的时候发现内容晦涩难以下咽，越往后看越难以理解，但是不得不承认这本书有着神奇的吸引力，让当时的我一次次放下，又一次次拿起，磕磕绊绊之下，对程序的运行原理也算是有个一个大概。下面打算根据自己的理解大概讲讲程序从编写到装载执行的过程  </p>
 <h2 id="0x01-预处理"><a href="#0x01-预处理" class="headerlink" title="0x01 预处理"></a>0x01 预处理</h2><p>源代码编写完交给编译器进行编译时，编译器首先会进行预处理操作，源代码和相关的头文件会被整合到一起，构成一个后缀为.i的文件，其中主要内容有：  </p>
 <ul>
 <li>删除所有#define并展开所有宏定义  </li>
 <li>处理include指令，所有被包含的文件将会被插入该指令所在位置  </li>
 <li>删除所有注释  </li>
-<li>增加行号信息</li></ul></body></html>
+<li>增加行号信息
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/03/26/%E7%A8%8B%E5%BA%8F%E5%91%98%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/#more" rel="contents">
@@ -885,8 +876,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/03/15/PE%E8%A7%A3%E6%9E%90%E5%B7%A5%E5%85%B7%E7%BC%96%E5%86%99/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -939,7 +930,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h1 id="PE文件解析工具编写"><a href="#PE文件解析工具编写" class="headerlink" title="PE文件解析工具编写"></a>PE文件解析工具编写</h1><p>有的时候一条路上走远了，走的太长，真的会忘记自己当前最需要什么，感慨自己还是成熟的太晚，眼界还是不够开阔。师傅之前一直说的需要提升代码和项目编写的能力，直到现在才意识到，已经很晚了，留下的时间不多了。  </p></body></html>
+          <h1 id="PE文件解析工具编写"><a href="#PE文件解析工具编写" class="headerlink" title="PE文件解析工具编写"></a>PE文件解析工具编写</h1><p>有的时候一条路上走远了，走的太长，真的会忘记自己当前最需要什么，感慨自己还是成熟的太晚，眼界还是不够开阔。师傅之前一直说的需要提升代码和项目编写的能力，直到现在才意识到，已经很晚了，留下的时间不多了。  </p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/03/15/PE%E8%A7%A3%E6%9E%90%E5%B7%A5%E5%85%B7%E7%BC%96%E5%86%99/#more" rel="contents">
@@ -971,8 +962,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/03/05/%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E4%B8%80%E9%9D%A2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -1025,7 +1016,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h1 id="2018腾讯游戏安全一面"><a href="#2018腾讯游戏安全一面" class="headerlink" title="2018腾讯游戏安全一面"></a>2018腾讯游戏安全一面</h1><p>自从打完领航杯，我们这一届就退役开始投简历了，想去年这个时候师傅们都已经投完简历去公司实习了，我们才开始投，哎，还是太菜了。简历是师傅给投的，说安全圈子小，内推啥的也都方便，这里感谢一哈师傅，还是挺照顾的。说真的，第一次面试就面腾讯确实还是很紧张的，虽然一面只是基础，面试前由于紧张也还是准备了一下。<br>一面还是很简单的，这里详细说一下面试内容：<br>首先让做一个自我介绍，这里由于比较胆小说话还是结巴的，面试官就笑着说让我别紧张慢慢说，感觉面试官大哥贼暖，之后说话就不哆嗦了2333333。基本上就是说自己是xxx学校xxx专业搞xxx方向，这里详细说了一下学校网安人才培养模式，因为本校没有网安专业，但是学校对网安还是很支持的，然后说了一下平时是如何学习的，最近在研究什么方向，毕业了想去干什么，etc，xxx套话说了一通，面试官也问了不少，有一个了解之后，正题就开始了。</p></body></html>
+          <h1 id="2018腾讯游戏安全一面"><a href="#2018腾讯游戏安全一面" class="headerlink" title="2018腾讯游戏安全一面"></a>2018腾讯游戏安全一面</h1><p>自从打完领航杯，我们这一届就退役开始投简历了，想去年这个时候师傅们都已经投完简历去公司实习了，我们才开始投，哎，还是太菜了。简历是师傅给投的，说安全圈子小，内推啥的也都方便，这里感谢一哈师傅，还是挺照顾的。说真的，第一次面试就面腾讯确实还是很紧张的，虽然一面只是基础，面试前由于紧张也还是准备了一下。<br>一面还是很简单的，这里详细说一下面试内容：<br>首先让做一个自我介绍，这里由于比较胆小说话还是结巴的，面试官就笑着说让我别紧张慢慢说，感觉面试官大哥贼暖，之后说话就不哆嗦了2333333。基本上就是说自己是xxx学校xxx专业搞xxx方向，这里详细说了一下学校网安人才培养模式，因为本校没有网安专业，但是学校对网安还是很支持的，然后说了一下平时是如何学习的，最近在研究什么方向，毕业了想去干什么，etc，xxx套话说了一通，面试官也问了不少，有一个了解之后，正题就开始了。
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/03/05/%E8%85%BE%E8%AE%AF%E6%B8%B8%E6%88%8F%E5%AE%89%E5%85%A8%E4%B8%80%E9%9D%A2/#more" rel="contents">
@@ -1057,8 +1048,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2018/09/09/dg010/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -1111,7 +1102,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <html><head></head><body><h1 id="dg010赛题复现"><a href="#dg010赛题复现" class="headerlink" title="dg010赛题复现"></a>dg010赛题复现</h1><p>师傅去打dg010去了，扔给我一道题让我做，无奈当时恰好要去上课，做到一半就扔那儿了，现在有时间了，就做了一下。</p></body></html>
+          <h1 id="dg010赛题复现"><a href="#dg010赛题复现" class="headerlink" title="dg010赛题复现"></a>dg010赛题复现</h1><p>师傅去打dg010去了，扔给我一道题让我做，无奈当时恰好要去上课，做到一半就扔那儿了，现在有时间了，就做了一下。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/09/09/dg010/#more" rel="contents">
@@ -1184,10 +1175,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -1213,6 +1234,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

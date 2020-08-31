@@ -19,15 +19,15 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="一、make &amp;&amp; Makefile在相对比较大的项目中，项目通常会被模块化，使用make和makefile有助于简明的记录各个模块之间的复杂引用关系；如此之多的源文件，如果每次编译都要去敲gcc指定源文件和头文件以及链接库进行编译的确是个灾难；针对上面的问题，make应运而生。make根据makefile中定义的编译方式进行自动化的、定制化的编译，且能灵活地只对makefile中上次修改的部分进">
+  <meta name="description" content="一、make &amp;&amp; Makefile在相对比较大的项目中，项目通常会被模块化，使用make和makefile有助于简明的记录各个模块之间的复杂引用关系；如此之多的源文件，如果每次编译都要去敲gcc指定源文件和头文件以及链接库进行编译的确是个灾难；针对上面的问题，make应运而生。make根据makefile中定义的编译方式进行自动化的、定制化的编译，且能灵活地只对makefile中">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Clion源码调试问题记录">
 <meta property="og:url" content="https://driverxdw.github.io/2020/07/06/Clion%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95/index.html">
 <meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
-<meta property="og:description" content="一、make &amp;&amp; Makefile在相对比较大的项目中，项目通常会被模块化，使用make和makefile有助于简明的记录各个模块之间的复杂引用关系；如此之多的源文件，如果每次编译都要去敲gcc指定源文件和头文件以及链接库进行编译的确是个灾难；针对上面的问题，make应运而生。make根据makefile中定义的编译方式进行自动化的、定制化的编译，且能灵活地只对makefile中上次修改的部分进">
+<meta property="og:description" content="一、make &amp;&amp; Makefile在相对比较大的项目中，项目通常会被模块化，使用make和makefile有助于简明的记录各个模块之间的复杂引用关系；如此之多的源文件，如果每次编译都要去敲gcc指定源文件和头文件以及链接库进行编译的确是个灾难；针对上面的问题，make应运而生。make根据makefile中定义的编译方式进行自动化的、定制化的编译，且能灵活地只对makefile中">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1567215/1592393731899-a08aacda-01cd-49af-a0c8-fff037c33a11.png#align=left&display=inline&height=245&margin=%5Bobject%20Object%5D&name=image.png&originHeight=490&originWidth=1712&size=34799&status=done&style=none&width=856">
 <meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1567215/1592393657472-6f63addb-fde6-4448-8644-620fd07f7b82.png#align=left&display=inline&height=281&margin=%5Bobject%20Object%5D&name=image.png&originHeight=562&originWidth=1664&size=46274&status=done&style=none&width=832">
@@ -38,7 +38,7 @@
 <meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1567215/1592408372170-9ed0c44e-38dc-40b3-983f-3ac7bda529a2.png#align=left&display=inline&height=829&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1658&originWidth=3544&size=524718&status=done&style=none&width=1772">
 <meta property="article:published_time" content="2020-07-06T14:48:32.000Z">
 <meta property="article:modified_time" content="2020-07-06T16:17:54.971Z">
-<meta property="article:author" content="xdw">
+<meta property="article:author" content="XDW">
 <meta property="article:tag" content="调试">
 <meta property="article:tag" content="源码分析">
 <meta property="article:tag" content="二进制">
@@ -153,29 +153,9 @@
     <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
-
-  </li>
-        <li class="menu-item menu-item-schedule">
-
-    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
-
-  </li>
-        <li class="menu-item menu-item-sitemap">
-
-    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
-
-  </li>
-        <li class="menu-item menu-item-commonweal">
-
-    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
 
   </li>
   </ul>
@@ -213,7 +193,9 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">xdw</p>
+    <img class="site-author-image" itemprop="image" alt="XDW"
+      src="/images/author.jpg">
+  <p class="site-author-name" itemprop="name">XDW</p>
   <div class="site-description" itemprop="description">一枚很菜但是仍在学习的二进制菜逼</div>
 </div>
 <div class="site-state-wrap animated">
@@ -227,7 +209,6 @@
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-          
         <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
@@ -241,6 +222,16 @@
 </div>
 
 
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.ixuchao.cn/" title="https:&#x2F;&#x2F;blog.ixuchao.cn&#x2F;" rel="noopener" target="_blank">Archerx's Blog</a>
+        </li>
+    </ul>
+  </div>
 
       </section>
     </div>
@@ -273,8 +264,8 @@
     <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/07/06/Clion%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="xdw">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
       <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
     </span>
 
@@ -317,6 +308,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
 </div>
 
         </div>
@@ -326,19 +324,19 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <html><head></head><body><h1 id="一、make-amp-amp-Makefile"><a href="#一、make-amp-amp-Makefile" class="headerlink" title="一、make && Makefile"></a>一、make && Makefile</h1><p>在相对比较大的项目中，项目通常会被模块化，使用make和makefile有助于简明的记录各个模块之间的复杂引用关系；如此之多的源文件，如果每次编译都要去敲gcc指定源文件和头文件以及链接库进行编译的确是个灾难；针对上面的问题，make应运而生。make根据makefile中定义的编译方式进行自动化的、定制化的编译，且能灵活地只对makefile中上次修改的部分进行重编译。</p>
+        <h1 id="一、make-amp-amp-Makefile"><a href="#一、make-amp-amp-Makefile" class="headerlink" title="一、make &amp;&amp; Makefile"></a>一、make &amp;&amp; Makefile</h1><p>在相对比较大的项目中，项目通常会被模块化，使用make和makefile有助于简明的记录各个模块之间的复杂引用关系；如此之多的源文件，如果每次编译都要去敲gcc指定源文件和头文件以及链接库进行编译的确是个灾难；针对上面的问题，make应运而生。make根据makefile中定义的编译方式进行自动化的、定制化的编译，且能灵活地只对makefile中上次修改的部分进行重编译。</p>
 <a id="more"></a>
 
-<h1 id="二、Cmake-amp-amp-CMakeLists"><a href="#二、Cmake-amp-amp-CMakeLists" class="headerlink" title="二、Cmake && CMakeLists"></a>二、Cmake && CMakeLists</h1><p>对于一个大工程来说，编写makefile是非常复杂的，于是有人设想能否有一种工具能够在读入所有源文件之后自动化的生成makefile？Cmake因此产生。但是cmake本身也是有标准的，需要开发人员编写cmakelists去生成makefile。</p>
+<h1 id="二、Cmake-amp-amp-CMakeLists"><a href="#二、Cmake-amp-amp-CMakeLists" class="headerlink" title="二、Cmake &amp;&amp; CMakeLists"></a>二、Cmake &amp;&amp; CMakeLists</h1><p>对于一个大工程来说，编写makefile是非常复杂的，于是有人设想能否有一种工具能够在读入所有源文件之后自动化的生成makefile？Cmake因此产生。但是cmake本身也是有标准的，需要开发人员编写cmakelists去生成makefile。</p>
 <p>如图所示：<br><img src="https://cdn.nlark.com/yuque/0/2020/png/1567215/1592393731899-a08aacda-01cd-49af-a0c8-fff037c33a11.png#align=left&display=inline&height=245&margin=%5Bobject%20Object%5D&name=image.png&originHeight=490&originWidth=1712&size=34799&status=done&style=none&width=856" alt="image.png"><br><img src="https://cdn.nlark.com/yuque/0/2020/png/1567215/1592393657472-6f63addb-fde6-4448-8644-620fd07f7b82.png#align=left&display=inline&height=281&margin=%5Bobject%20Object%5D&name=image.png&originHeight=562&originWidth=1664&size=46274&status=done&style=none&width=832" alt="image.png"></p>
 <h1 id="三、Clion远程编译和调试"><a href="#三、Clion远程编译和调试" class="headerlink" title="三、Clion远程编译和调试"></a>三、Clion远程编译和调试</h1><h2 id="0、本地编译调试"><a href="#0、本地编译调试" class="headerlink" title="0、本地编译调试"></a>0、本地编译调试</h2><h2 id="1、ssh远程编译调试"><a href="#1、ssh远程编译调试" class="headerlink" title="1、ssh远程编译调试"></a>1、ssh远程编译调试</h2><h3 id="步骤一"><a href="#步骤一" class="headerlink" title="步骤一"></a>步骤一</h3><p>导入clion项目，此过程会自动新建cmakelists<br><img src="https://cdn.nlark.com/yuque/0/2020/png/1567215/1592394056134-671cc089-1a96-4241-a61a-e523971a23bf.png#align=left&display=inline&height=475&margin=%5Bobject%20Object%5D&name=image.png&originHeight=950&originWidth=1544&size=93513&status=done&style=none&width=772" alt="image.png"></p>
-<h3 id="步骤二"><a href="#步骤二" class="headerlink" title="步骤二"></a>步骤二</h3><p>配置远程地址和本地项目同步到远程的映射地址<br>CLion -> Preference -> ToolChains && Deployment<br><img src="https://cdn.nlark.com/yuque/0/2020/png/1567215/1592394282104-8f332b1a-eae2-40b8-884c-c25065a5fc11.png#align=left&display=inline&height=510&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1020&originWidth=2054&size=204892&status=done&style=none&width=1027" alt="image.png"></p>
+<h3 id="步骤二"><a href="#步骤二" class="headerlink" title="步骤二"></a>步骤二</h3><p>配置远程地址和本地项目同步到远程的映射地址<br>CLion -&gt; Preference -&gt; ToolChains &amp;&amp; Deployment<br><img src="https://cdn.nlark.com/yuque/0/2020/png/1567215/1592394282104-8f332b1a-eae2-40b8-884c-c25065a5fc11.png#align=left&display=inline&height=510&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1020&originWidth=2054&size=204892&status=done&style=none&width=1027" alt="image.png"></p>
 <h3 id="步骤三"><a href="#步骤三" class="headerlink" title="步骤三"></a>步骤三</h3><p>clion原生的cmakelists是有问题的，会导致之后的make失败，而原生直接make却是可以的，所以这边需要修改下cmakelists<br>原生的是这样的：</p>
-<figure class="highlight crystal hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cmake_minimum_required(VERSION <span class="hljs-number">3.14</span>)</span><br><span class="line">project(net-tools C)</span><br><span class="line"></span><br><span class="line">set(CMAKE_C_STANDARD <span class="hljs-number">11</span>)</span><br><span class="line"></span><br><span class="line">include_directories(.)</span><br><span class="line">include_directories(<span class="hljs-keyword">include</span>)</span><br><span class="line">include_directories(<span class="hljs-class"><span class="hljs-keyword">lib</span>)</span></span><br><span class="line"></span><br><span class="line">add_executable(net-tools</span><br><span class="line">        <span class="hljs-keyword">include</span>/interface.h</span><br><span class="line">        <span class="hljs-keyword">include</span>/ipx.h</span><br><span class="line">        <span class="hljs-keyword">include</span>/sockets.h</span><br><span class="line">        <span class="hljs-keyword">include</span>/util-ank.h</span><br><span class="line">        <span class="hljs-class"><span class="hljs-keyword">lib</span>/<span class="hljs-title">activate</span>.<span class="hljs-title">c</span></span></span><br><span class="line">        ...</span><br><span class="line">	)</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cmake_minimum_required(VERSION <span class="number">3.14</span>)</span><br><span class="line">project(net-tools C)</span><br><span class="line"></span><br><span class="line">set(CMAKE_C_STANDARD <span class="number">11</span>)</span><br><span class="line"></span><br><span class="line">include_directories(.)</span><br><span class="line">include_directories(<span class="keyword">include</span>)</span><br><span class="line">include_directories(<span class="class"><span class="keyword">lib</span>)</span></span><br><span class="line"></span><br><span class="line">add_executable(net-tools</span><br><span class="line">        <span class="keyword">include</span>/interface.h</span><br><span class="line">        <span class="keyword">include</span>/ipx.h</span><br><span class="line">        <span class="keyword">include</span>/sockets.h</span><br><span class="line">        <span class="keyword">include</span>/util-ank.h</span><br><span class="line">        <span class="class"><span class="keyword">lib</span>/<span class="title">activate</span>.<span class="title">c</span></span></span><br><span class="line">        ...</span><br><span class="line">	)</span><br></pre></td></tr></table></figure>
 
 
 <p>修改以后：</p>
-<figure class="highlight stylus hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-title">cmake_minimum_required</span><span class="hljs-params">(VERSION <span class="hljs-number">3.14</span>)</span></span></span><br><span class="line"><span class="hljs-function"><span class="hljs-title">project</span><span class="hljs-params">(netstat C)</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-title">set</span><span class="hljs-params">(CMAKE_C_STANDARD <span class="hljs-number">11</span>)</span></span></span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-title">set</span><span class="hljs-params">(BUILD_DIR .)</span></span></span><br><span class="line"></span><br><span class="line"><span class="hljs-number">#add</span>_executable()</span><br><span class="line"><span class="hljs-number">#add</span>_custom_target(netstat command -c ${BUILD_DIR})</span><br><span class="line">add_custom_target(netstat</span><br><span class="line">        COMMAND make -j1</span><br><span class="line">        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">cmake_minimum_required</span><span class="params">(VERSION <span class="number">3.14</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">project</span><span class="params">(netstat C)</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(CMAKE_C_STANDARD <span class="number">11</span>)</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">set</span><span class="params">(BUILD_DIR .)</span></span></span><br><span class="line"></span><br><span class="line"><span class="number">#add</span>_executable()</span><br><span class="line"><span class="number">#add</span>_custom_target(netstat command -c $&#123;BUILD_DIR&#125;)</span><br><span class="line">add_custom_target(netstat</span><br><span class="line">        COMMAND make -j1</span><br><span class="line">        WORKING_DIRECTORY $&#123;CMAKE_CURRENT_SOURCE_DIR&#125;)</span><br></pre></td></tr></table></figure>
 <p>add_custom_target可以在编译时动态指定命令，以这种模式引用原生的makefile生成makefile，这边将Linux上主目录下make编译后生成的netstat复制到cmake-build-debug目录下，之后debug的时候指定可执行文件就可以进行调试。</p>
 <h3 id="步骤四"><a href="#步骤四" class="headerlink" title="步骤四"></a>步骤四</h3><p>配置调试选项，远端的编译目录需要有可执行文件<br><img src="https://cdn.nlark.com/yuque/0/2020/png/1567215/1592407870685-d77b7f15-5081-473d-8626-0cde5e0ae301.png#align=left&display=inline&height=409&margin=%5Bobject%20Object%5D&name=image.png&originHeight=818&originWidth=2118&size=125665&status=done&style=none&width=1059" alt="image.png"></p>
 <h2 id="2、gdbserver远程调试"><a href="#2、gdbserver远程调试" class="headerlink" title="2、gdbserver远程调试"></a>2、gdbserver远程调试</h2><h3 id="步骤一-1"><a href="#步骤一-1" class="headerlink" title="步骤一"></a>步骤一</h3><p>在远程机（Linux）上首先进行make编译，之后将编译后的结果用gdbserver挂载在指定端口</p>
@@ -350,7 +348,7 @@
 <li>clion动调对内存、寄存器等支持不太好，主要还是对代码层变量的显示修改等</li>
 <li>初步了解cmake、make、makefile、cmakelists的概念，后续如果有需求可以深入学习</li>
 </ul>
-</body></html>
+
     </div>
 
     
@@ -426,10 +424,40 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">xdw</span>
+  <span class="author" itemprop="copyrightHolder">XDW</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
+
+#<div class="powered-by">
+#    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+#    <i class="fa fa-user-md"></i>
+#    <span id="busuanzi_container_site_uv">
+#        本站访客数:<span id="busuanzi_value_site_uv"></span>
+#    </span>
+#    <span class="post-meta-divider">|</span>
+#    <span id="busuanzi_container_site_pv">
+#        本站访问量<span id="busuanzi_value_site_pv"></span>
+#    </span>
+#</div>
 
     </div>
   </footer>
@@ -455,6 +483,7 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

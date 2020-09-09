@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">56</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">57</span></a>
 
   </li>
   </ul>
@@ -190,7 +190,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-count">57</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -243,6 +243,133 @@
       
 
       
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/09/09/Rootkit-principle-analysis-and-behavior-detection/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/09/09/Rootkit-principle-analysis-and-behavior-detection/" class="post-title-link" itemprop="url">Rootkit principle analysis and behavior detection</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-09-09 20:21:04" itemprop="dateCreated datePublished" datetime="2020-09-09T20:21:04+08:00">2020-09-09</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-09-10 00:51:48" itemprop="dateModified" datetime="2020-09-10T00:51:48+08:00">2020-09-10</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Rootkit-HIDS/" itemprop="url" rel="index"><span itemprop="name">Rootkit, HIDS</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><h3 id="rootkit介绍"><a href="#rootkit介绍" class="headerlink" title="rootkit介绍"></a>rootkit介绍</h3><h4 id="0x01-功能"><a href="#0x01-功能" class="headerlink" title="0x01    功能"></a>0x01    功能</h4><p>rootkit可以简单理解root.kit，即攻击者取得root权限后所用的工具包，一般来说，90%的rootkit主要目标都是来做对攻击者后门行为的隐藏，但仍有部分rootkit是存在系统操纵和数据收集行为的，包括键盘记录、流量嗅探及程序运行重定向等等；通常来说，rootkit的功能越单一，就越难检测到，一旦rootkit行为太多，很可能触及一些checklist导致暴露，所以保持rootkit功能的单一性是一个优秀的渗透人员需要有的理解。</p>
+<h4 id="0x02-分类"><a href="#0x02-分类" class="headerlink" title="0x02    分类"></a>0x02    分类</h4><p>通常来说目前常见的rootkit基本可以根据应用的层级分为两类，一种是工作在ring0层的rootkit，另一种是工作在ring3层的rootkit，还有一种比较高级，应用在主机bios层，由于当前场景较少，暂不深入。</p>
+<h4 id="0x03-lkm"><a href="#0x03-lkm" class="headerlink" title="0x03    lkm"></a>0x03    lkm</h4><p>LKM是loadable kernel module的缩写，意为可加载内核模块，内核本身是一个单模块，单内核模块运行效率高，但是由于所有内容都集成在一个模块里，所以可扩展性/可维护性是比较弱的，为了弥补这个问题，内核模块机制就出现了，原生linux的功能也因lkm的出现可以得到扩展。lkm的优点主要集中在两个方面：</p>
+<p>1、动态加/卸载</p>
+<p>2、轻量</p>
+<p>前者在给内核添加新功能时不用频繁的重编译源码，后者则让lkm本身的体积无论编写还是编译都不会太过重量。</p>
+<p>一个最基础的lkm如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/kernel.h&gt;																			#包含内核使用的一些函数、变量、宏等等</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/module.h&gt;																			#包含模块结构的定义及模块版本控制等等</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/init.h&gt;																				#包含了module_init和module_exit函数的声明</span></span></span><br><span class="line">MODULE_LICENSE(<span class="string">"GPL"</span>);																				#许可证</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">hello_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  printk(KERN_WARNING <span class="string">"HELLOWORLD"</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">hello_exit</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  printk(<span class="string">"BYE"</span>);</span><br><span class="line">&#125;</span><br><span class="line">module_init(hello_init);																			#模块加载函数</span><br><span class="line">module_exit(hello_exit);																			#模块卸载函数</span><br></pre></td></tr></table></figure>
+
+<p>Makefile文件如下：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">obj-m := hello_module.o</span><br><span class="line">KERNELBUILD := /lib/modules/<span class="variable">$(<span class="built_in">shell</span> uname -r)</span>/build</span><br><span class="line">CURRENT_PATH := <span class="variable">$(<span class="built_in">shell</span> pwd)</span></span><br><span class="line"><span class="section">all:</span></span><br><span class="line">    make -C <span class="variable">$(KERNELBUILD)</span> M=<span class="variable">$(CURRENT_PATH)</span> modules</span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">    make -C <span class="variable">$(KERNELBUILD)</span> M=<span class="variable">$(CURRENT_PATH)</span> clean</span><br></pre></td></tr></table></figure>
+
+<h4 id="0x04-hook"><a href="#0x04-hook" class="headerlink" title="0x04    hook"></a>0x04    hook</h4><p>rootkit无论如何也绕不去的一个坎。rootkit本质上其实就是通过hook进行工作的，根据rootkit工作的层级，其hook的对象也有差异，一般来说，内核态rootkit hook系统调用，用户态rootkit hook libc；从用户态出发，程序不可避免会去执行libc库中的函数，libc去调系统调用切进内核调内核函数，一旦hook了syscall/libc，就相当于劫持了程序在用户态/内核态的控制流，rootkit最核心的一点就在于这里。</p>
+<h3 id="syscall-amp-amp-libc-hook"><a href="#syscall-amp-amp-libc-hook" class="headerlink" title="syscall &amp;&amp; libc hook"></a>syscall &amp;&amp; libc hook</h3><h4 id="0x01-系统调用方式和演变过程"><a href="#0x01-系统调用方式和演变过程" class="headerlink" title="0x01    系统调用方式和演变过程"></a>0x01    系统调用方式和演变过程</h4><p>由于内核rootkit需要对系统调用进行hook，linux系统调用流程有必要去了解，后续可以了解到不同版本系统、cpu架构下的hook方式其实是有较大差别的。linux系统调用方式的演进如下所示：</p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">int</span> 0x80	-&gt;</span>	<span class="function"><span class="title">sysenter</span>/syscall	-&gt;</span>	vsdo</span><br></pre></td></tr></table></figure>
+
+<p><strong>int 0x80</strong></p>
+<p>早期的x86处理器使用int 0x80进行软中断触发系统调用从用户态切换到内核态执行内核函数，一般来说经典软中断要经历如下几个流程：</p>
+<p>1、应用程序调c库</p>
+<p>2、c库函数内部调系统调用，将参数放到栈上，将系统调用号放到寄存器（eax），布置完后调int 0x80</p>
+<p>3、cpu接收到中断，去IDT中寻找0x80对应中断描述符</p>
+<p>4、找到中断描述符后切换到内核栈（tss.ss0:tss.esp0），再根据中断描述符信息找到中断服务例程的基址和偏移分别加载到cs和eip，</p>
+<p>5、用户态上下文信息压入内核栈</p>
+<p>6、执行0x80对应的中断服务例程（system_call），根据eax中的系统调用号去system_call_table系统调用表中寻找具体的系统调用例程并执行</p>
+<p>7、执行完后syscall_exit，从内核栈恢复用户态上下文，切回用户空间</p>
+<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/Rootkit-principle-analysis-and-behavior-detection/2020-05-21-15900666966842-syscall-steps.png" alt="syscall-steps"></p>
+<p><strong>sysenter/syscall</strong></p>
+<p>从以上流程可以看出，软中断整个过程其实是非常繁琐的，特别是栈切换和系统调用内部对参数的安全/合法性检查，这在频繁调用系统调用在内核和用户态间来回切换的应用程序执行环境中会造成大量的性能损失。针对早期软中断的性能问题，linux团队在新版本中操作系统中引入了快速系统调用指令sysenter/syscall，分别用于32/64位，至于为什么未使用同一系统调用指令，是因为sysenter和syscall分别由intel和amd设计出，二者早期因商业竞争关系兼容这块做的并不好，只能由linux这块去做调用方的兼容，为了保证最大兼容，就针对intel/amd的架构设计了两条不同的快速调用汇编指令。</p>
+<p><strong>sysenter</strong></p>
+<p>32位下的syenter系统调用流程如下：</p>
+<p>1、引入三个MSR寄存器，内核初始化时会将系统调用的回调函数放在IA32_SYSENTER_EIP MSR寄存器中</p>
+<p>2、根据调用惯例从eax及其它寄存器中取系统调用号和传参</p>
+<p>3、之后的流程大致同软中断</p>
+<p><strong>syscall</strong></p>
+<p>64位下的syscall系统调用流程与sysenter类似，其系统调用流程如下：</p>
+<p>1、引入四个MSR寄存器，内核初始化时会将系统调用的回调函数放在IA32_LSTAR MSR寄存器中</p>
+<p>2、根据调用惯例从eax及其它寄存器中取系统调用号和传参</p>
+<p>3、之后的流程大致同软中断</p>
+<p>快速汇编指令相比软中断少了IDT中断服务例程的寻址及内核栈切换的过程，相比软中断减少了部分系统调用耗费的时间。</p>
+<p><strong>vdso</strong></p>
+<p>vdso全称为虚拟动态共享对象，其原理是把原属于linux内核空间的函数映射到用户态，让用户态的应用程序不再需要进行系统调用切换进内核，从而减少应用程序执行过程中在系统调用上的性能损耗。vsdo使用标准的链接与加载技术，由内核提供并动态映射到用户态每一个正在执行的进程空间中。因为是由内核提供，所以在用户态无法直接找到vdso对应的so库文件。</p>
+<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/Rootkit-principle-analysis-and-behavior-detection/image-20200910001052139.png" alt="image-20200910001052139"></p>
+<p>vsdo的内核函数映射模式相对前两者性能损耗大幅降低，甚至可以与用户态函数调用持平，但因为将内核函数映射到用户态会存在安全风险，所以vsdo这块目前只支持少量函数映射。</p>
+<h4 id="0x02-系统调用hook"><a href="#0x02-系统调用hook" class="headerlink" title="0x02    系统调用hook"></a>0x02    系统调用hook</h4><h4 id="0x03-libc-hook"><a href="#0x03-libc-hook" class="headerlink" title="0x03    libc hook"></a>0x03    libc hook</h4><h3 id="通用的rootkit攻击手法"><a href="#通用的rootkit攻击手法" class="headerlink" title="通用的rootkit攻击手法"></a>通用的rootkit攻击手法</h3><h2 id="检测"><a href="#检测" class="headerlink" title="检测"></a>检测</h2><h3 id="通用检测方式"><a href="#通用检测方式" class="headerlink" title="通用检测方式"></a>通用检测方式</h3><h3 id="开源项目"><a href="#开源项目" class="headerlink" title="开源项目"></a>开源项目</h3><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://draveness.me/whys-the-design-syscall-overhead/" target="_blank" rel="noopener">https://draveness.me/whys-the-design-syscall-overhead/</a></p>
+<p><a href="https://wohin.me/linux-rootkit-shi-yan-0004-ling-wai-ji-chong-xi-tong-diao-yong-gua-gou-ji-zhu/" target="_blank" rel="noopener">https://wohin.me/linux-rootkit-shi-yan-0004-ling-wai-ji-chong-xi-tong-diao-yong-gua-gou-ji-zhu/</a></p>
+<p><a href="https://0xax.gitbooks.io/linux-insides/content/SysCall/" target="_blank" rel="noopener">https://0xax.gitbooks.io/linux-insides/content/SysCall/</a></p>
+<p><a href="http://arthurchiao.art/blog/system-call-definitive-guide-zh/" target="_blank" rel="noopener">http://arthurchiao.art/blog/system-call-definitive-guide-zh/</a></p>
+<p><a href="https://cloud.tencent.com/developer/article/1073909" target="_blank" rel="noopener">https://cloud.tencent.com/developer/article/1073909</a></p>
+<p><a href="https://vvl.me/2019/06/linux-syscall-and-vsyscall-vdso-in-x86/" target="_blank" rel="noopener">https://vvl.me/2019/06/linux-syscall-and-vsyscall-vdso-in-x86/</a></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -967,93 +1094,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/10/22/BadUsb%E4%BB%8E%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90%E5%88%B0%E5%AE%9E%E6%88%98%E6%B8%97%E9%80%8F/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/07/12/%E5%9F%BA%E4%BA%8Elua%E7%9A%84wireshark%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/07/12/%E5%9F%BA%E4%BA%8Elua%E7%9A%84wireshark%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/" class="post-title-link" itemprop="url">基于lua的wireshark协议解析插件编写</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-07-12 13:43:59" itemprop="dateCreated datePublished" datetime="2019-07-12T13:43:59+08:00">2019-07-12</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-07-06 10:08:50" itemprop="dateModified" datetime="2020-07-06T10:08:50+08:00">2020-07-06</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">协议</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="0x00-楔子"><a href="#0x00-楔子" class="headerlink" title="0x00 楔子"></a>0x00 楔子</h2><p>之前接到一个专网测试项目，其使用的是376.1协议进行通信，为了对其进行测试，这边选择对其进行协议分析，wireshark观察dump下来的数据包发现数据量并不多，所以打算写插件解析下。</p>
-<h2 id="0x01-协议介绍"><a href="#0x01-协议介绍" class="headerlink" title="0x01 协议介绍"></a>0x01 协议介绍</h2><p>376.1协议全称 <code>国家电网公司企业标准(Q/GDW 376.1-2009):电力用户用电信息采集系统通信协议</code> 目前最新的是2013版本。
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/07/12/%E5%9F%BA%E4%BA%8Elua%E7%9A%84wireshark%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

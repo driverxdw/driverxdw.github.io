@@ -22,15 +22,15 @@
     var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="#double free 漏洞 介绍 double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。如下：">
+  <meta name="description" content="double free 漏洞 介绍double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。如下：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Double Free">
 <meta property="og:url" content="https://driverxdw.github.io/2018/07/23/double_free/index.html">
 <meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
-<meta property="og:description" content="#double free 漏洞 介绍 double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。如下：">
+<meta property="og:description" content="double free 漏洞 介绍double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。如下：">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-07-23T00:37:40.000Z">
-<meta property="article:modified_time" content="2020-09-11T15:52:38.494Z">
+<meta property="article:modified_time" content="2020-09-11T16:16:49.243Z">
 <meta property="article:author" content="XDW">
 <meta property="article:tag" content="CTF">
 <meta property="article:tag" content="PWN">
@@ -146,7 +146,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">57</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">58</span></a>
 
   </li>
   </ul>
@@ -166,7 +166,7 @@
 
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -178,6 +178,7 @@
 
       <!--noindex-->
       <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#double-free-漏洞-介绍"><span class="nav-number">1.</span> <span class="nav-text">double free 漏洞 介绍</span></a></li></ol></div>
       </section>
       <!--/noindex-->
 
@@ -193,7 +194,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -285,7 +286,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-09-11 23:52:38" itemprop="dateModified" datetime="2020-09-11T23:52:38+08:00">2020-09-11</time>
+        <time title="修改时间：2020-09-12 00:16:49" itemprop="dateModified" datetime="2020-09-12T00:16:49+08:00">2020-09-12</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -314,8 +315,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <p>#double free 漏洞 介绍</p>
-<p>double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。<br>如下：</p>
+        <h1 id="double-free-漏洞-介绍"><a href="#double-free-漏洞-介绍" class="headerlink" title="double free 漏洞 介绍"></a>double free 漏洞 介绍</h1><p>double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。<br>如下：</p>
 <a id="more"></a>
 <p>int main(void)<br>{<br>    void <em>chunk1,</em>chunk2,*chunk3;<br>    chunk1=malloc(0x10);<br>    chunk2=malloc(0x10);</p>
 <pre><code>free(chunk1);

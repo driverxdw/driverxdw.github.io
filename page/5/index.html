@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">57</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">58</span></a>
 
   </li>
   </ul>
@@ -190,7 +190,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -243,6 +243,92 @@
       
 
       
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2018/08/19/xman_task_note1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/08/19/xman_task_note1/" class="post-title-link" itemprop="url">Xman Task_note1</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-08-19 08:37:40" itemprop="dateCreated datePublished" datetime="2018-08-19T08:37:40+08:00">2018-08-19</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-09-12 00:00:39" itemprop="dateModified" datetime="2020-09-12T00:00:39+08:00">2020-09-12</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/CTF/" itemprop="url" rel="index"><span itemprop="name">CTF</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="xman夏令营-task-note1"><a href="#xman夏令营-task-note1" class="headerlink" title="xman夏令营 task_note1"></a>xman夏令营 task_note1</h1><p>​    小伙伴扔给我这道题，看了下发现是个堆题。ida看了一下发现在edit函数中存在一个栈溢出，strcat的时候可以接0x90个字节，而dest空间只有0x80个字节，这里存在一个栈溢出，可以覆盖v7为任意值，但是其实很坑，程序内部有一个非常无耻的在字符串最后一个位置+’\x00’的操作，导致这里一直不能成功覆盖。后来看wp才知道strncat对不同偏移处碰到的0有多往后输入几个字字节的情况，但是我在本地18.04的环境下测试并没有成功，可能是libc的原因（待会换回16.04 //捂脸捂脸）。<br>之后的利用思路就简单了，edit函数最后有一个free（v7）的操作，由于我们可以覆盖v7为任意值，这里我们将v7覆写为bss段存储堆指针所在的地址头，这样我们可以通过再次malloc进行一个arbitray malloc，达到任意地址malloc的结果。  </p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/08/19/xman_task_note1/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -798,7 +884,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-09-11 23:52:38" itemprop="dateModified" datetime="2020-09-11T23:52:38+08:00">2020-09-11</time>
+        <time title="修改时间：2020-09-12 00:16:49" itemprop="dateModified" datetime="2020-09-12T00:16:49+08:00">2020-09-12</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -820,8 +906,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>#double free 漏洞 介绍</p>
-<p>double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。<br>如下：</p>
+          <h1 id="double-free-漏洞-介绍"><a href="#double-free-漏洞-介绍" class="headerlink" title="double free 漏洞 介绍"></a>double free 漏洞 介绍</h1><p>double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。<br>如下：</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/07/23/double_free/#more" rel="contents">
@@ -997,92 +1082,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/04/20/hacknote/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2018/04/20/silver_bullet/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/04/20/silver_bullet/" class="post-title-link" itemprop="url">silver_bullet</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2018-04-20 08:37:40" itemprop="dateCreated datePublished" datetime="2018-04-20T08:37:40+08:00">2018-04-20</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-09-11 23:59:53" itemprop="dateModified" datetime="2020-09-11T23:59:53+08:00">2020-09-11</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/CTF/" itemprop="url" rel="index"><span itemprop="name">CTF</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="silver-bullet-–-白板off-by-one漏洞利用"><a href="#silver-bullet-–-白板off-by-one漏洞利用" class="headerlink" title="silver_bullet – 白板off-by-one漏洞利用"></a>silver_bullet – 白板off-by-one漏洞利用</h1><p>​    这道题也是pwnable.tw上的一道200分的选单程序题，题目很有意思是一个打狼人的游戏，创造一把枪然后根据用户输入的长度给枪充能，然后去打死狼人。//md语文水平太烂了，讲句话都讲不好。<br>选单程序咩，先把逻辑分析清楚，看下各个函数。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/04/20/silver_bullet/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

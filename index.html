@@ -344,7 +344,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-10-20 21:23:57" itemprop="dateModified" datetime="2020-10-20T21:23:57+08:00">2020-10-20</time>
+        <time title="修改时间：2020-10-20 21:26:56" itemprop="dateModified" datetime="2020-10-20T21:26:56+08:00">2020-10-20</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -366,7 +366,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>之前在逛will师傅创建的灾难控制局学习agent_smith的时候偶然看到这么一篇文章<strong><a href="https://mp.weixin.qq.com/s/ugRP7NLXqg4SNr-oX4DJ_w" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/ugRP7NLXqg4SNr-oX4DJ_w</a></strong>，讲的是黑客马拉松比赛期间gaba和will师傅两人设计的项目”kap”。</p>
+          <h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>之前在逛will师傅创建的灾难控制局学习agent_smith的时候偶然看到这么一篇<a href="https://mp.weixin.qq.com/s/ugRP7NLXqg4SNr-oX4DJ_w" target="_blank" rel="noopener">文章</a>，讲的是黑客马拉松比赛期间gaba和will师傅两人设计的项目”kap”。</p>
 <p>kap项目设计的主要目的是为保护线上环境中的敏感/重要应用文件在泄漏后无法被攻击者分析和窃取核心逻辑，从而实现企业层面的重要软件的保护。</p>
 <p>大概逻辑是这样的，在程序的编译构建过程中首先用公钥对可执行文件进行粉碎式加密，加密完成后用户若要使用，首先运行agent将加密后的执行文件作为参数进行装载、解密，装载过程中agent会向server端api请求下发私钥，拿到私钥后对加密后的可执行文件进行解密，解密完成后才能真正运行。其中，为了防止攻击者拿到主机权限后进行拷贝，加密的可执行文件解密过程中/后首先是不落盘的，其次为了防止执行过程中被调试，师傅们通过agent的提前ptrace防止敏感进程被其他进程附加调试，最后will师傅还发现通过cp /proc/pid/exe还是 能从内存中把解密后的可执行文件dump出来的，于是写lkm去hook fsnotify阻止用户态对解密后进程的读写等。</p>
 <p>以上基本就是kap这个项目的大体运行流程了，通过这些技术，无论是主机被入侵还是敏感文件泄漏，都能在一定程度上防止攻击者真正窃取到程序代码从而避免企业核心机密的泄漏。在这个项目中，了解到了linux下无文件执行的概念，自己用cn_proc手测了下发现隐藏效果确实是非常好的，特意学习下，方便之后的红蓝对抗及产品能力输出等等。</p>
@@ -605,10 +605,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2020-08-30 18:27:23 / 修改时间：23:59:43" itemprop="dateCreated datePublished" datetime="2020-08-30T18:27:23+08:00">2020-08-30</time>
+      <time title="创建时间：2020-08-30 18:27:23" itemprop="dateCreated datePublished" datetime="2020-08-30T18:27:23+08:00">2020-08-30</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-10-20 21:27:36" itemprop="dateModified" datetime="2020-10-20T21:27:36+08:00">2020-10-20</time>
+      </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-folder"></i>
@@ -631,8 +637,6 @@
     <div class="post-body" itemprop="articleBody">
           <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>之前就对linux上附加的一些小工具像netstat、ps、top等的功能比较感兴趣，虽然知道本质上还是去解析vfs中的信息，但对其细节比较好奇，这边做下源码分析，同时也为后续对其它相对于netstat更复杂的程序/项目的分析做下铺垫，如sysdig、osquery、linux kernel等等；这块spoock江城子师傅已经写过类似的文章，个人觉得写的很好，要点都get到了，作为读者受益匪浅，贴下链接致敬下引路人：<a href="https://blog.spoock.com/2019/05/26/netstat-learn/。" target="_blank" rel="noopener">https://blog.spoock.com/2019/05/26/netstat-learn/。</a></p>
 <p>下面所做分析可能无法面面俱到，非核心的函数和功能分析将被drop。</p>
-<h2 id="调试环境"><a href="#调试环境" class="headerlink" title="调试环境"></a>调试环境</h2><p>此次调试是在vscode下使用gdbserver launch远程进行的，调试端的launch.json配置如下，被调端gdbserver挂住就好了</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Use IntelliSense to learn about possible attributes.</span></span><br><span class="line">    <span class="comment">// Hover to view descriptions of existing attributes.</span></span><br><span class="line">    <span class="comment">// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387</span></span><br><span class="line">    <span class="attr">"version"</span>: <span class="string">"0.2.0"</span>,</span><br><span class="line">    <span class="attr">"configurations"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"name"</span>: <span class="string">"(gdb) Launch"</span>,</span><br><span class="line">            <span class="attr">"type"</span>: <span class="string">"cppdbg"</span>,</span><br><span class="line">            <span class="attr">"request"</span>: <span class="string">"launch"</span>,</span><br><span class="line">            <span class="attr">"program"</span>: <span class="string">"$&#123;workspaceFolder&#125;/netstat"</span>,</span><br><span class="line">            <span class="attr">"args"</span>: [],</span><br><span class="line">            <span class="attr">"stopAtEntry"</span>: <span class="literal">false</span>,</span><br><span class="line">            <span class="attr">"cwd"</span>: <span class="string">"$&#123;workspaceFolder&#125;"</span>,</span><br><span class="line">            <span class="attr">"environment"</span>: [],</span><br><span class="line">            <span class="attr">"externalConsole"</span>: <span class="literal">false</span>,</span><br><span class="line">            <span class="attr">"MIMode"</span>: <span class="string">"gdb"</span>,</span><br><span class="line">            <span class="attr">"linux"</span>: &#123;</span><br><span class="line">                <span class="attr">"MIMode"</span>: <span class="string">"gdb"</span>,</span><br><span class="line">                <span class="attr">"miDebuggerPath"</span>: <span class="string">"/usr/bin/gdb"</span>,</span><br><span class="line">                <span class="attr">"miDebuggerServerAddress"</span>: <span class="string">"10.211.55.4:7777"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">"setupCommands"</span>: [</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="attr">"description"</span>: <span class="string">"Enable pretty-printing for gdb"</span>,</span><br><span class="line">                    <span class="attr">"text"</span>: <span class="string">"-enable-pretty-printing"</span>,</span><br><span class="line">                    <span class="attr">"ignoreFailures"</span>: <span class="literal">true</span></span><br><span class="line">                &#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2020/08/30/Netstat-Source-Code-Debug/#more" rel="contents">

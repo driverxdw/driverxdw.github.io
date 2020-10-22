@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">61</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">62</span></a>
 
   </li>
   </ul>
@@ -190,7 +190,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-count">62</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -243,6 +243,94 @@
       
 
       
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/05/04/Vivotek%E8%BF%9C%E7%A8%8B%E6%A0%88%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/05/04/Vivotek%E8%BF%9C%E7%A8%8B%E6%A0%88%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/" class="post-title-link" itemprop="url">Vivotek远程栈溢出漏洞分析与复现</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-05-04 00:18:51" itemprop="dateCreated datePublished" datetime="2019-05-04T00:18:51+08:00">2019-05-04</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-09-12 00:00:08" itemprop="dateModified" datetime="2020-09-12T00:00:08+08:00">2020-09-12</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>2017年11月披露的vivotek的一个栈溢出漏洞，漏洞发生在其固件中的httpd服务，其未对用户post的数据长度做校验，导致攻击者可以发送特定的数据使摄像头进程崩溃，甚至任意代码执行。这边看到后觉得挺有意思的，打算复现下。</p>
+<p>贴一下漏洞作者放出的poc ： <a href="https://www.exploit-db.com/exploits/44001" target="_blank" rel="noopener">https://www.exploit-db.com/exploits/44001</a></p>
+<p>再贴一下影响版本 ：
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/05/04/Vivotek%E8%BF%9C%E7%A8%8B%E6%A0%88%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1008,100 +1096,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/04/11/IdaPython%E4%BD%BF%E7%94%A8%E5%B0%8F%E7%BB%93/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/03/LLVM%E5%88%9D%E6%8E%A2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/04/03/LLVM%E5%88%9D%E6%8E%A2/" class="post-title-link" itemprop="url">LLVM初探</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-04-03 00:18:51" itemprop="dateCreated datePublished" datetime="2019-04-03T00:18:51+08:00">2019-04-03</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-09-11 23:52:59" itemprop="dateModified" datetime="2020-09-11T23:52:59+08:00">2020-09-11</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%A0%94%E7%A9%B6/" itemprop="url" rel="index"><span itemprop="name">二进制研究</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="0x01-LLVM简介"><a href="#0x01-LLVM简介" class="headerlink" title="0x01 LLVM简介"></a>0x01 LLVM简介</h2><blockquote>
-<p>The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.  </p>
-</blockquote>
-<p>LLVM是模块化、可重用的编译器以及工具链的集合，有些人把LLVM当成是一个低层的虚拟机(low level virtual machine)，但官方给出的解释是这样的:  </p>
-<blockquote>
-<p>The name “LLVM” itself is not an acronym; it is the full name of the project.  </p>
-</blockquote>
-<p>也就是说LLVM并不是一个缩写，而是整个项目的全名。<br>LLVM和传统的编译器(GCC)是有差别的  </p>
-<h3 id="传统的编译器架构"><a href="#传统的编译器架构" class="headerlink" title="传统的编译器架构"></a>传统的编译器架构</h3><p><img src="./%E4%BC%A0%E7%BB%9F%E7%BC%96%E8%AF%91%E5%99%A8%E6%9E%B6%E6%9E%84.jpg" alt="image">
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/04/03/LLVM%E5%88%9D%E6%8E%A2/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

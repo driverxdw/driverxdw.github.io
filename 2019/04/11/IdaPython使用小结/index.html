@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x01 介绍IdaPython是ida内置的一个强大工具，可以自动化处理繁琐的逆向工程任务。之前一直觉得IdaPython太过小众，一直没有去学习相关的操作，最近才有时间了解了个大概，这边做一个小小的总结。   IdaPython和IDC同样都是利用Ida的api进行自动化操作的工具，其中IdaPython基于Python，而IDC是基于C的。   IdaPython在2004年被开发出来，其目">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -341,11 +341,14 @@
 <p>函数操作</p>
 </blockquote>
 <p>1、获取所有函数的名称：</p>
-<pre><code>for func in idautils.Functions():
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="function"><span class="keyword">func</span> <span class="title">in</span> <span class="title">idautils</span>.<span class="title">Functions</span><span class="params">()</span>:</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">print</span> hex(<span class="function"><span class="keyword">func</span>),<span class="title">idc</span>.<span class="title">GetFunctionName</span><span class="params">(<span class="keyword">func</span>)</span></span></span><br></pre></td></tr></table></figure>
 
-    print hex(func),idc.GetFunctionName(func)</code></pre><p>2、计算当前函数指令数：</p>
-<pre><code>ea=here()
-len(list(idautils.FuncItems(ea)))</code></pre><blockquote>
+<p>2、计算当前函数指令数：</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ea=here()</span><br><span class="line">len(<span class="name">list</span>(<span class="name">idautils</span>.FuncItems(<span class="name">ea</span>)))</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
 <p>指令操作</p>
 </blockquote>
 <p>1、给定地址，打印指令：</p>
@@ -370,40 +373,11 @@ len(list(idautils.FuncItems(ea)))</code></pre><blockquote>
 </li>
 </ul>
 <h3 id="3-2-代码测试"><a href="#3-2-代码测试" class="headerlink" title="3.2 代码测试"></a>3.2 代码测试</h3><p>现在的IdaPython常被用于程序危险函数查找，这边贴一下实例脚本  </p>
-<pre><code>#coding:utf-8
-from idaapi import *
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line"><span class="keyword">from</span> idaapi <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置颜色</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">judgeAduit</span><span class="params">(addr)</span>:</span></span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    not safe function handler</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    MakeComm(addr,<span class="string">"### AUDIT HERE ###"</span>)</span><br><span class="line">    SetColor(addr,CIC_ITEM,<span class="number">0x0000ff</span>)  <span class="comment">#set backgroud to red</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数标识  </span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">flagCalls</span><span class="params">(danger_funcs)</span>:</span></span><br><span class="line">    count = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> func <span class="keyword">in</span> danger_funcs:      </span><br><span class="line">        faddr = LocByName( func )     </span><br><span class="line">        <span class="keyword">if</span> faddr != BADADDR: </span><br><span class="line">            <span class="comment"># Grab the cross-references to this address         </span></span><br><span class="line">            cross_refs = CodeRefsTo( faddr, <span class="number">0</span> )                       </span><br><span class="line">            <span class="keyword">for</span> addr <span class="keyword">in</span> cross_refs:</span><br><span class="line">                count += <span class="number">1</span> </span><br><span class="line">                Message(<span class="string">"%s[%d] calls 0x%08x\n"</span>%(func,count,addr))  </span><br><span class="line">                judgeAduit(addr)</span><br><span class="line">                    </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    handle all not safe functions</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    <span class="keyword">print</span> <span class="string">"-------------------------------"</span></span><br><span class="line">    <span class="comment"># 列表存储需要识别的函数</span></span><br><span class="line">    danger_funcs = [<span class="string">"free"</span>,<span class="string">"strcpy"</span>,<span class="string">"sprintf"</span>,<span class="string">"strncpy"</span>] </span><br><span class="line">    flagCalls(danger_funcs)</span><br><span class="line">    <span class="keyword">print</span> <span class="string">"-------------------------------"</span></span><br></pre></td></tr></table></figure>
 
-# 设置颜色
-def judgeAduit(addr):
-    &#39;&#39;&#39;
-    not safe function handler
-    &#39;&#39;&#39;
-    MakeComm(addr,&quot;### AUDIT HERE ###&quot;)
-    SetColor(addr,CIC_ITEM,0x0000ff)  #set backgroud to red
-    pass
 
-# 函数标识  
-def flagCalls(danger_funcs):
-    count = 0
-    for func in danger_funcs:      
-        faddr = LocByName( func )     
-        if faddr != BADADDR: 
-            # Grab the cross-references to this address         
-            cross_refs = CodeRefsTo( faddr, 0 )                       
-            for addr in cross_refs:
-                count += 1 
-                Message(&quot;%s[%d] calls 0x%08x\n&quot;%(func,count,addr))  
-                judgeAduit(addr)
 
-if __name__ == &#39;__main__&#39;:
-    &#39;&#39;&#39;
-    handle all not safe functions
-    &#39;&#39;&#39;
-    print &quot;-------------------------------&quot;
-    # 列表存储需要识别的函数
-    danger_funcs = [&quot;free&quot;,&quot;strcpy&quot;,&quot;sprintf&quot;,&quot;strncpy&quot;] 
-    flagCalls(danger_funcs)
-    print &quot;-------------------------------&quot;</code></pre><h3 id=""><a href="#" class="headerlink" title=""></a></h3><h3 id="3-3-其它"><a href="#3-3-其它" class="headerlink" title="3.3 其它"></a>3.3 其它</h3><p>这边贴一下IdaPython的一些学习站点，包括文档等</p>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h3 id="3-3-其它"><a href="#3-3-其它" class="headerlink" title="3.3 其它"></a>3.3 其它</h3><p>这边贴一下IdaPython的一些学习站点，包括文档等</p>
 <p><a href="https://www.hex-rays.com/products/ida/support/idapython_docs/" target="_blank" rel="noopener">官方文档</a></p>
 <p><a href="https://www.cnblogs.com/0xHack/p/9399321.html" target="_blank" rel="noopener">常用IdaPython指令</a></p>
 <p><a href="https://unit42.paloaltonetworks.com/using-idapython-to-make-your-life-easier-part-1/" target="_blank" rel="noopener">Using IDAPython to Make Your Life Easier</a></p>
@@ -513,8 +487,6 @@ if __name__ == &#39;__main__&#39;:
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

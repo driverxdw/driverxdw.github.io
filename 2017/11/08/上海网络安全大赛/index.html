@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="这道juckcode当时没有做出来，一开始是用ida打开的，然后发现关键函数无法反编译(后来知道是加了花)，后来扔到od里面一步一步也也没有还原出主要逻辑，哎我还是太菜了。之后看了王子昂dalao和画眉师傅写的wp终于成功复现了一波。这道题原理应该是这样的，这个juckcode是一个勒索病毒程序，能把文件加密成.enc(加密英文的简写)格式的文件，我们要做的就是分析出勒索软件的加密逻辑然后还原出原">
@@ -102,7 +102,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -327,18 +327,9 @@
 <a id="more"></a>
 <p>操作，不能太多的话是因为字符一多逻辑也就越多，也就越难以分析，所以这里的flag文件中我放的是’hello’这个字符串。将程序扔到od中，首先查找字符串(2333dalao勿喷),发现有./flag,双击找到指令所在地，f8一步步跟下去，然后在01013143这个位置我们突然发现栈上出现了”aGVsbG8=”这个类似base64编码<br><img src="./1.png" alt="logo"><br>在python中用base64 decode解了一下发现果然是base64,然后我们就知道了call 01011350这个函数原来是将flag文件中字符串储存的位置以及ss:[ebp-0x840]这个地址作为参数，将“hello” base64后储存在ebp-0x840为开头的内存空间。<br><img src="./2.png" alt="logo"><br>然后我们继续f8往下走发现程序进行了3次类似的操作:<br>1.对hello的每一个字符进行add 0x40操作，base64后储存在一块新的空间，内容为qKWsrK8=<br><img src="./3.png" alt="logo"><br>2.对1中+0x40以后的数据依次&lt;&lt;0x7，base64后存储在一块新的空间，内容为AIAAAIA=<br><img src="./4.png" alt="logo"><br>3.对2中&lt;&lt;0x7以后的数据进行sub 0x9e，base64后存储在一块新的空间，内容为YuJiYuI=<br>以上操作结束后继续f8跟进发现程序依次循环取四个base64后的字符串的字符拼接成了一个新的字符串’aqYAGKuIVWJAssiAbrYAGKuI88IA’，<br><img src="./5.png" alt="logo"><br>之后通过给’aqYAGKuIVWJAssiAbrYAGKuI88IA’所在的地址下内存访问断点找到了对拼接字符串的操作，但是始终分析不出来进行了什么操作，后来看了两位dalao的wp才知道是对这个字符串进行base64的解码操作。不知道dalao是怎么看出来的，对hello的base64 encode能猜出来，这边的解码就不好猜了，不过这边有个循环计数器的值是0x15，’aqYAGKuIVWJAssiAbrYAGKuI88IA’解码后发现长度刚好也是0x15，要靠猜的话这脑洞也太大了，dalao们肯定不是猜的，回去了解下base64汇编表示。<br><img src="./6.png" alt="logo"><br>解码后继续f8发现有对decode后的字符依次进行add 0x10操作，这是最后一步，得到的结果就是flag.enc的内容。<br><img src="./7.png" alt="logo"><br>知道了加密算法解密就很容易了。再次描述一下加密算法:1.对flag原文件中的内容base64 2.对原文件的字符依次add 0x40后（存储）再次base64 3.对2中存储后的内容依次shl 0x7后(存储)再次进行base64  4.对3中shl 0x7后的数据 sub 0x9e后（存储）再次base64<br>一共进行了四次base64，然后将每次得到的base64后的结果组成一个新的字符串(每个字符串依次取一个)，之后对新拼接成的字符串进行解码操作，解完码后每个字符依次+0x10后输出。</p>
 <p>解密脚本如下:</p>
-<pre><code>import base64
-import binascii
-s=&#39;FFIF@@IqqIH@sGBBsBHFAHH@FFIuB@tvrrHHrFuBD@qqqHH@GFtuB@EIqrHHCDuBsBqurHH@EuGuB@trqrHHCDuBsBruvHH@FFIF@@AHqrHHEEFBsBGtvHH@FBHuB@trqrHHADFBD@rquHH@FurF@@IqqrHHvGuBD@tCDHH@EuGuB@tvrrHHCDuBD@tCDHH@FuruB@tvrIH@@DBBsBGtvHH@GquuB@EIqrHHvGuBsBtGEHH@EuGuB@tvrIH@BDqBsBIFEHH@GFtF@@IqqrHHEEFBD@srBHH@GBsuB@trqrHHIFFBD@rquHH@FFIuB@tvrrHHtCDB@@&#39;
-p=&#39;&#39;
-for i in range(len(s)):
-    p += chr(ord(s[i])-0x10)
-a=binascii.a2b_hex(p)
-m=base64.b64encode(a)
-q=&#39;&#39;
-for i in range(0,len(m),4):
-        q+=m[i]
-print base64.b64decode(q+&#39;==&#39;)</code></pre><p><img src="./8.png" alt="logo"></p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">import</span> base64</span><br><span class="line">import binascii</span><br><span class="line">s=<span class="string">'FFIF@<span class="variable">@IqqIH</span><span class="variable">@sGBBsBHFAHH</span><span class="variable">@FFIuB</span><span class="variable">@tvrrHHrFuBD</span><span class="variable">@qqqHH</span><span class="variable">@GFtuB</span><span class="variable">@EIqrHHCDuBsBqurHH</span><span class="variable">@EuGuB</span><span class="variable">@trqrHHCDuBsBruvHH</span><span class="variable">@FFIF</span>@<span class="variable">@AHqrHHEEFBsBGtvHH</span><span class="variable">@FBHuB</span><span class="variable">@trqrHHADFBD</span><span class="variable">@rquHH</span><span class="variable">@FurF</span>@<span class="variable">@IqqrHHvGuBD</span><span class="variable">@tCDHH</span><span class="variable">@EuGuB</span><span class="variable">@tvrrHHCDuBD</span><span class="variable">@tCDHH</span><span class="variable">@FuruB</span><span class="variable">@tvrIH</span>@<span class="variable">@DBBsBGtvHH</span><span class="variable">@GquuB</span><span class="variable">@EIqrHHvGuBsBtGEHH</span><span class="variable">@EuGuB</span><span class="variable">@tvrIH</span><span class="variable">@BDqBsBIFEHH</span><span class="variable">@GFtF</span>@<span class="variable">@IqqrHHEEFBD</span><span class="variable">@srBHH</span><span class="variable">@GBsuB</span><span class="variable">@trqrHHIFFBD</span><span class="variable">@rquHH</span><span class="variable">@FFIuB</span><span class="variable">@tvrrHHtCDB</span>@@'</span></span><br><span class="line">p=<span class="string">''</span></span><br><span class="line">for i in range(len(s)):</span><br><span class="line">    p += chr(ord(s[i])-0x10)</span><br><span class="line">a=binascii.a2b_hex(p)</span><br><span class="line">m=base64.b64encode(a)</span><br><span class="line">q=<span class="string">''</span></span><br><span class="line">for i in range(<span class="number">0</span>,len(m),<span class="number">4</span>):</span><br><span class="line">        q+=m[i]</span><br><span class="line">print base64.b64decode(q+<span class="string">'=='</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="./8.png" alt="logo"></p>
 <p>哎我还是太菜了，待会去研究一下base64的汇编下的加解密。什么时候看汇编能跟看c语言一样就好了<del>~</del></p>
 
     </div>
@@ -445,8 +436,6 @@ print base64.b64decode(q+&#39;==&#39;)</code></pre><p><img src="./8.png" alt="lo
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

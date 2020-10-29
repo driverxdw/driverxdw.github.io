@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="一、起源之前针对yulong-hids的分析还剩下进程监控模块，因为此模块有点复杂且涉及内核，所以单独整一篇过来分析下">
@@ -95,7 +95,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -323,85 +323,1210 @@
 <h2 id="二、源码分析"><a href="#二、源码分析" class="headerlink" title="二、源码分析"></a>二、源码分析</h2><h3 id="go"><a href="#go" class="headerlink" title="go"></a>go</h3><p>agent/monitor/process_linux.go模块是execve hook lkm的调用者，从此模块开始分析：</p>
 <p><strong>StartProcessMonitor</strong></p>
 <p>首先起一个线程调c实现的CapturePrecess函数（感觉应该是编码的师傅写错了 应该是captureprocess才对），根据注释大致可以猜到是connect netlink的操作</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">StartProcessMonitor</span><span class="params">(resultChan <span class="keyword">chan</span> <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	log.Println(<span class="string">"StartProcessMonitor"</span>)</span><br><span class="line">	<span class="keyword">var</span> buf [<span class="number">255</span>]<span class="keyword">byte</span></span><br><span class="line">	<span class="comment">//开启进程监控提取线程</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		ok := C.CapturePrecess()</span><br><span class="line">		<span class="keyword">if</span> ok &lt; <span class="number">0</span> &#123;</span><br><span class="line">			log.Println(<span class="string">"connect syshook netlink error"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br></pre></td></tr></table></figure>
+<pre><code>func StartProcessMonitor(resultChan chan map[string]string) {
+    log.Println(&quot;StartProcessMonitor&quot;)
+    var buf [255]byte
+    //开启进程监控提取线程
+    go func() {
+        ok := C.CapturePrecess()
+        if ok &lt; 0 {
+            log.Println(&quot;connect syshook netlink error&quot;)
+        }
+    }()
+</code></pre><p>其次监听本地udp：65530端口，并不断从中读数据，这边有点好奇为啥要从本地端口读数据，按理说直接对接用户态netlink socket就能取到数据了，猜测是调的captureprecess中间做了一层转发，至于为什么要做这层转发目前还不清楚：</p>
+<pre><code>localaddress, _ := net.ResolveUDPAddr(&quot;udp&quot;, &quot;127.0.0.1:65530&quot;)
+    udplistener, err := net.ListenUDP(&quot;udp&quot;, localaddress)
+    if err != nil {
+        log.Print(err.Error())
+        return
+    }
+    defer udplistener.Close()
+    var resultdata map[string]string
+    for {
+        n, _, err := udplistener.ReadFromUDP(buf[0:])
+        if err != nil {
+            log.Println(err.Error())
+            return
+        }</code></pre><p>在上层对从65530读出来的数据做切割和解析，并将解析出的数据填充进特定格式的进程事件变量resultdata，并将结果返回给更上层调用：</p>
+<pre><code>proList := strings.Split(string(buf[0:n-1]), string(0x01))
+        if len(proList) &lt;= 5 {
+            log.Println(string(buf[0:n]))
+            continue
+        }
+        //不记录agent执行的命令  || s == os.Getppid()
+        if s, _ := strconv.Atoi(proList[4]); s == os.Getpid() {
+            continue
+        }
+        //白名单的不记录
+        if common.InArray(common.Config.Filter.Process, strings.ToLower(resultdata[&quot;name&quot;]), true) ||
+            common.InArray(common.Config.Filter.Process, strings.ToLower(resultdata[&quot;command&quot;]), true) {
+            continue
+        }
+        resultdata = make(map[string]string)
+        resultdata[&quot;source&quot;] = &quot;process&quot;
+        //resultdata[&quot;type&quot;] = proList[0]
+        resultdata[&quot;name&quot;] = proList[0]
+        resultdata[&quot;command&quot;] = proList[0] + &quot; &quot; + proList[1]
+        resultdata[&quot;pid&quot;] = proList[2]
+        resultdata[&quot;parentname&quot;] = proList[3]
+        resultdata[&quot;ppid&quot;] = proList[4]
+        resultdata[&quot;info&quot;] = &quot;&quot;
+        if len(proList) == 6 {
+            resultdata[&quot;info&quot;] = proList[5]
+        }
+        // fmt.Println(resultdata)
+        resultChan &lt;- resultdata
+        //fmt.Print(string(buf[0:n]))</code></pre><h3 id="c"><a href="#c" class="headerlink" title="c"></a>c</h3><p>贴下代码，主要关注下captureprecess函数：</p>
+<pre><code>#include &lt;sys/socket.h&gt;
+#include &lt;linux/netlink.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/socket.h&gt;
+#include &lt;netinet/in.h&gt;
+#include &lt;arpa/inet.h&gt;
 
-<p>其次监听本地udp：65530端口，并不断从中读数据，这边有点好奇为啥要从本地端口读数据，按理说直接对接用户态netlink socket就能取到数据了，猜测是调的captureprecess中间做了一层转发，至于为什么要做这层转发目前还不清楚：</p>
-<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">localaddress, _ := <span class="keyword">net</span>.ResolveUDPAddr(<span class="string">"udp"</span>, <span class="string">"127.0.0.1:65530"</span>)</span><br><span class="line">	udplistener, <span class="keyword">err</span> := <span class="keyword">net</span>.ListenUDP(<span class="string">"udp"</span>, localaddress)</span><br><span class="line">	<span class="keyword">if</span> <span class="keyword">err</span> != nil &#123;</span><br><span class="line">		<span class="keyword">log</span>.<span class="keyword">Print</span>(<span class="keyword">err</span>.<span class="keyword">Error</span>())</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	defer udplistener.<span class="keyword">Close</span>()</span><br><span class="line">	<span class="keyword">var</span> resultdata map[string]string</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">n</span>, _, <span class="keyword">err</span> := udplistener.ReadFromUDP(buf[0:])</span><br><span class="line">		<span class="keyword">if</span> <span class="keyword">err</span> != nil &#123;</span><br><span class="line">			<span class="keyword">log</span>.Println(<span class="keyword">err</span>.<span class="keyword">Error</span>())</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure>
+#define NETLINK_USER 31
 
-<p>在上层对从65530读出来的数据做切割和解析，并将解析出的数据填充进特定格式的进程事件变量resultdata，并将结果返回给更上层调用：</p>
-<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">proList := strings.<span class="symbol">Split</span>(string(buf[<span class="number">0</span>:n<span class="number">-1</span>]), string(<span class="number">0x01</span>))</span><br><span class="line">		if len(proList) &lt;= <span class="number">5</span> &#123;</span><br><span class="line">			log.<span class="symbol">Println</span>(string(buf[<span class="number">0</span>:n]))</span><br><span class="line">			continue</span><br><span class="line">		&#125;</span><br><span class="line">		//不记录agent执行的命令  || s == os.<span class="symbol">Getppid</span>()</span><br><span class="line">		if s, <span class="symbol">_</span> := strconv.<span class="symbol">Atoi</span>(proList[<span class="number">4</span>]); s == os.<span class="symbol">Getpid</span>() &#123;</span><br><span class="line">			continue</span><br><span class="line">		&#125;</span><br><span class="line">		//白名单的不记录</span><br><span class="line">		if common.<span class="symbol">InArray</span>(common.<span class="symbol">Config</span>.<span class="symbol">Filter</span>.<span class="symbol">Process</span>, strings.<span class="symbol">ToLower</span>(resultdata[<span class="string">"name"</span>]), true) ||</span><br><span class="line">			common.<span class="symbol">InArray</span>(common.<span class="symbol">Config</span>.<span class="symbol">Filter</span>.<span class="symbol">Process</span>, strings.<span class="symbol">ToLower</span>(resultdata[<span class="string">"command"</span>]), true) &#123;</span><br><span class="line">			continue</span><br><span class="line">		&#125;</span><br><span class="line">		resultdata = make(map[string]string)</span><br><span class="line">		resultdata[<span class="string">"source"</span>] = <span class="string">"process"</span></span><br><span class="line">		//resultdata[<span class="string">"type"</span>] = proList[<span class="number">0</span>]</span><br><span class="line">		resultdata[<span class="string">"name"</span>] = proList[<span class="number">0</span>]</span><br><span class="line">		resultdata[<span class="string">"command"</span>] = proList[<span class="number">0</span>] + <span class="string">" "</span> + proList[<span class="number">1</span>]</span><br><span class="line">		resultdata[<span class="string">"pid"</span>] = proList[<span class="number">2</span>]</span><br><span class="line">		resultdata[<span class="string">"parentname"</span>] = proList[<span class="number">3</span>]</span><br><span class="line">		resultdata[<span class="string">"ppid"</span>] = proList[<span class="number">4</span>]</span><br><span class="line">		resultdata[<span class="string">"info"</span>] = <span class="string">""</span></span><br><span class="line">		if len(proList) == <span class="number">6</span> &#123;</span><br><span class="line">			resultdata[<span class="string">"info"</span>] = proList[<span class="number">5</span>]</span><br><span class="line">		&#125;</span><br><span class="line">		// fmt.<span class="symbol">Println</span>(resultdata)</span><br><span class="line">		resultChan &lt;- resultdata</span><br><span class="line">		//fmt.<span class="symbol">Print</span>(string(buf[<span class="number">0</span>:n]))</span><br></pre></td></tr></table></figure>
+#define MAX_PAYLOAD 2048
+struct sockaddr_nl src_addr, dest_addr;
+struct nlmsghdr *nlh = NULL;
+struct iovec iov;
+struct msghdr msg;
 
-<h3 id="c"><a href="#c" class="headerlink" title="c"></a>c</h3><p>贴下代码，主要关注下captureprecess函数：</p>
-<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/netlink.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NETLINK_USER 31</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_PAYLOAD 2048</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_nl</span> <span class="title">src_addr</span>, <span class="title">dest_addr</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">nlmsghdr</span> *<span class="title">nlh</span> = <span class="title">NULL</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">iovec</span> <span class="title">iov</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">msghdr</span> <span class="title">msg</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PORT  65530</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">CapturePrecess</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">//udp sock</span></span><br><span class="line">	<span class="keyword">int</span> sock;</span><br><span class="line">	<span class="keyword">int</span> payload_max_len = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	payload_max_len = pathconf(<span class="string">"/"</span>, _PC_PATH_MAX);</span><br><span class="line">	<span class="keyword">if</span>(payload_max_len &lt; <span class="number">0</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	payload_max_len += MAX_PAYLOAD;</span><br><span class="line"></span><br><span class="line">	sock = socket(AF_INET, SOCK_DGRAM, <span class="number">0</span>);</span><br><span class="line">	<span class="keyword">if</span>(sock &lt; <span class="number">0</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">sockaddrin</span>;</span></span><br><span class="line">	<span class="built_in">memset</span>(&amp;sockaddrin, <span class="number">0</span>, <span class="keyword">sizeof</span>(sockaddrin));</span><br><span class="line">	sockaddrin.sin_family = AF_INET;</span><br><span class="line">	sockaddrin.sin_port = htons(PORT);</span><br><span class="line">	sockaddrin.sin_addr.s_addr = inet_addr(<span class="string">"127.0.0.1"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//netlink sock</span></span><br><span class="line">	<span class="keyword">int</span> sock_fd;</span><br><span class="line">	sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);</span><br><span class="line">	<span class="keyword">if</span> (sock_fd &lt; <span class="number">0</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">memset</span>(&amp;src_addr, <span class="number">0</span>, <span class="keyword">sizeof</span>(src_addr));</span><br><span class="line">    <span class="built_in">memset</span>(&amp;msg, <span class="number">0</span>, <span class="keyword">sizeof</span>(msg));</span><br><span class="line"></span><br><span class="line">    src_addr.nl_family = AF_NETLINK;</span><br><span class="line">    src_addr.nl_pid = getpid();</span><br><span class="line">    src_addr.nl_groups = <span class="number">1</span>;</span><br><span class="line">    bind(sock_fd, (struct sockaddr*)&amp;src_addr, <span class="keyword">sizeof</span>(src_addr));</span><br><span class="line">    <span class="built_in">memset</span>(&amp;dest_addr, <span class="number">0</span>, <span class="keyword">sizeof</span>(dest_addr));</span><br><span class="line">    nlh = (struct nlmsghdr *)<span class="built_in">malloc</span>(NLMSG_SPACE(payload_max_len));</span><br><span class="line">    <span class="built_in">memset</span>(nlh, <span class="number">0</span>, NLMSG_SPACE(payload_max_len));</span><br><span class="line"></span><br><span class="line">    iov.iov_base = (<span class="keyword">void</span> *)nlh;</span><br><span class="line">    iov.iov_len = NLMSG_SPACE(payload_max_len);</span><br><span class="line">    msg.msg_name = (<span class="keyword">void</span> *)&amp;dest_addr;</span><br><span class="line">    msg.msg_namelen = <span class="keyword">sizeof</span>(dest_addr);</span><br><span class="line">    msg.msg_iov = &amp;iov;</span><br><span class="line">    msg.msg_iovlen = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		recvmsg(sock_fd, &amp;msg, <span class="number">0</span>);</span><br><span class="line">		sendto(sock, (<span class="keyword">char</span> *)NLMSG_DATA(nlh), <span class="built_in">strlen</span>((<span class="keyword">char</span> *)NLMSG_DATA(nlh)), <span class="number">0</span>, (struct sockaddr *)&amp;sockaddrin, <span class="keyword">sizeof</span>(sockaddrin));</span><br><span class="line">		<span class="built_in">memset</span>((<span class="keyword">char</span> *)NLMSG_DATA(nlh), <span class="number">0</span>, <span class="built_in">strlen</span>((<span class="keyword">char</span> *)NLMSG_DATA(nlh)));</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">close</span>(sock_fd);</span><br><span class="line">	<span class="built_in">close</span>(sock);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+#define PORT  65530
+int CapturePrecess()
+{
+    //udp sock
+    int sock;
+    int payload_max_len = 0;
 
-<p>captureprecess主要负责进程获取，但本质上它还是一个caller；首先函数调用socket(AF_INET, SOCK_DGRAM, 0);创建udp的socket，返回socket描述符（句柄）到sock，之后设置要通信的服务器地址和端口，初始化要绑定的网络地址结构，项目中设置的是本地的65530端口：</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">int</span> CapturePrecess()</span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">//udp sock</span></span><br><span class="line">	<span class="built_in">int</span> sock;</span><br><span class="line">	<span class="built_in">int</span> payload_max_len = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	payload_max_len = pathconf(<span class="string">"/"</span>, _PC_PATH_MAX);</span><br><span class="line">	<span class="keyword">if</span>(payload_max_len &lt; <span class="number">0</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	payload_max_len += MAX_PAYLOAD;</span><br><span class="line"></span><br><span class="line">	sock = socket(AF_INET, SOCK_DGRAM, <span class="number">0</span>);</span><br><span class="line">	<span class="keyword">if</span>(sock &lt; <span class="number">0</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">  struct sockaddr_in sockaddrin;</span><br><span class="line">	memset(&amp;sockaddrin, <span class="number">0</span>, sizeof(sockaddrin));</span><br><span class="line">	sockaddrin.sin_family = AF_INET;</span><br><span class="line">	sockaddrin.sin_port = htons(PORT);</span><br><span class="line">	sockaddrin.sin_addr.s_addr = inet_addr(<span class="string">"127.0.0.1"</span>)</span><br></pre></td></tr></table></figure>
+    payload_max_len = pathconf(&quot;/&quot;, _PC_PATH_MAX);
+    if(payload_max_len &lt; 0) {
+        return -1;
+    }
 
-<p>然后创建netlink socket，这边自定义了一个netlink协议用于数据传输，协议号为31，创建好socket后和agent进程进行绑定，之后定义数据传输格式，分配消息数据存储空间：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//netlink sock</span></span><br><span class="line">	<span class="keyword">int</span> sock_fd;</span><br><span class="line">	sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);</span><br><span class="line">	<span class="keyword">if</span> (sock_fd &lt; <span class="number">0</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">memset</span>(&amp;src_addr, <span class="number">0</span>, <span class="keyword">sizeof</span>(src_addr));</span><br><span class="line">  <span class="built_in">memset</span>(&amp;msg, <span class="number">0</span>, <span class="keyword">sizeof</span>(msg));</span><br><span class="line"></span><br><span class="line">  src_addr.nl_family = AF_NETLINK;</span><br><span class="line">  src_addr.nl_pid = getpid();</span><br><span class="line">  src_addr.nl_groups = <span class="number">1</span>;</span><br><span class="line">  bind(sock_fd, (struct sockaddr*)&amp;src_addr, <span class="keyword">sizeof</span>(src_addr));</span><br><span class="line">  <span class="built_in">memset</span>(&amp;dest_addr, <span class="number">0</span>, <span class="keyword">sizeof</span>(dest_addr));</span><br><span class="line">  nlh = (struct nlmsghdr *)<span class="built_in">malloc</span>(NLMSG_SPACE(payload_max_len));</span><br><span class="line">  <span class="built_in">memset</span>(nlh, <span class="number">0</span>, NLMSG_SPACE(payload_max_len));</span><br><span class="line"></span><br><span class="line">  iov.iov_base = (<span class="keyword">void</span> *)nlh;</span><br><span class="line">  iov.iov_len = NLMSG_SPACE(payload_max_len);</span><br><span class="line">  msg.msg_name = (<span class="keyword">void</span> *)&amp;dest_addr;</span><br><span class="line">  msg.msg_namelen = <span class="keyword">sizeof</span>(dest_addr);</span><br><span class="line">  msg.msg_iov = &amp;iov;</span><br><span class="line">  msg.msg_iovlen = <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+    payload_max_len += MAX_PAYLOAD;
 
-<p>最后在一个while循环里不断从netlink socket中读取事件信息放到msg中，再向创建udp socket时绑定的ip和端口发送接收到的msg数据，每次发送完会用NLMSG_DATA()获取nlmsghdr指向的payload地址，并将其所在地址空间置位：</p>
-<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">&#123;</span><br><span class="line">	recvmsg(sock_fd, &amp;msg, <span class="number">0</span>);</span><br><span class="line">	sendto(sock, (<span class="built_in">char</span> *)<span class="constructor">NLMSG_DATA(<span class="params">nlh</span>)</span>, strlen((<span class="built_in">char</span> *)<span class="constructor">NLMSG_DATA(<span class="params">nlh</span>)</span>), <span class="number">0</span>, (<span class="keyword">struct</span> sockaddr *)&amp;sockaddrin, sizeof(sockaddrin));</span><br><span class="line">	memset((<span class="built_in">char</span> *)<span class="constructor">NLMSG_DATA(<span class="params">nlh</span>)</span>, <span class="number">0</span>, strlen((<span class="built_in">char</span> *)<span class="constructor">NLMSG_DATA(<span class="params">nlh</span>)</span>));</span><br><span class="line">&#125;</span><br><span class="line">close(sock_fd);</span><br><span class="line">close(sock);</span><br><span class="line">return <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if(sock &lt; 0) {
+        return -1;
+    }
+    struct sockaddr_in sockaddrin;
+    memset(&amp;sockaddrin, 0, sizeof(sockaddrin));
+    sockaddrin.sin_family = AF_INET;
+    sockaddrin.sin_port = htons(PORT);
+    sockaddrin.sin_addr.s_addr = inet_addr(&quot;127.0.0.1&quot;);
 
-<h3 id="kernel"><a href="#kernel" class="headerlink" title="kernel"></a>kernel</h3><p>这边是比较核心的一个点，以上两块本质上都是caller，lkm才是进程事件捕获的真正实现方，首先贴下代码：</p>
+    //netlink sock
+    int sock_fd;
+    sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
+    if (sock_fd &lt; 0) {
+        return -1;
+    }
+
+    memset(&amp;src_addr, 0, sizeof(src_addr));
+    memset(&amp;msg, 0, sizeof(msg));
+
+    src_addr.nl_family = AF_NETLINK;
+    src_addr.nl_pid = getpid();
+    src_addr.nl_groups = 1;
+    bind(sock_fd, (struct sockaddr*)&amp;src_addr, sizeof(src_addr));
+    memset(&amp;dest_addr, 0, sizeof(dest_addr));
+    nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(payload_max_len));
+    memset(nlh, 0, NLMSG_SPACE(payload_max_len));
+
+    iov.iov_base = (void *)nlh;
+    iov.iov_len = NLMSG_SPACE(payload_max_len);
+    msg.msg_name = (void *)&amp;dest_addr;
+    msg.msg_namelen = sizeof(dest_addr);
+    msg.msg_iov = &amp;iov;
+    msg.msg_iovlen = 1;
+
+    while (1)
+    {
+        recvmsg(sock_fd, &amp;msg, 0);
+        sendto(sock, (char *)NLMSG_DATA(nlh), strlen((char *)NLMSG_DATA(nlh)), 0, (struct sockaddr *)&amp;sockaddrin, sizeof(sockaddrin));
+        memset((char *)NLMSG_DATA(nlh), 0, strlen((char *)NLMSG_DATA(nlh)));
+    }
+    close(sock_fd);
+    close(sock);
+    return 0;
+}</code></pre><p>captureprecess主要负责进程获取，但本质上它还是一个caller；首先函数调用socket(AF_INET, SOCK_DGRAM, 0);创建udp的socket，返回socket描述符（句柄）到sock，之后设置要通信的服务器地址和端口，初始化要绑定的网络地址结构，项目中设置的是本地的65530端口：</p>
+<pre><code>int CapturePrecess()
+{
+    //udp sock
+    int sock;
+    int payload_max_len = 0;
+
+    payload_max_len = pathconf(&quot;/&quot;, _PC_PATH_MAX);
+    if(payload_max_len &lt; 0) {
+        return -1;
+    }
+
+    payload_max_len += MAX_PAYLOAD;
+
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if(sock &lt; 0) {
+        return -1;
+    }
+  struct sockaddr_in sockaddrin;
+    memset(&amp;sockaddrin, 0, sizeof(sockaddrin));
+    sockaddrin.sin_family = AF_INET;
+    sockaddrin.sin_port = htons(PORT);
+    sockaddrin.sin_addr.s_addr = inet_addr(&quot;127.0.0.1&quot;)</code></pre><p>然后创建netlink socket，这边自定义了一个netlink协议用于数据传输，协议号为31，创建好socket后和agent进程进行绑定，之后定义数据传输格式，分配消息数据存储空间：</p>
+<pre><code>//netlink sock
+    int sock_fd;
+    sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USER);
+    if (sock_fd &lt; 0) {
+        return -1;
+    }
+
+    memset(&amp;src_addr, 0, sizeof(src_addr));
+  memset(&amp;msg, 0, sizeof(msg));
+
+  src_addr.nl_family = AF_NETLINK;
+  src_addr.nl_pid = getpid();
+  src_addr.nl_groups = 1;
+  bind(sock_fd, (struct sockaddr*)&amp;src_addr, sizeof(src_addr));
+  memset(&amp;dest_addr, 0, sizeof(dest_addr));
+  nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(payload_max_len));
+  memset(nlh, 0, NLMSG_SPACE(payload_max_len));
+
+  iov.iov_base = (void *)nlh;
+  iov.iov_len = NLMSG_SPACE(payload_max_len);
+  msg.msg_name = (void *)&amp;dest_addr;
+  msg.msg_namelen = sizeof(dest_addr);
+  msg.msg_iov = &amp;iov;
+  msg.msg_iovlen = 1;</code></pre><p>最后在一个while循环里不断从netlink socket中读取事件信息放到msg中，再向创建udp socket时绑定的ip和端口发送接收到的msg数据，每次发送完会用NLMSG_DATA()获取nlmsghdr指向的payload地址，并将其所在地址空间置位：</p>
+<pre><code>    while (1)
+    {
+        recvmsg(sock_fd, &amp;msg, 0);
+        sendto(sock, (char *)NLMSG_DATA(nlh), strlen((char *)NLMSG_DATA(nlh)), 0, (struct sockaddr *)&amp;sockaddrin, sizeof(sockaddrin));
+        memset((char *)NLMSG_DATA(nlh), 0, strlen((char *)NLMSG_DATA(nlh)));
+    }
+    close(sock_fd);
+    close(sock);
+    return 0;</code></pre><h3 id="kernel"><a href="#kernel" class="headerlink" title="kernel"></a>kernel</h3><p>这边是比较核心的一个点，以上两块本质上都是caller，lkm才是进程事件捕获的真正实现方，首先贴下代码：</p>
 <p><strong>syscall_hook.c</strong></p>
-<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br><span class="line">361</span><br><span class="line">362</span><br><span class="line">363</span><br><span class="line">364</span><br><span class="line">365</span><br><span class="line">366</span><br><span class="line">367</span><br><span class="line">368</span><br><span class="line">369</span><br><span class="line">370</span><br><span class="line">371</span><br><span class="line">372</span><br><span class="line">373</span><br><span class="line">374</span><br><span class="line">375</span><br><span class="line">376</span><br><span class="line">377</span><br><span class="line">378</span><br><span class="line">379</span><br><span class="line">380</span><br><span class="line">381</span><br><span class="line">382</span><br><span class="line">383</span><br><span class="line">384</span><br><span class="line">385</span><br><span class="line">386</span><br><span class="line">387</span><br><span class="line">388</span><br><span class="line">389</span><br><span class="line">390</span><br><span class="line">391</span><br><span class="line">392</span><br><span class="line">393</span><br><span class="line">394</span><br><span class="line">395</span><br><span class="line">396</span><br><span class="line">397</span><br><span class="line">398</span><br><span class="line">399</span><br><span class="line">400</span><br><span class="line">401</span><br><span class="line">402</span><br><span class="line">403</span><br><span class="line">404</span><br><span class="line">405</span><br><span class="line">406</span><br><span class="line">407</span><br><span class="line">408</span><br><span class="line">409</span><br><span class="line">410</span><br><span class="line">411</span><br><span class="line">412</span><br><span class="line">413</span><br><span class="line">414</span><br><span class="line">415</span><br><span class="line">416</span><br><span class="line">417</span><br><span class="line">418</span><br><span class="line">419</span><br><span class="line">420</span><br><span class="line">421</span><br><span class="line">422</span><br><span class="line">423</span><br><span class="line">424</span><br><span class="line">425</span><br><span class="line">426</span><br><span class="line">427</span><br><span class="line">428</span><br><span class="line">429</span><br><span class="line">430</span><br><span class="line">431</span><br><span class="line">432</span><br><span class="line">433</span><br><span class="line">434</span><br><span class="line">435</span><br><span class="line">436</span><br><span class="line">437</span><br><span class="line">438</span><br><span class="line">439</span><br><span class="line">440</span><br><span class="line">441</span><br><span class="line">442</span><br><span class="line">443</span><br><span class="line">444</span><br><span class="line">445</span><br><span class="line">446</span><br><span class="line">447</span><br><span class="line">448</span><br><span class="line">449</span><br><span class="line">450</span><br><span class="line">451</span><br><span class="line">452</span><br><span class="line">453</span><br><span class="line">454</span><br><span class="line">455</span><br><span class="line">456</span><br><span class="line">457</span><br><span class="line">458</span><br><span class="line">459</span><br><span class="line">460</span><br><span class="line">461</span><br><span class="line">462</span><br><span class="line">463</span><br><span class="line">464</span><br><span class="line">465</span><br><span class="line">466</span><br><span class="line">467</span><br><span class="line">468</span><br><span class="line">469</span><br><span class="line">470</span><br><span class="line">471</span><br><span class="line">472</span><br><span class="line">473</span><br><span class="line">474</span><br><span class="line">475</span><br><span class="line">476</span><br><span class="line">477</span><br><span class="line">478</span><br><span class="line">479</span><br><span class="line">480</span><br><span class="line">481</span><br><span class="line">482</span><br><span class="line">483</span><br><span class="line">484</span><br><span class="line">485</span><br><span class="line">486</span><br><span class="line">487</span><br><span class="line">488</span><br><span class="line">489</span><br><span class="line">490</span><br><span class="line">491</span><br><span class="line">492</span><br><span class="line">493</span><br><span class="line">494</span><br><span class="line">495</span><br><span class="line">496</span><br><span class="line">497</span><br><span class="line">498</span><br><span class="line">499</span><br><span class="line">500</span><br><span class="line">501</span><br><span class="line">502</span><br><span class="line">503</span><br><span class="line">504</span><br><span class="line">505</span><br><span class="line">506</span><br><span class="line">507</span><br><span class="line">508</span><br><span class="line">509</span><br><span class="line">510</span><br><span class="line">511</span><br><span class="line">512</span><br><span class="line">513</span><br><span class="line">514</span><br><span class="line">515</span><br><span class="line">516</span><br><span class="line">517</span><br><span class="line">518</span><br><span class="line">519</span><br><span class="line">520</span><br><span class="line">521</span><br><span class="line">522</span><br><span class="line">523</span><br><span class="line">524</span><br><span class="line">525</span><br><span class="line">526</span><br><span class="line">527</span><br><span class="line">528</span><br><span class="line">529</span><br><span class="line">530</span><br><span class="line">531</span><br><span class="line">532</span><br><span class="line">533</span><br><span class="line">534</span><br><span class="line">535</span><br><span class="line">536</span><br><span class="line">537</span><br><span class="line">538</span><br><span class="line">539</span><br><span class="line">540</span><br><span class="line">541</span><br><span class="line">542</span><br><span class="line">543</span><br><span class="line">544</span><br><span class="line">545</span><br><span class="line">546</span><br><span class="line">547</span><br><span class="line">548</span><br><span class="line">549</span><br><span class="line">550</span><br><span class="line">551</span><br><span class="line">552</span><br><span class="line">553</span><br><span class="line">554</span><br><span class="line">555</span><br><span class="line">556</span><br><span class="line">557</span><br><span class="line">558</span><br><span class="line">559</span><br><span class="line">560</span><br><span class="line">561</span><br><span class="line">562</span><br><span class="line">563</span><br><span class="line">564</span><br><span class="line">565</span><br><span class="line">566</span><br><span class="line">567</span><br><span class="line">568</span><br><span class="line">569</span><br><span class="line">570</span><br><span class="line">571</span><br><span class="line">572</span><br><span class="line">573</span><br><span class="line">574</span><br><span class="line">575</span><br><span class="line">576</span><br><span class="line">577</span><br><span class="line">578</span><br><span class="line">579</span><br><span class="line">580</span><br><span class="line">581</span><br><span class="line">582</span><br><span class="line">583</span><br><span class="line">584</span><br><span class="line">585</span><br><span class="line">586</span><br><span class="line">587</span><br><span class="line">588</span><br><span class="line">589</span><br><span class="line">590</span><br><span class="line">591</span><br><span class="line">592</span><br><span class="line">593</span><br><span class="line">594</span><br><span class="line">595</span><br><span class="line">596</span><br><span class="line">597</span><br><span class="line">598</span><br><span class="line">599</span><br><span class="line">600</span><br><span class="line">601</span><br><span class="line">602</span><br><span class="line">603</span><br><span class="line">604</span><br><span class="line">605</span><br><span class="line">606</span><br><span class="line">607</span><br><span class="line">608</span><br><span class="line">609</span><br><span class="line">610</span><br><span class="line">611</span><br><span class="line">612</span><br><span class="line">613</span><br><span class="line">614</span><br><span class="line">615</span><br><span class="line">616</span><br><span class="line">617</span><br><span class="line">618</span><br><span class="line">619</span><br><span class="line">620</span><br><span class="line">621</span><br><span class="line">622</span><br><span class="line">623</span><br><span class="line">624</span><br><span class="line">625</span><br><span class="line">626</span><br><span class="line">627</span><br><span class="line">628</span><br><span class="line">629</span><br><span class="line">630</span><br><span class="line">631</span><br><span class="line">632</span><br><span class="line">633</span><br><span class="line">634</span><br><span class="line">635</span><br><span class="line">636</span><br><span class="line">637</span><br><span class="line">638</span><br><span class="line">639</span><br><span class="line">640</span><br><span class="line">641</span><br><span class="line">642</span><br><span class="line">643</span><br><span class="line">644</span><br><span class="line">645</span><br><span class="line">646</span><br><span class="line">647</span><br><span class="line">648</span><br><span class="line">649</span><br><span class="line">650</span><br><span class="line">651</span><br><span class="line">652</span><br><span class="line">653</span><br><span class="line">654</span><br><span class="line">655</span><br><span class="line">656</span><br><span class="line">657</span><br><span class="line">658</span><br><span class="line">659</span><br><span class="line">660</span><br><span class="line">661</span><br><span class="line">662</span><br><span class="line">663</span><br><span class="line">664</span><br><span class="line">665</span><br><span class="line">666</span><br><span class="line">667</span><br><span class="line">668</span><br><span class="line">669</span><br><span class="line">670</span><br><span class="line">671</span><br><span class="line">672</span><br><span class="line">673</span><br><span class="line">674</span><br><span class="line">675</span><br><span class="line">676</span><br><span class="line">677</span><br><span class="line">678</span><br><span class="line">679</span><br><span class="line">680</span><br><span class="line">681</span><br><span class="line">682</span><br><span class="line">683</span><br><span class="line">684</span><br><span class="line">685</span><br><span class="line">686</span><br><span class="line">687</span><br><span class="line">688</span><br><span class="line">689</span><br><span class="line">690</span><br><span class="line">691</span><br><span class="line">692</span><br><span class="line">693</span><br><span class="line">694</span><br><span class="line">695</span><br><span class="line">696</span><br><span class="line">697</span><br><span class="line">698</span><br><span class="line">699</span><br><span class="line">700</span><br><span class="line">701</span><br><span class="line">702</span><br><span class="line">703</span><br><span class="line">704</span><br><span class="line">705</span><br><span class="line">706</span><br><span class="line">707</span><br><span class="line">708</span><br><span class="line">709</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/kernel.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/module.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/syscalls.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/delay.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/file.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;asm/paravirt.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;asm/syscall.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/sys.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/slab.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/kallsyms.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/binfmts.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/version.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;net/sock.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;net/netlink.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> **sys_call_table_ptr;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">long</span> original_cr0;</span><br><span class="line"><span class="keyword">void</span> *orig_sys_call_table [NR_syscalls];</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sock</span> *<span class="title">syshook_nl_sk</span> = <span class="title">NULL</span>;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SYSHOOK_NL_NUM  31</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">user_arg_ptr</span> &#123;</span></span><br><span class="line">    <span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_COMPAT</span></span><br><span class="line">        <span class="keyword">bool</span> is_compat;</span><br><span class="line">    <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">        <span class="keyword">union</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *native;</span><br><span class="line">    <span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_COMPAT</span></span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">compat_uptr_t</span> __user *compat;</span><br><span class="line">    <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">        &#125; ptr;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">filename</span> *(*<span class="title">tmp_getname</span>)(<span class="title">const</span> <span class="title">char</span> __<span class="title">user</span> * <span class="title">filename</span>);</span></span><br><span class="line">    <span class="keyword">void</span> (*tmp_putname)(struct filename *name);</span><br><span class="line">    <span class="function"><span class="keyword">typedef</span> asmlinkage <span class="title">long</span> <span class="params">(*func_execve)</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                           <span class="keyword">const</span> <span class="keyword">char</span> __user * <span class="keyword">const</span> __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                           <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span>  __user *)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">extern</span> asmlinkage <span class="keyword">long</span> <span class="title">monitor_stub_execve_hook</span> <span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                     <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                     <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *)</span></span>;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">elif</span> LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 32)</span></span><br><span class="line">    <span class="function"><span class="keyword">typedef</span> asmlinkage <span class="title">long</span> <span class="params">(*func_execve)</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                           <span class="keyword">const</span> <span class="keyword">char</span> __user * <span class="keyword">const</span> __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                           <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span>  __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                           struct pt_regs *)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">extern</span> asmlinkage <span class="keyword">long</span> <span class="title">monitor_stub_execve_hook</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                    <span class="keyword">const</span> <span class="keyword">char</span> __user * <span class="keyword">const</span> __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                    <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span>  __user *,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                    struct pt_regs *)</span></span>;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">func_execve orig_stub_execve;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">long</span> **<span class="title">find_sys_call_table</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> ptr;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> *p;</span><br><span class="line"></span><br><span class="line">    pr_err(<span class="string">"Start found sys_call_table.\n"</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (ptr = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)sys_close;</span><br><span class="line">         ptr &lt; (<span class="keyword">unsigned</span> <span class="keyword">long</span>)&amp;loops_per_jiffy;</span><br><span class="line">         ptr += <span class="keyword">sizeof</span>(<span class="keyword">void</span> *)) &#123;</span><br><span class="line"></span><br><span class="line">        p = (<span class="keyword">unsigned</span> <span class="keyword">long</span> *)ptr;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (p[__NR_close] == (<span class="keyword">unsigned</span> <span class="keyword">long</span>)sys_close) &#123;</span><br><span class="line">            pr_err(<span class="string">"Found the sys_call_table!!! __NR_close[%d] sys_close[%lx]\n"</span></span><br><span class="line">                    <span class="string">" __NR_execve[%d] sct[__NR_execve][0x%lx]\n"</span>,</span><br><span class="line">                    __NR_close,</span><br><span class="line">                    (<span class="keyword">unsigned</span> <span class="keyword">long</span>)sys_close,</span><br><span class="line">                    __NR_execve,</span><br><span class="line">                    p[__NR_execve]);</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">unsigned</span> <span class="keyword">long</span> **)p;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 32)</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tmp_count</span><span class="params">(<span class="keyword">char</span> __user * __user * argv, <span class="keyword">int</span> <span class="built_in">max</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argv != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="keyword">char</span> __user * p;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (get_user(p, argv))</span><br><span class="line">                <span class="keyword">return</span> -EFAULT;</span><br><span class="line">            <span class="keyword">if</span> (!p)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            argv++;</span><br><span class="line">            <span class="keyword">if</span> (i++ &gt;= <span class="built_in">max</span>)</span><br><span class="line">                <span class="keyword">return</span> -E2BIG;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (fatal_signal_pending(current))</span><br><span class="line">                <span class="keyword">return</span> -ERESTARTNOHAND;</span><br><span class="line">            cond_resched();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">asmlinkage <span class="keyword">long</span> <span class="title">monitor_execve_hook</span><span class="params">(<span class="keyword">char</span> __user *name,</span></span></span><br><span class="line"><span class="function"><span class="params">                                   <span class="keyword">char</span> __user * __user *argv,</span></span></span><br><span class="line"><span class="function"><span class="params">                                   <span class="keyword">char</span> __user * __user *envp, </span></span></span><br><span class="line"><span class="function"><span class="params">                                   struct pt_regs *regs)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> error = <span class="number">0</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">filename</span> *<span class="title">path</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="keyword">char</span> __user * native = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">int</span> tmp_argc = <span class="number">0</span>, tmp_envpc =  <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>, len = <span class="number">0</span>, offset = <span class="number">0</span>, max_len = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> total_argc_len = <span class="number">0</span>, total_envpc_len = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">char</span> *total_argc_ptr = <span class="literal">NULL</span>, *total_envpc_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">char</span> *per_envp = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">int</span> nl_send_len = <span class="number">0</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sk_buff</span> *<span class="title">skb</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">nlmsghdr</span> *<span class="title">nlh</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">file</span> *<span class="title">file</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="keyword">char</span> *tmp = kmalloc(PATH_MAX, GFP_KERNEL);</span><br><span class="line">    <span class="keyword">char</span> *path1 = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    path = getname(name);</span><br><span class="line">    error = PTR_ERR(path);</span><br><span class="line">    <span class="keyword">if</span> (IS_ERR(path)) &#123;</span><br><span class="line">        pr_err(<span class="string">"get path failed.\n"</span>);</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    file = open_exec(path-&gt;name);</span><br><span class="line">    <span class="keyword">if</span> (!IS_ERR(file) &amp;&amp; tmp) &#123;</span><br><span class="line">        <span class="built_in">memset</span>(tmp, <span class="number">0</span>, PATH_MAX);</span><br><span class="line">        path1 = d_path(&amp;file-&gt;f_path, tmp, PATH_MAX);</span><br><span class="line">        <span class="keyword">if</span> (IS_ERR(path1)) &#123;</span><br><span class="line">            path1 = <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        fput(file);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    error = <span class="number">0</span>;</span><br><span class="line">    tmp_argc = tmp_count(argv, MAX_ARG_STRINGS);</span><br><span class="line">    <span class="keyword">if</span>(tmp_argc &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        error = tmp_argc;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; tmp_argc; i ++) &#123;</span><br><span class="line">        <span class="keyword">if</span>(get_user(native, argv + i)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        len = strnlen_user(native, MAX_ARG_STRLEN);</span><br><span class="line">        <span class="keyword">if</span>(!len) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        total_argc_len += len;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    total_argc_ptr = kmalloc(total_argc_len + <span class="number">16</span> * tmp_argc, GFP_ATOMIC);</span><br><span class="line">    <span class="keyword">if</span>(!total_argc_ptr) &#123;</span><br><span class="line">        error = -ENOMEM;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">memset</span>(total_argc_ptr, <span class="number">0</span>, total_argc_len + <span class="number">16</span> * tmp_argc);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; tmp_argc; i ++) &#123;</span><br><span class="line">        <span class="keyword">if</span>(i == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(get_user(native, argv + i)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        len = strnlen_user(native, MAX_ARG_STRLEN);</span><br><span class="line">        <span class="keyword">if</span>(!len) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(offset + len &gt; total_argc_len + <span class="number">16</span> * tmp_argc) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (copy_from_user(total_argc_ptr + offset, native, len)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        offset += len - <span class="number">1</span>;</span><br><span class="line">        *(total_argc_ptr + offset) = <span class="string">' '</span>;</span><br><span class="line">        offset += <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/*--------envp--------------*/</span></span><br><span class="line">    len = <span class="number">0</span>;</span><br><span class="line">    offset = <span class="number">0</span>;</span><br><span class="line">    tmp_envpc = tmp_count(envp, MAX_ARG_STRINGS);</span><br><span class="line">    <span class="keyword">if</span>(tmp_envpc &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        error = tmp_envpc;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; tmp_envpc; i ++) &#123;</span><br><span class="line">        <span class="keyword">if</span>(get_user(native, envp + i)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        len = strnlen_user(native, MAX_ARG_STRLEN);</span><br><span class="line">        <span class="keyword">if</span>(!len) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(len &gt; max_len) &#123;</span><br><span class="line">            max_len = len;</span><br><span class="line">        &#125;</span><br><span class="line">        total_envpc_len += len;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    per_envp = kmalloc(max_len + <span class="number">16</span>, GFP_KERNEL);</span><br><span class="line">    <span class="keyword">if</span>(!per_envp) &#123;</span><br><span class="line">        error = -ENOMEM;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    total_envpc_ptr = kmalloc(total_envpc_len + <span class="number">16</span> * tmp_envpc, GFP_ATOMIC);</span><br><span class="line">    <span class="keyword">if</span>(!total_envpc_ptr) &#123;</span><br><span class="line">        error = -ENOMEM;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">memset</span>(total_envpc_ptr, <span class="number">0</span>, total_envpc_len + <span class="number">16</span> * tmp_envpc);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; tmp_envpc; i ++) &#123;</span><br><span class="line">        <span class="keyword">if</span>(get_user(native, envp + i)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        len = strnlen_user(native, MAX_ARG_STRLEN);</span><br><span class="line">        <span class="keyword">if</span>(!len) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(offset + len &gt; total_envpc_len + <span class="number">16</span> * tmp_envpc) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">memset</span>(per_envp, <span class="number">0</span>, max_len);</span><br><span class="line">        <span class="keyword">if</span>(copy_from_user(per_envp, native, len)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(!<span class="built_in">strstr</span>(per_envp, <span class="string">"PWD"</span>) &amp;&amp; !<span class="built_in">strstr</span>(per_envp, <span class="string">"LOGNAME"</span>) &amp;&amp; !<span class="built_in">strstr</span>(per_envp, <span class="string">"USER"</span>)) &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (copy_from_user(total_envpc_ptr + offset, native, len)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        offset += len - <span class="number">1</span>;</span><br><span class="line">        *(total_envpc_ptr + offset) = <span class="string">' '</span>;</span><br><span class="line">        offset += <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    nl_send_len = (path1 != <span class="literal">NULL</span> ? <span class="built_in">strlen</span>(path1) : <span class="built_in">strlen</span>(path-&gt;name)) + <span class="built_in">strlen</span>(current-&gt;parent-&gt;comm) + <span class="number">128</span>;</span><br><span class="line">    <span class="keyword">if</span>(!ZERO_OR_NULL_PTR(total_envpc_ptr)) &#123;</span><br><span class="line">        nl_send_len += <span class="built_in">strlen</span>(total_envpc_ptr);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(!ZERO_OR_NULL_PTR(total_argc_ptr)) &#123;</span><br><span class="line">        nl_send_len += <span class="built_in">strlen</span>(total_argc_ptr);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    nl_send_len = nl_send_len &lt; PATH_MAX + <span class="number">2048</span> ? nl_send_len : PATH_MAX + <span class="number">2048</span>;</span><br><span class="line">    skb = alloc_skb(NLMSG_SPACE(nl_send_len), GFP_ATOMIC);</span><br><span class="line">    <span class="keyword">if</span>(!skb) &#123;</span><br><span class="line">        error = -ENOMEM;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    nlh = (struct nlmsghdr *)skb-&gt;data;</span><br><span class="line">    nlh-&gt;nlmsg_len = NLMSG_SPACE(nl_send_len);</span><br><span class="line">    nlh-&gt;nlmsg_pid = <span class="number">0</span>; </span><br><span class="line">    nlh-&gt;nlmsg_flags = <span class="number">0</span>;</span><br><span class="line">    nlh = nlmsg_put(skb, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, NLMSG_SPACE(nl_send_len) - <span class="keyword">sizeof</span> (struct nlmsghdr), <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(!nlh) &#123;</span><br><span class="line">        kfree_skb(skb);</span><br><span class="line">        pr_err(<span class="string">"nlh get failed.\n"</span>);</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">snprintf</span>(NLMSG_DATA(nlh), nl_send_len, <span class="string">"%s%c%s%c%u%c%s%c%d%c%s"</span>, path1 != <span class="literal">NULL</span> ? path1 : path-&gt;name, <span class="number">0x1</span>, (<span class="keyword">uint64_t</span>)total_argc_ptr == <span class="number">0x10</span> ? <span class="string">"N/A"</span> : total_argc_ptr, <span class="number">0x1</span>, current-&gt;tgid, <span class="number">0x1</span>, current-&gt;parent-&gt;comm, <span class="number">0x1</span>, current-&gt;parent-&gt;tgid, <span class="number">0x1</span>, (<span class="keyword">uint64_t</span>)total_envpc_ptr == <span class="number">0x10</span> ? <span class="string">"N/A"</span> : total_envpc_ptr);</span><br><span class="line">    NETLINK_CB(skb).pid = <span class="number">0</span>;</span><br><span class="line">    NETLINK_CB(skb).dst_group = <span class="number">1</span>;</span><br><span class="line">    error = netlink_broadcast(syshook_nl_sk, skb, <span class="number">0</span>, <span class="number">1</span>, GFP_KERNEL);</span><br><span class="line">    <span class="keyword">if</span>(error != <span class="number">0</span> &amp;&amp; error != <span class="number">-3</span>) &#123;</span><br><span class="line">        pr_err(<span class="string">"send nl broadcast failed.\n"</span>);</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//pr_err("%s|%s|%u|%s|%d|%s\n", path1 != NULL ? path1 : path-&gt;name, total_argc_ptr, current-&gt;tgid, current-&gt;parent-&gt;comm, current-&gt;parent-&gt;tgid, total_envpc_ptr);</span></span><br><span class="line"></span><br><span class="line">err:</span><br><span class="line">    <span class="keyword">if</span>(tmp) &#123;</span><br><span class="line">        kfree(tmp);</span><br><span class="line">        tmp = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(total_envpc_ptr) &#123;</span><br><span class="line">        kfree(total_envpc_ptr);</span><br><span class="line">        total_envpc_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(per_envp) &#123;</span><br><span class="line">        kfree(per_envp);</span><br><span class="line">        per_envp = <span class="literal">NULL</span>; </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(total_argc_ptr) &#123;</span><br><span class="line">        kfree(total_argc_ptr);</span><br><span class="line">        total_argc_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    putname(path);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">elif</span> LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="title">get_user_arg_ptr</span><span class="params">(struct user_arg_ptr argv, <span class="keyword">int</span> nr)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> __user *native;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_COMPAT</span></span><br><span class="line">    <span class="keyword">if</span> (unlikely(argv.is_compat)) &#123;</span><br><span class="line">        <span class="keyword">compat_uptr_t</span> compat;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (get_user(compat, argv.ptr.compat + nr))</span><br><span class="line">            <span class="keyword">return</span> ERR_PTR(-EFAULT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> compat_ptr(compat);</span><br><span class="line">    &#125;   </span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (get_user(native, argv.ptr.native + nr))</span><br><span class="line">        <span class="keyword">return</span> ERR_PTR(-EFAULT);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> native;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tmp_count</span><span class="params">(struct user_arg_ptr argv, <span class="keyword">int</span> <span class="built_in">max</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argv.ptr.native != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="keyword">const</span> <span class="keyword">char</span> __user *p = get_user_arg_ptr(argv, i); </span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!p)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (IS_ERR(p))</span><br><span class="line">                <span class="keyword">return</span> -EFAULT;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (i &gt;= <span class="built_in">max</span>)</span><br><span class="line">                <span class="keyword">return</span> -E2BIG;</span><br><span class="line">            ++i;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (fatal_signal_pending(current))</span><br><span class="line">                <span class="keyword">return</span> -ERESTARTNOHAND;</span><br><span class="line">            cond_resched();</span><br><span class="line">        &#125;   </span><br><span class="line">    &#125;   </span><br><span class="line">    <span class="keyword">return</span> i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">asmlinkage <span class="keyword">long</span> <span class="title">monitor_execve_hook</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> __user *filename, </span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *argv,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> error = <span class="number">0</span>, i = <span class="number">0</span>, len = <span class="number">0</span>, offset = <span class="number">0</span>, max_len = <span class="number">0</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">filename</span> *<span class="title">path</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> __user * native = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">char</span> *total_argc_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">char</span> *total_envpc_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">char</span> *per_envp = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">int</span> tmp_argc = <span class="number">0</span>, total_argc_len = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> tmp_envpc = <span class="number">0</span>, total_envpc_len = <span class="number">0</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">user_arg_ptr</span> <span class="title">argvx</span> = &#123;</span> .ptr.native = argv &#125;;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">user_arg_ptr</span> <span class="title">envpx</span> = &#123;</span> .ptr.native = envp &#125;;</span><br><span class="line">    <span class="keyword">int</span> nl_send_len = <span class="number">0</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sk_buff</span> *<span class="title">skb</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">nlmsghdr</span> *<span class="title">nlh</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">file</span> *<span class="title">file</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="keyword">char</span> *tmp = kmalloc(PATH_MAX, GFP_KERNEL);</span><br><span class="line">    <span class="keyword">char</span> *path1 = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    path = tmp_getname(filename);</span><br><span class="line">    <span class="comment">// printk("path:%s\n",path-&gt;name);</span></span><br><span class="line">    error = PTR_ERR(path);</span><br><span class="line">    <span class="keyword">if</span> (IS_ERR(path)) &#123;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    file = open_exec(path-&gt;name);</span><br><span class="line">    <span class="keyword">if</span> (!IS_ERR(file) &amp;&amp; tmp) &#123;</span><br><span class="line">        <span class="built_in">memset</span>(tmp, <span class="number">0</span>, PATH_MAX);</span><br><span class="line">        path1 = d_path(&amp;file-&gt;f_path, tmp, PATH_MAX);</span><br><span class="line">        <span class="keyword">if</span> (IS_ERR(path1)) &#123;</span><br><span class="line">            path1 = <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        fput(file);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    error = <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    tmp_argc = tmp_count(argvx, MAX_ARG_STRINGS);</span><br><span class="line">    <span class="keyword">if</span>(tmp_argc &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        error = tmp_argc;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; tmp_argc; i ++) &#123;</span><br><span class="line">        native = get_user_arg_ptr(argvx, i);</span><br><span class="line">        <span class="keyword">if</span>(IS_ERR(native)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// printk("native0:%s\n",native);</span></span><br><span class="line">        len = strnlen_user(native, MAX_ARG_STRLEN);</span><br><span class="line">        <span class="keyword">if</span>(!len) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        total_argc_len += len;</span><br><span class="line">        printk(<span class="string">"len:%d\n"</span>,len);</span><br><span class="line">        printk(<span class="string">"total_len:%d\n"</span>,total_argc_len);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    total_argc_ptr = kmalloc(total_argc_len + <span class="number">16</span> * tmp_argc, GFP_ATOMIC);</span><br><span class="line">    <span class="keyword">if</span>(!total_argc_ptr) &#123;</span><br><span class="line">        error = -ENOMEM;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">memset</span>(total_argc_ptr, <span class="number">0</span>, total_argc_len + <span class="number">16</span> * tmp_argc);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; tmp_argc; i ++) &#123;</span><br><span class="line">        <span class="keyword">if</span>(i == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        native = get_user_arg_ptr(argvx, i);</span><br><span class="line">        <span class="keyword">if</span>(IS_ERR(native)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        len = strnlen_user(native, MAX_ARG_STRLEN);</span><br><span class="line">        <span class="keyword">if</span>(!len) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(offset + len &gt; total_argc_len + <span class="number">16</span> * tmp_argc) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (copy_from_user(total_argc_ptr + offset, native, len)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        offset += len - <span class="number">1</span>;</span><br><span class="line">        *(total_argc_ptr + offset) = <span class="string">' '</span>;</span><br><span class="line">        offset += <span class="number">1</span>;</span><br><span class="line">        printk(<span class="string">"total_argc_ptr_f:%s\n"</span>,total_argc_ptr);</span><br><span class="line">    &#125;</span><br><span class="line">    printk(<span class="string">"total_argc_ptr:%s\n"</span>,total_argc_ptr);</span><br><span class="line">    <span class="comment">/*--------envpx--------------*/</span></span><br><span class="line">    len = <span class="number">0</span>;</span><br><span class="line">    offset = <span class="number">0</span>;</span><br><span class="line">    tmp_envpc = tmp_count(envpx, MAX_ARG_STRINGS);</span><br><span class="line">    <span class="keyword">if</span>(tmp_envpc &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        error = tmp_envpc;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; tmp_envpc; i ++) &#123;</span><br><span class="line">        native = get_user_arg_ptr(envpx, i);</span><br><span class="line">        <span class="keyword">if</span>(IS_ERR(native)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        len = strnlen_user(native, MAX_ARG_STRLEN);</span><br><span class="line">        <span class="keyword">if</span>(!len) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(len &gt; max_len) &#123;</span><br><span class="line">            max_len = len;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        total_envpc_len += len;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    per_envp = kmalloc(max_len + <span class="number">16</span>, GFP_KERNEL);</span><br><span class="line">    <span class="keyword">if</span>(!per_envp) &#123;</span><br><span class="line">        error = -ENOMEM;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    total_envpc_ptr = kmalloc(total_envpc_len + <span class="number">16</span> * tmp_envpc, GFP_KERNEL);</span><br><span class="line">    <span class="keyword">if</span>(!total_envpc_ptr) &#123;</span><br><span class="line">        error = -ENOMEM;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">memset</span>(total_envpc_ptr, <span class="number">0</span>, total_envpc_len + <span class="number">16</span> * tmp_envpc);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; tmp_envpc; i ++) &#123;</span><br><span class="line">        native = get_user_arg_ptr(envpx, i);</span><br><span class="line">        <span class="keyword">if</span>(IS_ERR(native)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        len = strnlen_user(native, MAX_ARG_STRLEN);</span><br><span class="line">        <span class="keyword">if</span>(!len) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(offset + len &gt; total_envpc_len + <span class="number">16</span> * tmp_envpc) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="built_in">memset</span>(per_envp, <span class="number">0</span>, max_len);</span><br><span class="line">        <span class="keyword">if</span>(copy_from_user(per_envp, native, len)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(!<span class="built_in">strstr</span>(per_envp, <span class="string">"PWD"</span>) &amp;&amp; !<span class="built_in">strstr</span>(per_envp, <span class="string">"LOGNAME"</span>) &amp;&amp; !<span class="built_in">strstr</span>(per_envp, <span class="string">"USER"</span>)) &#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//printk("total_envpc_ptr0:%s\n",total_envpc_ptr);</span></span><br><span class="line">        <span class="keyword">if</span> (copy_from_user(total_envpc_ptr + offset, native, len)) &#123;</span><br><span class="line">            error = -EFAULT;</span><br><span class="line">            <span class="keyword">goto</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        offset += len - <span class="number">1</span>;</span><br><span class="line">        *(total_envpc_ptr + offset) = <span class="string">' '</span>;</span><br><span class="line">        offset += <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    nl_send_len = (path1 != <span class="literal">NULL</span> ? <span class="built_in">strlen</span>(path1) : <span class="built_in">strlen</span>(path-&gt;name)) + <span class="built_in">strlen</span>(current-&gt;parent-&gt;comm) + <span class="number">128</span>;</span><br><span class="line">    <span class="keyword">if</span>(!ZERO_OR_NULL_PTR(total_envpc_ptr)) &#123;</span><br><span class="line">        nl_send_len += <span class="built_in">strlen</span>(total_envpc_ptr);</span><br><span class="line">    &#125;   </span><br><span class="line">    printk(<span class="string">"total_envpc_ptr1:%s\n"</span>,total_envpc_ptr);</span><br><span class="line">    <span class="keyword">if</span>(!ZERO_OR_NULL_PTR(total_argc_ptr)) &#123;</span><br><span class="line">        nl_send_len += <span class="built_in">strlen</span>(total_argc_ptr);</span><br><span class="line">    &#125;</span><br><span class="line">    nl_send_len = nl_send_len &lt; PATH_MAX + <span class="number">2048</span> ? nl_send_len : PATH_MAX + <span class="number">2048</span>;</span><br><span class="line">    skb = alloc_skb(NLMSG_SPACE(nl_send_len), GFP_ATOMIC);</span><br><span class="line">    <span class="keyword">if</span>(!skb) &#123;</span><br><span class="line">        error = -ENOMEM;</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    nlh = (struct nlmsghdr *)skb-&gt;data;</span><br><span class="line">    nlh-&gt;nlmsg_len = NLMSG_SPACE(nl_send_len);</span><br><span class="line">    nlh-&gt;nlmsg_pid = <span class="number">0</span>;</span><br><span class="line">    nlh-&gt;nlmsg_flags = <span class="number">0</span>;</span><br><span class="line">    nlh = nlmsg_put(skb, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, NLMSG_SPACE(nl_send_len) - <span class="keyword">sizeof</span> (struct nlmsghdr), <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(!nlh) &#123;</span><br><span class="line">        kfree_skb(skb);</span><br><span class="line">        pr_err(<span class="string">"nlh get failed.\n"</span>);</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">snprintf</span>(NLMSG_DATA(nlh), nl_send_len, <span class="string">"%s%c%s%c%u%c%s%c%d%c%s"</span>, path1 != <span class="literal">NULL</span> ? path1 : path-&gt;name, <span class="number">0x1</span>, (<span class="keyword">uint64_t</span>)total_argc_ptr == <span class="number">0x10</span> ? <span class="string">"N/A"</span> : total_argc_ptr, <span class="number">0x1</span>, current-&gt;tgid, <span class="number">0x1</span>, current-&gt;parent-&gt;comm, <span class="number">0x1</span>, current-&gt;parent-&gt;tgid, <span class="number">0x1</span>, (<span class="keyword">uint64_t</span>)total_envpc_ptr == <span class="number">0x10</span> ? <span class="string">"N/A"</span> : total_envpc_ptr);</span><br><span class="line">    printk(<span class="string">"%s|%s|%u|%s|%d|%s\n"</span>,path-&gt;name,total_argc_ptr,current-&gt;tgid,current-&gt;parent-&gt;comm,current-&gt;parent-&gt;tgid,total_envpc_ptr);</span><br><span class="line">    NETLINK_CB(skb).portid = <span class="number">0</span>;</span><br><span class="line">    NETLINK_CB(skb).dst_group = <span class="number">1</span>;</span><br><span class="line">    error = netlink_broadcast(syshook_nl_sk, skb, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(error != <span class="number">0</span> &amp;&amp; error != <span class="number">-3</span>) &#123;</span><br><span class="line">        pr_err(<span class="string">"send nl broadcast failed.\n"</span>);</span><br><span class="line">        <span class="keyword">goto</span> err;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//pr_err("%s|%s|%u|%s|%d|%s\n", path-&gt;name, total_argc_ptr, current-&gt;tgid, current-&gt;parent-&gt;comm, current-&gt;parent-&gt;tgid, total_envpc_ptr);</span></span><br><span class="line"></span><br><span class="line">err:</span><br><span class="line">    <span class="keyword">if</span>(tmp) &#123;</span><br><span class="line">        kfree(tmp);</span><br><span class="line">        tmp = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(per_envp) &#123;</span><br><span class="line">        kfree(per_envp);</span><br><span class="line">        per_envp = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(total_argc_ptr) &#123;</span><br><span class="line">        kfree(total_argc_ptr);</span><br><span class="line">        total_argc_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(total_envpc_ptr) &#123;</span><br><span class="line">        kfree(total_envpc_ptr);</span><br><span class="line">        total_envpc_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    tmp_putname(path);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line"><span class="function">asmlinkage <span class="keyword">long</span> <span class="title">monitor_execve_hook</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> __init <span class="title">monitor_execve_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!(sys_call_table_ptr = find_sys_call_table()))&#123;</span><br><span class="line">        pr_err(<span class="string">"Get sys_call_table failed.\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 32)</span></span><br><span class="line">    <span class="comment">/*NetLink do not recv from userSpace*/</span></span><br><span class="line">    syshook_nl_sk = netlink_kernel_create(&amp;init_net, SYSHOOK_NL_NUM, <span class="number">0</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, THIS_MODULE);</span><br><span class="line">    <span class="keyword">if</span>(!syshook_nl_sk) &#123;</span><br><span class="line">        pr_err(<span class="string">"syshook: can not create netlink socket.\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> -EIO;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">elif</span> LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)</span></span><br><span class="line">    syshook_nl_sk = netlink_kernel_create(&amp;init_net, SYSHOOK_NL_NUM, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span>(!syshook_nl_sk) &#123;</span><br><span class="line">        pr_err(<span class="string">"syshook: can not create netlink socket.\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> -EIO;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    pr_err(<span class="string">"syshook: create netlink success.\n"</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)</span></span><br><span class="line">    tmp_getname = (<span class="keyword">void</span> *)kallsyms_lookup_name(<span class="string">"getname"</span>);</span><br><span class="line">    <span class="keyword">if</span>(!tmp_getname) &#123;</span><br><span class="line">        pr_err(<span class="string">"unknow Symbol getname\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    tmp_putname = (<span class="keyword">void</span> *)kallsyms_lookup_name(<span class="string">"putname"</span>);</span><br><span class="line">    <span class="keyword">if</span>(!tmp_putname) &#123;</span><br><span class="line">        pr_err(<span class="string">"unknow Symbol putname\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    original_cr0 = read_cr0();</span><br><span class="line">    write_cr0(original_cr0 &amp; ~<span class="number">0x00010000</span>);</span><br><span class="line">    pr_err(<span class="string">"Loading module monitor_execve, sys_call_table at %p\n"</span>, sys_call_table_ptr);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; NR_syscalls - <span class="number">1</span>; i ++) &#123;</span><br><span class="line">        orig_sys_call_table[i] = sys_call_table_ptr[i];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    orig_stub_execve = (<span class="keyword">void</span> *)(sys_call_table_ptr[__NR_execve]);</span><br><span class="line">    sys_call_table_ptr[__NR_execve]= (<span class="keyword">void</span> *)monitor_stub_execve_hook;</span><br><span class="line"></span><br><span class="line">    write_cr0(original_cr0);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> __exit <span class="title">monitor_execve_exit</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    netlink_kernel_release(syshook_nl_sk);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!sys_call_table_ptr)&#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    write_cr0(original_cr0 &amp; ~<span class="number">0x00010000</span>);</span><br><span class="line">    sys_call_table_ptr[__NR_execve] = (<span class="keyword">void</span> *)orig_stub_execve;</span><br><span class="line">    write_cr0(original_cr0);</span><br><span class="line">    </span><br><span class="line">    sys_call_table_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    pr_err(<span class="string">"unload syshook_execve succ.\n"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">module_init(monitor_execve_init);</span><br><span class="line">module_exit(monitor_execve_exit);</span><br><span class="line"></span><br><span class="line">MODULE_LICENSE(<span class="string">"GPL"</span>);</span><br><span class="line">MODULE_AUTHOR(<span class="string">"mlsm &lt;454667707@qq.com&gt;"</span>);</span><br><span class="line">MODULE_DESCRIPTION(<span class="string">"Monitor Syscall sys_execve"</span>);</span><br></pre></td></tr></table></figure>
+<pre><code>#include &lt;linux/kernel.h&gt;
+#include &lt;linux/module.h&gt;
+#include &lt;linux/syscalls.h&gt;
+#include &lt;linux/delay.h&gt;
+#include &lt;linux/file.h&gt;
+#include &lt;asm/paravirt.h&gt;
+#include &lt;asm/syscall.h&gt;
+#include &lt;linux/sys.h&gt;
+#include &lt;linux/slab.h&gt;
+#include &lt;linux/kallsyms.h&gt;
+#include &lt;linux/binfmts.h&gt;
+#include &lt;linux/version.h&gt;
+#include &lt;net/sock.h&gt;
+#include &lt;net/netlink.h&gt;
 
-<p><strong>sys_call_stub_hook.S</strong></p>
-<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">.text</span><br><span class="line">.global monitor_stub_execve_hook</span><br><span class="line"></span><br><span class="line">monitor_stub_execve_hook:</span><br><span class="line">pushq   %rbx</span><br><span class="line">pushq   %rdi</span><br><span class="line">pushq   %rsi</span><br><span class="line">pushq   %rdx</span><br><span class="line">pushq   %rcx</span><br><span class="line">pushq   %rax</span><br><span class="line">pushq   %r8 </span><br><span class="line">pushq   %r9 </span><br><span class="line">pushq   %r10</span><br><span class="line">pushq   %r11</span><br><span class="line"></span><br><span class="line">call monitor_execve_hook</span><br><span class="line"></span><br><span class="line"><span class="keyword">pop</span>     %r11</span><br><span class="line"><span class="keyword">pop</span>     %r10</span><br><span class="line"><span class="keyword">pop</span>     %r9 </span><br><span class="line"><span class="keyword">pop</span>     %r8 </span><br><span class="line"><span class="keyword">pop</span>     %rax</span><br><span class="line"><span class="keyword">pop</span>     %rcx</span><br><span class="line"><span class="keyword">pop</span>     %rdx</span><br><span class="line"><span class="keyword">pop</span>     %rsi</span><br><span class="line"><span class="keyword">pop</span>     %rdi</span><br><span class="line"></span><br><span class="line"><span class="keyword">pop</span>     %rbx</span><br><span class="line">jmp     *orig_sys_call_table(, %rax, <span class="number">8</span>)</span><br></pre></td></tr></table></figure>
+unsigned long **sys_call_table_ptr;
+unsigned long original_cr0;
+void *orig_sys_call_table [NR_syscalls];
 
-<p><strong>Makefile</strong></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">obj-m := syshook_execve.o</span><br><span class="line"></span><br><span class="line">syshook_execve-objs := syscall_hook.o syscall_stub_hook.o</span><br><span class="line"></span><br><span class="line">KERNEL := /lib/modules/<span class="string">`uname -r`</span>/build</span><br><span class="line"></span><br><span class="line">all:</span><br><span class="line">	<span class="built_in">make</span> -C $(KERNEL)   M=<span class="string">`pwd`</span> modules</span><br><span class="line"></span><br><span class="line">install:</span><br><span class="line">	<span class="built_in">make</span> -C $(KERNEL)   M=<span class="string">`pwd`</span> modules_install</span><br><span class="line">	depmod -A</span><br><span class="line"></span><br><span class="line">clean:</span><br><span class="line">	<span class="built_in">make</span> -C $(KERNEL)   M=<span class="string">`pwd`</span> clean</span><br></pre></td></tr></table></figure>
+struct sock *syshook_nl_sk = NULL;
+#define SYSHOOK_NL_NUM  31
 
-<p>从makefile可以看到最终的syshook_execve.ko是由syscall_hook和syscall_stub_hook共同编译的</p>
+#if LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)
+    struct user_arg_ptr {
+    #ifdef CONFIG_COMPAT
+        bool is_compat;
+    #endif
+        union {
+            const char __user *const __user *native;
+    #ifdef CONFIG_COMPAT
+            const compat_uptr_t __user *compat;
+    #endif
+        } ptr;
+    };
+    struct filename *(*tmp_getname)(const char __user * filename);
+    void (*tmp_putname)(struct filename *name);
+    typedef asmlinkage long (*func_execve)(const char __user *,
+                                           const char __user * const __user *,
+                                           const char __user *const  __user *);
+    extern asmlinkage long monitor_stub_execve_hook (const char __user *,
+                                                     const char __user *const __user *,
+                                                     const char __user *const __user *);
+#elif LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 32)
+    typedef asmlinkage long (*func_execve)(const char __user *,
+                                           const char __user * const __user *,
+                                           const char __user *const  __user *,
+                                           struct pt_regs *);
+    extern asmlinkage long monitor_stub_execve_hook(const char __user *,
+                                                    const char __user * const __user *,
+                                                    const char __user *const  __user *,
+                                                    struct pt_regs *);
+#endif
+
+func_execve orig_stub_execve;
+
+unsigned long **find_sys_call_table(void) {
+    unsigned long ptr;
+    unsigned long *p;
+
+    pr_err(&quot;Start found sys_call_table.\n&quot;);
+
+    for (ptr = (unsigned long)sys_close;
+         ptr &lt; (unsigned long)&amp;loops_per_jiffy;
+         ptr += sizeof(void *)) {
+
+        p = (unsigned long *)ptr;
+
+        if (p[__NR_close] == (unsigned long)sys_close) {
+            pr_err(&quot;Found the sys_call_table!!! __NR_close[%d] sys_close[%lx]\n&quot;
+                    &quot; __NR_execve[%d] sct[__NR_execve][0x%lx]\n&quot;,
+                    __NR_close,
+                    (unsigned long)sys_close,
+                    __NR_execve,
+                    p[__NR_execve]);
+            return (unsigned long **)p;
+        }
+    }
+
+    return NULL;
+}
+
+
+
+#if LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 32)
+static int tmp_count(char __user * __user * argv, int max)
+{
+    int i = 0;
+
+    if (argv != NULL) {
+        for (;;) {
+            char __user * p;
+
+            if (get_user(p, argv))
+                return -EFAULT;
+            if (!p)
+                break;
+            argv++;
+            if (i++ &gt;= max)
+                return -E2BIG;
+
+            if (fatal_signal_pending(current))
+                return -ERESTARTNOHAND;
+            cond_resched();
+        }
+    }
+    return i;
+}
+
+asmlinkage long monitor_execve_hook(char __user *name,
+                                   char __user * __user *argv,
+                                   char __user * __user *envp, 
+                                   struct pt_regs *regs)
+{
+    long error = 0;
+    struct filename *path = NULL;
+    char __user * native = NULL;
+    int tmp_argc = 0, tmp_envpc =  0;
+    int i = 0, len = 0, offset = 0, max_len = 0;
+    int total_argc_len = 0, total_envpc_len = 0;
+    char *total_argc_ptr = NULL, *total_envpc_ptr = NULL;
+    char *per_envp = NULL;
+    int nl_send_len = 0;
+    struct sk_buff *skb = NULL;
+    struct nlmsghdr *nlh = NULL;
+    struct file *file = NULL;
+    char *tmp = kmalloc(PATH_MAX, GFP_KERNEL);
+    char *path1 = NULL;
+
+
+    path = getname(name);
+    error = PTR_ERR(path);
+    if (IS_ERR(path)) {
+        pr_err(&quot;get path failed.\n&quot;);
+        goto err;
+    }
+
+    file = open_exec(path-&gt;name);
+    if (!IS_ERR(file) &amp;&amp; tmp) {
+        memset(tmp, 0, PATH_MAX);
+        path1 = d_path(&amp;file-&gt;f_path, tmp, PATH_MAX);
+        if (IS_ERR(path1)) {
+            path1 = NULL;
+        }
+
+        fput(file);
+    }
+
+    error = 0;
+    tmp_argc = tmp_count(argv, MAX_ARG_STRINGS);
+    if(tmp_argc &lt; 0) {
+        error = tmp_argc;
+        goto err;
+    }
+
+    for(i = 0; i &lt; tmp_argc; i ++) {
+        if(get_user(native, argv + i)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        total_argc_len += len;
+    }
+
+    total_argc_ptr = kmalloc(total_argc_len + 16 * tmp_argc, GFP_ATOMIC);
+    if(!total_argc_ptr) {
+        error = -ENOMEM;
+        goto err;
+    }
+    memset(total_argc_ptr, 0, total_argc_len + 16 * tmp_argc);
+
+    for(i = 0; i &lt; tmp_argc; i ++) {
+        if(i == 0) {
+            continue;
+        }
+        if(get_user(native, argv + i)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        if(offset + len &gt; total_argc_len + 16 * tmp_argc) {
+            break;
+        }
+
+        if (copy_from_user(total_argc_ptr + offset, native, len)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        offset += len - 1;
+        *(total_argc_ptr + offset) = &#39; &#39;;
+        offset += 1;
+    }
+
+    /*--------envp--------------*/
+    len = 0;
+    offset = 0;
+    tmp_envpc = tmp_count(envp, MAX_ARG_STRINGS);
+    if(tmp_envpc &lt; 0) {
+        error = tmp_envpc;
+        goto err;
+    }
+
+    for(i = 0; i &lt; tmp_envpc; i ++) {
+        if(get_user(native, envp + i)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        if(len &gt; max_len) {
+            max_len = len;
+        }
+        total_envpc_len += len;
+    }
+
+    per_envp = kmalloc(max_len + 16, GFP_KERNEL);
+    if(!per_envp) {
+        error = -ENOMEM;
+        goto err;
+    }
+
+    total_envpc_ptr = kmalloc(total_envpc_len + 16 * tmp_envpc, GFP_ATOMIC);
+    if(!total_envpc_ptr) {
+        error = -ENOMEM;
+        goto err;
+    }
+    memset(total_envpc_ptr, 0, total_envpc_len + 16 * tmp_envpc);
+
+    for(i = 0; i &lt; tmp_envpc; i ++) {
+        if(get_user(native, envp + i)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        if(offset + len &gt; total_envpc_len + 16 * tmp_envpc) {
+            break;
+        }
+
+        memset(per_envp, 0, max_len);
+        if(copy_from_user(per_envp, native, len)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        if(!strstr(per_envp, &quot;PWD&quot;) &amp;&amp; !strstr(per_envp, &quot;LOGNAME&quot;) &amp;&amp; !strstr(per_envp, &quot;USER&quot;)) {
+            continue;
+        }
+
+        if (copy_from_user(total_envpc_ptr + offset, native, len)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        offset += len - 1;
+        *(total_envpc_ptr + offset) = &#39; &#39;;
+        offset += 1;
+    }
+
+    nl_send_len = (path1 != NULL ? strlen(path1) : strlen(path-&gt;name)) + strlen(current-&gt;parent-&gt;comm) + 128;
+    if(!ZERO_OR_NULL_PTR(total_envpc_ptr)) {
+        nl_send_len += strlen(total_envpc_ptr);
+    }
+    if(!ZERO_OR_NULL_PTR(total_argc_ptr)) {
+        nl_send_len += strlen(total_argc_ptr);
+    }
+
+    nl_send_len = nl_send_len &lt; PATH_MAX + 2048 ? nl_send_len : PATH_MAX + 2048;
+    skb = alloc_skb(NLMSG_SPACE(nl_send_len), GFP_ATOMIC);
+    if(!skb) {
+        error = -ENOMEM;
+        goto err;
+    }
+
+    nlh = (struct nlmsghdr *)skb-&gt;data;
+    nlh-&gt;nlmsg_len = NLMSG_SPACE(nl_send_len);
+    nlh-&gt;nlmsg_pid = 0; 
+    nlh-&gt;nlmsg_flags = 0;
+    nlh = nlmsg_put(skb, 0, 0, 0, NLMSG_SPACE(nl_send_len) - sizeof (struct nlmsghdr), 0);
+    if(!nlh) {
+        kfree_skb(skb);
+        pr_err(&quot;nlh get failed.\n&quot;);
+        goto err;
+    }
+
+    snprintf(NLMSG_DATA(nlh), nl_send_len, &quot;%s%c%s%c%u%c%s%c%d%c%s&quot;, path1 != NULL ? path1 : path-&gt;name, 0x1, (uint64_t)total_argc_ptr == 0x10 ? &quot;N/A&quot; : total_argc_ptr, 0x1, current-&gt;tgid, 0x1, current-&gt;parent-&gt;comm, 0x1, current-&gt;parent-&gt;tgid, 0x1, (uint64_t)total_envpc_ptr == 0x10 ? &quot;N/A&quot; : total_envpc_ptr);
+    NETLINK_CB(skb).pid = 0;
+    NETLINK_CB(skb).dst_group = 1;
+    error = netlink_broadcast(syshook_nl_sk, skb, 0, 1, GFP_KERNEL);
+    if(error != 0 &amp;&amp; error != -3) {
+        pr_err(&quot;send nl broadcast failed.\n&quot;);
+        goto err;
+    }
+
+    //pr_err(&quot;%s|%s|%u|%s|%d|%s\n&quot;, path1 != NULL ? path1 : path-&gt;name, total_argc_ptr, current-&gt;tgid, current-&gt;parent-&gt;comm, current-&gt;parent-&gt;tgid, total_envpc_ptr);
+
+err:
+    if(tmp) {
+        kfree(tmp);
+        tmp = NULL;
+    }
+    if(total_envpc_ptr) {
+        kfree(total_envpc_ptr);
+        total_envpc_ptr = NULL;
+    }
+    if(per_envp) {
+        kfree(per_envp);
+        per_envp = NULL; 
+    }
+    if(total_argc_ptr) {
+        kfree(total_argc_ptr);
+        total_argc_ptr = NULL;
+    }
+    putname(path);
+    return 0;
+}
+#elif LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)
+static const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr) 
+{
+    const char __user *native;
+
+#ifdef CONFIG_COMPAT
+    if (unlikely(argv.is_compat)) {
+        compat_uptr_t compat;
+
+        if (get_user(compat, argv.ptr.compat + nr))
+            return ERR_PTR(-EFAULT);
+
+        return compat_ptr(compat);
+    }   
+#endif
+
+    if (get_user(native, argv.ptr.native + nr))
+        return ERR_PTR(-EFAULT);
+
+    return native;
+}
+
+static int tmp_count(struct user_arg_ptr argv, int max)
+{
+    int i = 0;
+
+    if (argv.ptr.native != NULL) {
+        for (;;) {
+            const char __user *p = get_user_arg_ptr(argv, i); 
+
+            if (!p)
+                break;
+
+            if (IS_ERR(p))
+                return -EFAULT;
+
+            if (i &gt;= max)
+                return -E2BIG;
+            ++i;
+
+            if (fatal_signal_pending(current))
+                return -ERESTARTNOHAND;
+            cond_resched();
+        }   
+    }   
+    return i;
+}
+
+asmlinkage long monitor_execve_hook(const char __user *filename, 
+                          const char __user *const __user *argv,
+                          const char __user *const __user *envp)
+{
+    int error = 0, i = 0, len = 0, offset = 0, max_len = 0;
+    struct filename *path = NULL;
+    const char __user * native = NULL;
+    char *total_argc_ptr = NULL;
+    char *total_envpc_ptr = NULL;
+    char *per_envp = NULL;
+    int tmp_argc = 0, total_argc_len = 0;
+    int tmp_envpc = 0, total_envpc_len = 0;
+    struct user_arg_ptr argvx = { .ptr.native = argv };
+    struct user_arg_ptr envpx = { .ptr.native = envp };
+    int nl_send_len = 0;
+    struct sk_buff *skb = NULL;
+    struct nlmsghdr *nlh = NULL;
+    struct file *file = NULL;
+    char *tmp = kmalloc(PATH_MAX, GFP_KERNEL);
+    char *path1 = NULL;
+
+    path = tmp_getname(filename);
+    // printk(&quot;path:%s\n&quot;,path-&gt;name);
+    error = PTR_ERR(path);
+    if (IS_ERR(path)) {
+        goto err;
+    }
+
+    file = open_exec(path-&gt;name);
+    if (!IS_ERR(file) &amp;&amp; tmp) {
+        memset(tmp, 0, PATH_MAX);
+        path1 = d_path(&amp;file-&gt;f_path, tmp, PATH_MAX);
+        if (IS_ERR(path1)) {
+            path1 = NULL;
+        }
+        fput(file);
+    }
+
+    error = 0;
+
+    tmp_argc = tmp_count(argvx, MAX_ARG_STRINGS);
+    if(tmp_argc &lt; 0) {
+        error = tmp_argc;
+        goto err;
+    }
+
+    for(i = 0; i &lt; tmp_argc; i ++) {
+        native = get_user_arg_ptr(argvx, i);
+        if(IS_ERR(native)) {
+            error = -EFAULT;
+            goto err;
+        }
+        // printk(&quot;native0:%s\n&quot;,native);
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        total_argc_len += len;
+        printk(&quot;len:%d\n&quot;,len);
+        printk(&quot;total_len:%d\n&quot;,total_argc_len);
+    }
+
+    total_argc_ptr = kmalloc(total_argc_len + 16 * tmp_argc, GFP_ATOMIC);
+    if(!total_argc_ptr) {
+        error = -ENOMEM;
+        goto err;
+    }
+    memset(total_argc_ptr, 0, total_argc_len + 16 * tmp_argc);
+
+    for(i = 0; i &lt; tmp_argc; i ++) {
+        if(i == 0) {
+            continue;
+        }
+        native = get_user_arg_ptr(argvx, i);
+        if(IS_ERR(native)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        if(offset + len &gt; total_argc_len + 16 * tmp_argc) {
+            break;
+        }
+
+        if (copy_from_user(total_argc_ptr + offset, native, len)) {
+            error = -EFAULT;
+            goto err;
+        }
+        offset += len - 1;
+        *(total_argc_ptr + offset) = &#39; &#39;;
+        offset += 1;
+        printk(&quot;total_argc_ptr_f:%s\n&quot;,total_argc_ptr);
+    }
+    printk(&quot;total_argc_ptr:%s\n&quot;,total_argc_ptr);
+    /*--------envpx--------------*/
+    len = 0;
+    offset = 0;
+    tmp_envpc = tmp_count(envpx, MAX_ARG_STRINGS);
+    if(tmp_envpc &lt; 0) {
+        error = tmp_envpc;
+        goto err;
+    }
+
+    for(i = 0; i &lt; tmp_envpc; i ++) {
+        native = get_user_arg_ptr(envpx, i);
+        if(IS_ERR(native)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        if(len &gt; max_len) {
+            max_len = len;
+        }
+
+        total_envpc_len += len;
+    }
+
+    per_envp = kmalloc(max_len + 16, GFP_KERNEL);
+    if(!per_envp) {
+        error = -ENOMEM;
+        goto err;
+    }
+
+    total_envpc_ptr = kmalloc(total_envpc_len + 16 * tmp_envpc, GFP_KERNEL);
+    if(!total_envpc_ptr) {
+        error = -ENOMEM;
+        goto err;
+    }
+    memset(total_envpc_ptr, 0, total_envpc_len + 16 * tmp_envpc);
+
+    for(i = 0; i &lt; tmp_envpc; i ++) {
+        native = get_user_arg_ptr(envpx, i);
+        if(IS_ERR(native)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        if(offset + len &gt; total_envpc_len + 16 * tmp_envpc) {
+            break;
+        }
+
+        memset(per_envp, 0, max_len);
+        if(copy_from_user(per_envp, native, len)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        if(!strstr(per_envp, &quot;PWD&quot;) &amp;&amp; !strstr(per_envp, &quot;LOGNAME&quot;) &amp;&amp; !strstr(per_envp, &quot;USER&quot;)) {
+            continue;
+        }
+
+        //printk(&quot;total_envpc_ptr0:%s\n&quot;,total_envpc_ptr);
+        if (copy_from_user(total_envpc_ptr + offset, native, len)) {
+            error = -EFAULT;
+            goto err;
+        }
+        offset += len - 1;
+        *(total_envpc_ptr + offset) = &#39; &#39;;
+        offset += 1;
+    }
+
+    nl_send_len = (path1 != NULL ? strlen(path1) : strlen(path-&gt;name)) + strlen(current-&gt;parent-&gt;comm) + 128;
+    if(!ZERO_OR_NULL_PTR(total_envpc_ptr)) {
+        nl_send_len += strlen(total_envpc_ptr);
+    }   
+    printk(&quot;total_envpc_ptr1:%s\n&quot;,total_envpc_ptr);
+    if(!ZERO_OR_NULL_PTR(total_argc_ptr)) {
+        nl_send_len += strlen(total_argc_ptr);
+    }
+    nl_send_len = nl_send_len &lt; PATH_MAX + 2048 ? nl_send_len : PATH_MAX + 2048;
+    skb = alloc_skb(NLMSG_SPACE(nl_send_len), GFP_ATOMIC);
+    if(!skb) {
+        error = -ENOMEM;
+        goto err;
+    }
+
+    nlh = (struct nlmsghdr *)skb-&gt;data;
+    nlh-&gt;nlmsg_len = NLMSG_SPACE(nl_send_len);
+    nlh-&gt;nlmsg_pid = 0;
+    nlh-&gt;nlmsg_flags = 0;
+    nlh = nlmsg_put(skb, 0, 0, 0, NLMSG_SPACE(nl_send_len) - sizeof (struct nlmsghdr), 0);
+    if(!nlh) {
+        kfree_skb(skb);
+        pr_err(&quot;nlh get failed.\n&quot;);
+        goto err;
+    }
+
+    snprintf(NLMSG_DATA(nlh), nl_send_len, &quot;%s%c%s%c%u%c%s%c%d%c%s&quot;, path1 != NULL ? path1 : path-&gt;name, 0x1, (uint64_t)total_argc_ptr == 0x10 ? &quot;N/A&quot; : total_argc_ptr, 0x1, current-&gt;tgid, 0x1, current-&gt;parent-&gt;comm, 0x1, current-&gt;parent-&gt;tgid, 0x1, (uint64_t)total_envpc_ptr == 0x10 ? &quot;N/A&quot; : total_envpc_ptr);
+    printk(&quot;%s|%s|%u|%s|%d|%s\n&quot;,path-&gt;name,total_argc_ptr,current-&gt;tgid,current-&gt;parent-&gt;comm,current-&gt;parent-&gt;tgid,total_envpc_ptr);
+    NETLINK_CB(skb).portid = 0;
+    NETLINK_CB(skb).dst_group = 1;
+    error = netlink_broadcast(syshook_nl_sk, skb, 0, 1, 0);
+    if(error != 0 &amp;&amp; error != -3) {
+        pr_err(&quot;send nl broadcast failed.\n&quot;);
+        goto err;
+    }
+
+    //pr_err(&quot;%s|%s|%u|%s|%d|%s\n&quot;, path-&gt;name, total_argc_ptr, current-&gt;tgid, current-&gt;parent-&gt;comm, current-&gt;parent-&gt;tgid, total_envpc_ptr);
+
+err:
+    if(tmp) {
+        kfree(tmp);
+        tmp = NULL;
+    }
+    if(per_envp) {
+        kfree(per_envp);
+        per_envp = NULL;
+    }
+    if(total_argc_ptr) {
+        kfree(total_argc_ptr);
+        total_argc_ptr = NULL;
+    }
+    if(total_envpc_ptr) {
+        kfree(total_envpc_ptr);
+        total_envpc_ptr = NULL;
+    }
+
+    tmp_putname(path);
+    return 0;
+}
+#else
+asmlinkage long monitor_execve_hook(void)
+{
+    return 0;
+}
+#endif
+
+static int __init monitor_execve_init(void)
+{
+    int i = 0;
+
+    if (!(sys_call_table_ptr = find_sys_call_table())){
+        pr_err(&quot;Get sys_call_table failed.\n&quot;);
+        return -1;
+    }
+
+#if LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 32)
+    /*NetLink do not recv from userSpace*/
+    syshook_nl_sk = netlink_kernel_create(&amp;init_net, SYSHOOK_NL_NUM, 0, NULL, NULL, THIS_MODULE);
+    if(!syshook_nl_sk) {
+        pr_err(&quot;syshook: can not create netlink socket.\n&quot;);
+        return -EIO;
+    }
+#elif LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)
+    syshook_nl_sk = netlink_kernel_create(&amp;init_net, SYSHOOK_NL_NUM, NULL);
+    if(!syshook_nl_sk) {
+        pr_err(&quot;syshook: can not create netlink socket.\n&quot;);
+        return -EIO;
+    }
+#endif
+    pr_err(&quot;syshook: create netlink success.\n&quot;);
+
+
+#if LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)
+    tmp_getname = (void *)kallsyms_lookup_name(&quot;getname&quot;);
+    if(!tmp_getname) {
+        pr_err(&quot;unknow Symbol getname\n&quot;);
+        return -1;
+    }
+
+    tmp_putname = (void *)kallsyms_lookup_name(&quot;putname&quot;);
+    if(!tmp_putname) {
+        pr_err(&quot;unknow Symbol putname\n&quot;);
+        return -1;
+    }
+#endif
+
+    original_cr0 = read_cr0();
+    write_cr0(original_cr0 &amp; ~0x00010000);
+    pr_err(&quot;Loading module monitor_execve, sys_call_table at %p\n&quot;, sys_call_table_ptr);
+
+    for(i = 0; i &lt; NR_syscalls - 1; i ++) {
+        orig_sys_call_table[i] = sys_call_table_ptr[i];
+    }
+
+    orig_stub_execve = (void *)(sys_call_table_ptr[__NR_execve]);
+    sys_call_table_ptr[__NR_execve]= (void *)monitor_stub_execve_hook;
+
+    write_cr0(original_cr0);
+    return 0;
+}
+
+static void __exit monitor_execve_exit(void)
+{
+    netlink_kernel_release(syshook_nl_sk);
+
+    if (!sys_call_table_ptr){
+        return;
+    }
+
+    write_cr0(original_cr0 &amp; ~0x00010000);
+    sys_call_table_ptr[__NR_execve] = (void *)orig_stub_execve;
+    write_cr0(original_cr0);
+
+    sys_call_table_ptr = NULL;
+    pr_err(&quot;unload syshook_execve succ.\n&quot;);
+}
+
+module_init(monitor_execve_init);
+module_exit(monitor_execve_exit);
+
+MODULE_LICENSE(&quot;GPL&quot;);
+MODULE_AUTHOR(&quot;mlsm &lt;454667707@qq.com&gt;&quot;);
+MODULE_DESCRIPTION(&quot;Monitor Syscall sys_execve&quot;);</code></pre><p><strong>sys_call_stub_hook.S</strong></p>
+<pre><code>.text
+.global monitor_stub_execve_hook
+
+monitor_stub_execve_hook:
+pushq   %rbx
+pushq   %rdi
+pushq   %rsi
+pushq   %rdx
+pushq   %rcx
+pushq   %rax
+pushq   %r8 
+pushq   %r9 
+pushq   %r10
+pushq   %r11
+
+call monitor_execve_hook
+
+pop     %r11
+pop     %r10
+pop     %r9 
+pop     %r8 
+pop     %rax
+pop     %rcx
+pop     %rdx
+pop     %rsi
+pop     %rdi
+
+pop     %rbx
+jmp     *orig_sys_call_table(, %rax, 8)</code></pre><p><strong>Makefile</strong></p>
+<pre><code>obj-m := syshook_execve.o
+
+syshook_execve-objs := syscall_hook.o syscall_stub_hook.o
+
+KERNEL := /lib/modules/`uname -r`/build
+
+all:
+    make -C $(KERNEL)   M=`pwd` modules
+
+install:
+    make -C $(KERNEL)   M=`pwd` modules_install
+    depmod -A
+
+clean:
+    make -C $(KERNEL)   M=`pwd` clean
+</code></pre><p>从makefile可以看到最终的syshook_execve.ko是由syscall_hook和syscall_stub_hook共同编译的</p>
 <p>先从module_init宏开始看起，可以看到内核模块初始化时调用了monitor_execve_init，跟进：</p>
-<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span><span class="constructor">_init(<span class="params">monitor_execve_init</span>)</span>;</span><br><span class="line"><span class="keyword">module</span><span class="constructor">_exit(<span class="params">monitor_execve_exit</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="constructor">MODULE_LICENSE(<span class="string">"GPL"</span>)</span>;</span><br><span class="line"><span class="constructor">MODULE_AUTHOR(<span class="string">"mlsm &lt;454667707@qq.com&gt;"</span>)</span>;</span><br><span class="line"><span class="constructor">MODULE_DESCRIPTION(<span class="string">"Monitor Syscall sys_execve"</span>)</span>;</span><br></pre></td></tr></table></figure>
+<pre><code>module_init(monitor_execve_init);
+module_exit(monitor_execve_exit);
 
-<p><strong>monitor_execve_init</strong></p>
+MODULE_LICENSE(&quot;GPL&quot;);
+MODULE_AUTHOR(&quot;mlsm &lt;454667707@qq.com&gt;&quot;);
+MODULE_DESCRIPTION(&quot;Monitor Syscall sys_execve&quot;);
+</code></pre><p><strong>monitor_execve_init</strong></p>
 <p>跟进函数首先可以看到有个find_sys_call_table的操作；一般hook系统调用都会首先拿到系统调用表syscall_table地址，然后才能进行系统调用表覆写：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> __init <span class="title">monitor_execve_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!(sys_call_table_ptr = find_sys_call_table()))&#123;</span><br><span class="line">        pr_err(<span class="string">"Get sys_call_table failed.\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<pre><code>static int __init monitor_execve_init(void)
+{
+    int i = 0;
 
-<p>发现是通过暴力搜索的方式从sys_close出发寻找对应地址+__NR_close指针指向的内存空间存储的数据 == sys_close的地址项，对应地址项就是sys_call_table起始地址；这边是从sys_close地址出发的，不是很理解，后续需要调研下：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">long</span> **<span class="title">find_sys_call_table</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> ptr;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> *p;</span><br><span class="line"></span><br><span class="line">    pr_err(<span class="string">"Start found sys_call_table.\n"</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (ptr = (<span class="keyword">unsigned</span> <span class="keyword">long</span>)sys_close;</span><br><span class="line">         ptr &lt; (<span class="keyword">unsigned</span> <span class="keyword">long</span>)&amp;loops_per_jiffy;</span><br><span class="line">         ptr += <span class="keyword">sizeof</span>(<span class="keyword">void</span> *)) &#123;</span><br><span class="line"></span><br><span class="line">        p = (<span class="keyword">unsigned</span> <span class="keyword">long</span> *)ptr;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (p[__NR_close] == (<span class="keyword">unsigned</span> <span class="keyword">long</span>)sys_close) &#123;</span><br><span class="line">            pr_err(<span class="string">"Found the sys_call_table!!! __NR_close[%d] sys_close[%lx]\n"</span></span><br><span class="line">                    <span class="string">" __NR_execve[%d] sct[__NR_execve][0x%lx]\n"</span>,</span><br><span class="line">                    __NR_close,</span><br><span class="line">                    (<span class="keyword">unsigned</span> <span class="keyword">long</span>)sys_close,</span><br><span class="line">                    __NR_execve,</span><br><span class="line">                    p[__NR_execve]);</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">unsigned</span> <span class="keyword">long</span> **)p;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    if (!(sys_call_table_ptr = find_sys_call_table())){
+        pr_err(&quot;Get sys_call_table failed.\n&quot;);
+        return -1;
+    }</code></pre><p>发现是通过暴力搜索的方式从sys_close出发寻找对应地址+__NR_close指针指向的内存空间存储的数据 == sys_close的地址项，对应地址项就是sys_call_table起始地址；这边是从sys_close地址出发的，不是很理解，后续需要调研下：</p>
+<pre><code>unsigned long **find_sys_call_table(void) {
+    unsigned long ptr;
+    unsigned long *p;
 
-<p>内核版本不同，相关内核函数也会有一些差异，主要是参数这块，参数传递出问题可能导致内核hang死；代码中有对2.6.32和3.10.0内核版本做区分，这边以3.10.0为准；netlink_kernel_create是内核创建netlink的api，SYSHOOK_NL_NUM宏为31，结合用户态netlink socket那块可知是自定义的netlink协议类型，netlink_kernel_create创建时也需要指定：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">if</span> LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 32)</span></span><br><span class="line">    <span class="comment">/*NetLink do not recv from userSpace*/</span></span><br><span class="line">    syshook_nl_sk = netlink_kernel_create(&amp;init_net, SYSHOOK_NL_NUM, <span class="number">0</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, THIS_MODULE);</span><br><span class="line">    <span class="keyword">if</span>(!syshook_nl_sk) &#123;</span><br><span class="line">        pr_err(<span class="string">"syshook: can not create netlink socket.\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> -EIO;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">elif</span> LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)</span></span><br><span class="line">    syshook_nl_sk = netlink_kernel_create(&amp;init_net, SYSHOOK_NL_NUM, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span>(!syshook_nl_sk) &#123;</span><br><span class="line">        pr_err(<span class="string">"syshook: can not create netlink socket.\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> -EIO;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    pr_err(<span class="string">"syshook: create netlink success.\n"</span>);</span><br></pre></td></tr></table></figure>
+    pr_err(&quot;Start found sys_call_table.\n&quot;);
 
-<p>调kallsyms_lookup_name获取getname和putname的内核函数地址：</p>
-<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#if LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)</span></span><br><span class="line">    tmp_getname = (<span class="keyword">void</span> *)kallsyms_lookup_name(<span class="string">"getname"</span>);</span><br><span class="line">    <span class="keyword">if</span>(!tmp_getname) &#123;</span><br><span class="line">        pr_err(<span class="string">"unknow Symbol getname\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    tmp_putname = (<span class="keyword">void</span> *)kallsyms_lookup_name(<span class="string">"putname"</span>);</span><br><span class="line">    <span class="keyword">if</span>(!tmp_putname) &#123;</span><br><span class="line">        pr_err(<span class="string">"unknow Symbol putname\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#endif</span></span><br></pre></td></tr></table></figure>
+    for (ptr = (unsigned long)sys_close;
+         ptr &lt; (unsigned long)&amp;loops_per_jiffy;
+         ptr += sizeof(void *)) {
 
-<p>然后就是函数尾部的syscall_table的覆写了，系统调用表在内核中是只读的，直接写会导致内核oops，设置cr0寄存器中内存写保护的状态位；之后将64位系统下全量的系统调用地址和execve系统调用地址分别进行保存，方便hook后的恢复，这边为啥要全量没搞懂，按理说保存hook的那个就好了；最终，覆写系统调用表中execve地址为monitor_stub_execve_hook函数地址；覆写完毕后恢复cr0：</p>
-<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">    original_cr0 = read_cr0()<span class="comment">;</span></span><br><span class="line">    write_cr0(<span class="name">original_cr0</span> &amp; ~<span class="number">0</span>x00010000)<span class="comment">;</span></span><br><span class="line">    pr_err(<span class="string">"Loading module monitor_execve, sys_call_table at %p\n"</span>, sys_call_table_ptr)<span class="comment">;</span></span><br><span class="line">    </span><br><span class="line">    for(<span class="name">i</span> = <span class="number">0</span><span class="comment">; i &lt; NR_syscalls - 1; i ++) &#123;</span></span><br><span class="line">        orig_sys_call_table[i] = sys_call_table_ptr[i]<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    orig_stub_execve = (<span class="name">void</span> *)(sys_call_table_ptr[__NR_execve]);</span><br><span class="line">    sys_call_table_ptr[__NR_execve]= (void *)monitor_stub_execve_hook<span class="comment">;</span></span><br><span class="line">    </span><br><span class="line">    write_cr0(<span class="name">original_cr0</span>)<span class="comment">;</span></span><br><span class="line">    return <span class="number">0</span><span class="comment">;</span></span><br><span class="line">**monitor_stub_execve_hook**</span><br></pre></td></tr></table></figure>
+        p = (unsigned long *)ptr;
 
-<p>monitor_stub_execve_hook函数在syscall_stub_hook.S中，函数逻辑是这样的，首先全部寄存器压栈保存环境，防止真正execve执行时候出问题；调用monitor_execve_hook函数，恢复寄存器环境，跳到orig_sys_call_table表中index为rax（系统调用号）的地址执行，即原生的execve系统调用：</p>
-<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">.text</span><br><span class="line">.global monitor_stub_execve_hook</span><br><span class="line"></span><br><span class="line">monitor_stub_execve_hook:</span><br><span class="line">pushq   %rbx</span><br><span class="line">pushq   %rdi</span><br><span class="line">pushq   %rsi</span><br><span class="line">pushq   %rdx</span><br><span class="line">pushq   %rcx</span><br><span class="line">pushq   %rax</span><br><span class="line">pushq   %r8 </span><br><span class="line">pushq   %r9 </span><br><span class="line">pushq   %r10</span><br><span class="line">pushq   %r11</span><br><span class="line"></span><br><span class="line">call monitor_execve_hook</span><br><span class="line"></span><br><span class="line"><span class="keyword">pop</span>     %r11</span><br><span class="line"><span class="keyword">pop</span>     %r10</span><br><span class="line"><span class="keyword">pop</span>     %r9 </span><br><span class="line"><span class="keyword">pop</span>     %r8 </span><br><span class="line"><span class="keyword">pop</span>     %rax</span><br><span class="line"><span class="keyword">pop</span>     %rcx</span><br><span class="line"><span class="keyword">pop</span>     %rdx</span><br><span class="line"><span class="keyword">pop</span>     %rsi</span><br><span class="line"><span class="keyword">pop</span>     %rdi</span><br><span class="line"></span><br><span class="line"><span class="keyword">pop</span>     %rbx</span><br><span class="line">jmp     *orig_sys_call_table(, %rax, <span class="number">8</span>)</span><br></pre></td></tr></table></figure>
+        if (p[__NR_close] == (unsigned long)sys_close) {
+            pr_err(&quot;Found the sys_call_table!!! __NR_close[%d] sys_close[%lx]\n&quot;
+                    &quot; __NR_execve[%d] sct[__NR_execve][0x%lx]\n&quot;,
+                    __NR_close,
+                    (unsigned long)sys_close,
+                    __NR_execve,
+                    p[__NR_execve]);
+            return (unsigned long **)p;
+        }
+    }
 
-<p><strong>monitor_execve_hook</strong></p>
+    return NULL;
+}</code></pre><p>内核版本不同，相关内核函数也会有一些差异，主要是参数这块，参数传递出问题可能导致内核hang死；代码中有对2.6.32和3.10.0内核版本做区分，这边以3.10.0为准；netlink_kernel_create是内核创建netlink的api，SYSHOOK_NL_NUM宏为31，结合用户态netlink socket那块可知是自定义的netlink协议类型，netlink_kernel_create创建时也需要指定：</p>
+<pre><code>#if LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 32)
+    /*NetLink do not recv from userSpace*/
+    syshook_nl_sk = netlink_kernel_create(&amp;init_net, SYSHOOK_NL_NUM, 0, NULL, NULL, THIS_MODULE);
+    if(!syshook_nl_sk) {
+        pr_err(&quot;syshook: can not create netlink socket.\n&quot;);
+        return -EIO;
+    }
+#elif LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)
+    syshook_nl_sk = netlink_kernel_create(&amp;init_net, SYSHOOK_NL_NUM, NULL);
+    if(!syshook_nl_sk) {
+        pr_err(&quot;syshook: can not create netlink socket.\n&quot;);
+        return -EIO;
+    }
+#endif
+    pr_err(&quot;syshook: create netlink success.\n&quot;);</code></pre><p>调kallsyms_lookup_name获取getname和putname的内核函数地址：</p>
+<pre><code>#if LINUX_VERSION_CODE &gt;= KERNEL_VERSION(3, 10, 0)
+    tmp_getname = (void *)kallsyms_lookup_name(&quot;getname&quot;);
+    if(!tmp_getname) {
+        pr_err(&quot;unknow Symbol getname\n&quot;);
+        return -1;
+    }
+
+    tmp_putname = (void *)kallsyms_lookup_name(&quot;putname&quot;);
+    if(!tmp_putname) {
+        pr_err(&quot;unknow Symbol putname\n&quot;);
+        return -1;
+    }
+#endif</code></pre><p>然后就是函数尾部的syscall_table的覆写了，系统调用表在内核中是只读的，直接写会导致内核oops，设置cr0寄存器中内存写保护的状态位；之后将64位系统下全量的系统调用地址和execve系统调用地址分别进行保存，方便hook后的恢复，这边为啥要全量没搞懂，按理说保存hook的那个就好了；最终，覆写系统调用表中execve地址为monitor_stub_execve_hook函数地址；覆写完毕后恢复cr0：</p>
+<pre><code>    original_cr0 = read_cr0();
+    write_cr0(original_cr0 &amp; ~0x00010000);
+    pr_err(&quot;Loading module monitor_execve, sys_call_table at %p\n&quot;, sys_call_table_ptr);
+
+    for(i = 0; i &lt; NR_syscalls - 1; i ++) {
+        orig_sys_call_table[i] = sys_call_table_ptr[i];
+    }
+
+    orig_stub_execve = (void *)(sys_call_table_ptr[__NR_execve]);
+    sys_call_table_ptr[__NR_execve]= (void *)monitor_stub_execve_hook;
+
+    write_cr0(original_cr0);
+    return 0;
+**monitor_stub_execve_hook**</code></pre><p>monitor_stub_execve_hook函数在syscall_stub_hook.S中，函数逻辑是这样的，首先全部寄存器压栈保存环境，防止真正execve执行时候出问题；调用monitor_execve_hook函数，恢复寄存器环境，跳到orig_sys_call_table表中index为rax（系统调用号）的地址执行，即原生的execve系统调用：</p>
+<pre><code>.text
+.global monitor_stub_execve_hook
+
+monitor_stub_execve_hook:
+pushq   %rbx
+pushq   %rdi
+pushq   %rsi
+pushq   %rdx
+pushq   %rcx
+pushq   %rax
+pushq   %r8 
+pushq   %r9 
+pushq   %r10
+pushq   %r11
+
+call monitor_execve_hook
+
+pop     %r11
+pop     %r10
+pop     %r9 
+pop     %r8 
+pop     %rax
+pop     %rcx
+pop     %rdx
+pop     %rsi
+pop     %rdi
+
+pop     %rbx
+jmp     *orig_sys_call_table(, %rax, 8)</code></pre><p><strong>monitor_execve_hook</strong></p>
 <p>首先是一些初始化动作：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">asmlinkage <span class="keyword">long</span> <span class="title">monitor_execve_hook</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> __user *filename, </span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *argv,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">const</span> <span class="keyword">char</span> __user *<span class="keyword">const</span> __user *envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> error = <span class="number">0</span>, i = <span class="number">0</span>, len = <span class="number">0</span>, offset = <span class="number">0</span>, max_len = <span class="number">0</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">filename</span> *<span class="title">path</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> __user * native = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">char</span> *total_argc_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">char</span> *total_envpc_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">char</span> *per_envp = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">int</span> tmp_argc = <span class="number">0</span>, total_argc_len = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> tmp_envpc = <span class="number">0</span>, total_envpc_len = <span class="number">0</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">user_arg_ptr</span> <span class="title">argvx</span> = &#123;</span> .ptr.native = argv &#125;;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">user_arg_ptr</span> <span class="title">envpx</span> = &#123;</span> .ptr.native = envp &#125;;</span><br><span class="line">    <span class="keyword">int</span> nl_send_len = <span class="number">0</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sk_buff</span> *<span class="title">skb</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">nlmsghdr</span> *<span class="title">nlh</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">file</span> *<span class="title">file</span> = <span class="title">NULL</span>;</span></span><br><span class="line">    <span class="keyword">char</span> *tmp = kmalloc(PATH_MAX, GFP_KERNEL);</span><br><span class="line">    <span class="keyword">char</span> *path1 = <span class="literal">NULL</span>;</span><br></pre></td></tr></table></figure>
+<pre><code>asmlinkage long monitor_execve_hook(const char __user *filename, 
+                          const char __user *const __user *argv,
+                          const char __user *const __user *envp)
+{
+    int error = 0, i = 0, len = 0, offset = 0, max_len = 0;
+    struct filename *path = NULL;
+    const char __user * native = NULL;
+    char *total_argc_ptr = NULL;
+    char *total_envpc_ptr = NULL;
+    char *per_envp = NULL;
+    int tmp_argc = 0, total_argc_len = 0;
+    int tmp_envpc = 0, total_envpc_len = 0;
+    struct user_arg_ptr argvx = { .ptr.native = argv };
+    struct user_arg_ptr envpx = { .ptr.native = envp };
+    int nl_send_len = 0;
+    struct sk_buff *skb = NULL;
+    struct nlmsghdr *nlh = NULL;
+    struct file *file = NULL;
+    char *tmp = kmalloc(PATH_MAX, GFP_KERNEL);
+    char *path1 = NULL;</code></pre><p>tmp_getname保存了getname内核函数的地址，用其获取filename指针指向的路径名，之所以无法直接使用filename是因为本质上filename指针指向的用户空间地址，得先用getname拷贝到内核空间中；利用open_exec获取文件对应的file结构指针，调d_path获取文件绝对路径，最后用fput减少文件对象的引用计数并判断是否进行释放：</p>
+<pre><code>        path = tmp_getname(filename);
+    // printk(&quot;path:%s\n&quot;,path-&gt;name);
+    error = PTR_ERR(path);
+    if (IS_ERR(path)) {
+        goto err;
+    }
 
-<p>tmp_getname保存了getname内核函数的地址，用其获取filename指针指向的路径名，之所以无法直接使用filename是因为本质上filename指针指向的用户空间地址，得先用getname拷贝到内核空间中；利用open_exec获取文件对应的file结构指针，调d_path获取文件绝对路径，最后用fput减少文件对象的引用计数并判断是否进行释放：</p>
-<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">path = tmp<span class="constructor">_getname(<span class="params">filename</span>)</span>;</span><br><span class="line">  <span class="comment">// printk("path:%s\n",path-&gt;name);</span></span><br><span class="line">  error = <span class="constructor">PTR_ERR(<span class="params">path</span>)</span>;</span><br><span class="line">  <span class="keyword">if</span> (<span class="constructor">IS_ERR(<span class="params">path</span>)</span>) &#123;</span><br><span class="line">      goto err;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  file = <span class="keyword">open</span><span class="constructor">_exec(<span class="params">path</span>-&gt;<span class="params">name</span>)</span>;</span><br><span class="line">  <span class="keyword">if</span> (!<span class="constructor">IS_ERR(<span class="params">file</span>)</span><span class="operator"> &amp;&amp; </span>tmp) &#123;</span><br><span class="line">      memset(tmp, <span class="number">0</span>, PATH_MAX);</span><br><span class="line">      path1 = d<span class="constructor">_path(&amp;<span class="params">file</span>-&gt;<span class="params">f_path</span>, <span class="params">tmp</span>, PATH_MAX)</span>;</span><br><span class="line">      <span class="keyword">if</span> (<span class="constructor">IS_ERR(<span class="params">path1</span>)</span>) &#123;</span><br><span class="line">          path1 = NULL;</span><br><span class="line">      &#125;</span><br><span class="line">      fput(file);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  error = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+    file = open_exec(path-&gt;name);
+    if (!IS_ERR(file) &amp;&amp; tmp) {
+        memset(tmp, 0, PATH_MAX);
+        path1 = d_path(&amp;file-&gt;f_path, tmp, PATH_MAX);
+        if (IS_ERR(path1)) {
+            path1 = NULL;
+        }
+        fput(file);
+    }
 
-<p>首先调tmp_count判断execve执行进程对应的参数数量，tmp_count内部逻辑是这样的，遍历argv索引，调get_user_arg_ptr从用户态拿对应索引处的字符串指针，一旦检测到指针为null，则返回i，即程序执行的参数数量；返回值赋值给tmp_argc；之后根据argc值循环获取每一个参数长度并累加；最后根据total_argc_len长度分配内核空间并memset置位：</p>
-<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">tmp_argc = tmp_count(argvx, MAX_ARG_STRINGS);</span><br><span class="line">  <span class="keyword">if</span>(tmp_argc &lt; <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="built_in">error</span> = tmp_argc;</span><br><span class="line">      <span class="keyword">goto</span> err;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; tmp_argc; i ++) &#123;</span><br><span class="line">      native = get_user_arg_ptr(argvx, i);</span><br><span class="line">      <span class="keyword">if</span>(IS_ERR(native)) &#123;</span><br><span class="line">          <span class="built_in">error</span> = -EFAULT;</span><br><span class="line">          <span class="keyword">goto</span> err;</span><br><span class="line">      &#125;</span><br><span class="line">      // printk(<span class="string">"native0:%s\n"</span>,native);</span><br><span class="line">      <span class="built_in">len</span> = strnlen_user(native, MAX_ARG_STRLEN);</span><br><span class="line">      <span class="keyword">if</span>(!<span class="built_in">len</span>) &#123;</span><br><span class="line">          <span class="built_in">error</span> = -EFAULT;</span><br><span class="line">          <span class="keyword">goto</span> err;</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      total_argc_len += <span class="built_in">len</span>;</span><br><span class="line">      printk(<span class="string">"total_len:%n\n"</span>,total_argc_len);</span><br><span class="line">  &#125;</span><br><span class="line">  total_argc_ptr = kmalloc(total_argc_len + <span class="number">16</span> * tmp_argc, GFP_ATOMIC);</span><br><span class="line">  <span class="keyword">if</span>(!total_argc_ptr) &#123;</span><br><span class="line">      <span class="built_in">error</span> = -ENOMEM;</span><br><span class="line">      <span class="keyword">goto</span> err;</span><br><span class="line">  &#125;</span><br><span class="line">  memset(total_argc_ptr, <span class="number">0</span>, total_argc_len + <span class="number">16</span> * tmp_argc);</span><br></pre></td></tr></table></figure>
+    error = 0;</code></pre><p>首先调tmp_count判断execve执行进程对应的参数数量，tmp_count内部逻辑是这样的，遍历argv索引，调get_user_arg_ptr从用户态拿对应索引处的字符串指针，一旦检测到指针为null，则返回i，即程序执行的参数数量；返回值赋值给tmp_argc；之后根据argc值循环获取每一个参数长度并累加；最后根据total_argc_len长度分配内核空间并memset置位：</p>
+<pre><code>        tmp_argc = tmp_count(argvx, MAX_ARG_STRINGS);
+    if(tmp_argc &lt; 0) {
+        error = tmp_argc;
+        goto err;
+    }
 
-<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">static <span class="built_in">int</span> tmp<span class="constructor">_count(<span class="params">struct</span> <span class="params">user_arg_ptr</span> <span class="params">argv</span>, <span class="params">int</span> <span class="params">max</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argv.ptr.native != NULL) &#123;</span><br><span class="line">        for (;;) &#123;</span><br><span class="line">            const <span class="built_in">char</span> __user *p = get<span class="constructor">_user_arg_ptr(<span class="params">argv</span>, <span class="params">i</span>)</span>; </span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!p)</span><br><span class="line">                break;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (<span class="constructor">IS_ERR(<span class="params">p</span>)</span>)</span><br><span class="line">                return -EFAULT;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (i &gt;= max)</span><br><span class="line">                return -E2BIG;</span><br><span class="line">            ++i;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (fatal<span class="constructor">_signal_pending(<span class="params">current</span>)</span>)</span><br><span class="line">                return -ERESTARTNOHAND;</span><br><span class="line">            cond<span class="constructor">_resched()</span>;</span><br><span class="line">        &#125;   </span><br><span class="line">    &#125;   </span><br><span class="line">    return i;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    for(i = 0; i &lt; tmp_argc; i ++) {
+        native = get_user_arg_ptr(argvx, i);
+        if(IS_ERR(native)) {
+            error = -EFAULT;
+            goto err;
+        }
+        // printk(&quot;native0:%s\n&quot;,native);
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
 
-<p>根据参数数量获取每一个参数字符串指针，再用copy_from_user完成字符串从用户态到内核态的内存的覆写：</p>
-<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">	for(<span class="name">i</span> = <span class="number">0</span><span class="comment">; i &lt; tmp_argc; i ++) &#123;</span></span><br><span class="line">    if(<span class="name">i</span> == <span class="number">0</span>) &#123;</span><br><span class="line">        continue<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line">    native = get_user_arg_ptr(<span class="name">argvx</span>, i)<span class="comment">;</span></span><br><span class="line">    if(<span class="name">IS_ERR</span>(<span class="name">native</span>)) &#123;</span><br><span class="line">        error = -EFAULT<span class="comment">;</span></span><br><span class="line">        goto err<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    len = strnlen_user(<span class="name">native</span>, MAX_ARG_STRLEN)<span class="comment">;</span></span><br><span class="line">    if(!len) &#123;</span><br><span class="line">        error = -EFAULT<span class="comment">;</span></span><br><span class="line">        goto err<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    if(<span class="name">offset</span> + len &gt; total_argc_len + <span class="number">16</span> * tmp_argc) &#123;</span><br><span class="line">        break;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (copy_from_user(total_argc_ptr + offset, native, len)) &#123;</span><br><span class="line">        error = -EFAULT;</span><br><span class="line">        goto err;</span><br><span class="line">    &#125;</span><br><span class="line">    offset += len - 1;</span><br><span class="line">    *(<span class="name">total_argc_ptr</span> + offset) = ' '<span class="comment">;</span></span><br><span class="line">    offset += <span class="number">1</span><span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        total_argc_len += len;
+        printk(&quot;total_len:%n\n&quot;,total_argc_len);
+    }
+    total_argc_ptr = kmalloc(total_argc_len + 16 * tmp_argc, GFP_ATOMIC);
+    if(!total_argc_ptr) {
+        error = -ENOMEM;
+        goto err;
+    }
+    memset(total_argc_ptr, 0, total_argc_len + 16 * tmp_argc);</code></pre><pre><code>static int tmp_count(struct user_arg_ptr argv, int max)
+{
+    int i = 0;
 
-<p>下面的envpx环境变量和argv的获取是基本一致的，不再赘述</p>
+    if (argv.ptr.native != NULL) {
+        for (;;) {
+            const char __user *p = get_user_arg_ptr(argv, i); 
+
+            if (!p)
+                break;
+
+            if (IS_ERR(p))
+                return -EFAULT;
+
+            if (i &gt;= max)
+                return -E2BIG;
+            ++i;
+
+            if (fatal_signal_pending(current))
+                return -ERESTARTNOHAND;
+            cond_resched();
+        }   
+    }   
+    return i;
+}</code></pre><p>根据参数数量获取每一个参数字符串指针，再用copy_from_user完成字符串从用户态到内核态的内存的覆写：</p>
+<pre><code>        for(i = 0; i &lt; tmp_argc; i ++) {
+        if(i == 0) {
+            continue;
+        }
+        native = get_user_arg_ptr(argvx, i);
+        if(IS_ERR(native)) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        len = strnlen_user(native, MAX_ARG_STRLEN);
+        if(!len) {
+            error = -EFAULT;
+            goto err;
+        }
+
+        if(offset + len &gt; total_argc_len + 16 * tmp_argc) {
+            break;
+        }
+
+        if (copy_from_user(total_argc_ptr + offset, native, len)) {
+            error = -EFAULT;
+            goto err;
+        }
+        offset += len - 1;
+        *(total_argc_ptr + offset) = &#39; &#39;;
+        offset += 1;
+    }</code></pre><p>下面的envpx环境变量和argv的获取是基本一致的，不再赘述</p>
 <p>计算需要发送的数据长度，检查对应指针是否正确，分配socket buffer（skb），设置netlink msg格式，包括msg length、pid、flags等；调用nlmsg_put把一个新的netlink message放到skb中；根据task_struct获取pexe、参数、pid、pname、ppid、环境变量并将其格式化（0x1组合）放到netlink header后，同时设置skb相关参数，其中，portid表示源，dst_group代表skb传输的目标组id：</p>
-<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">nl_send_len</span> = (path1 != NULL ? strlen(path1) : strlen(<span class="built_in">path</span>-&gt;</span><span class="function"><span class="title">name</span>)) + strlen(current-&gt;</span><span class="function"><span class="title">parent</span>-&gt;</span>comm) + <span class="number">128</span>;</span><br><span class="line">  <span class="keyword">if</span>(!ZERO_OR_NULL_PTR(total_envpc_ptr)) &#123;</span><br><span class="line">      nl_send_len += strlen(total_envpc_ptr);</span><br><span class="line">  &#125;   </span><br><span class="line">  <span class="keyword">if</span>(!ZERO_OR_NULL_PTR(total_argc_ptr)) &#123;</span><br><span class="line">      nl_send_len += strlen(total_argc_ptr);</span><br><span class="line">  &#125;</span><br><span class="line">  nl_send_len = nl_send_len &lt; PATH_MAX + <span class="number">2048</span> ? nl_send_len : PATH_MAX + <span class="number">2048</span>;</span><br><span class="line">  skb = alloc_skb(NLMSG_SPACE(nl_send_len), GFP_ATOMIC);</span><br><span class="line">  <span class="keyword">if</span>(!skb) &#123;</span><br><span class="line">      error = -ENOMEM;</span><br><span class="line">      goto err;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">nlh</span> = (struct nlmsghdr *)skb-&gt;</span><span class="keyword">data</span>;</span><br><span class="line">  <span class="function"><span class="title">nlh</span>-&gt;</span>nlmsg_len = NLMSG_SPACE(nl_send_len);</span><br><span class="line">  <span class="function"><span class="title">nlh</span>-&gt;</span>nlmsg_pid = <span class="number">0</span>;</span><br><span class="line">  <span class="function"><span class="title">nlh</span>-&gt;</span>nlmsg_flags = <span class="number">0</span>;</span><br><span class="line">  nlh = nlmsg_put(skb, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, NLMSG_SPACE(nl_send_len) - sizeof (struct nlmsghdr), <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">if</span>(!nlh) &#123;</span><br><span class="line">      kfree_skb(skb);</span><br><span class="line">      pr_err(<span class="string">"nlh get failed.\n"</span>);</span><br><span class="line">      goto err;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="title">snprintf</span>(NLMSG_DATA(nlh), nl_send_len, "%s%c%s%c%u%c%s%c%d%c%s", path1 != NULL ? path1 : <span class="built_in">path</span>-&gt;</span><span class="function"><span class="title">name</span>, 0x1, (uint64_t)total_argc_ptr == 0x10 ? "N/A" : total_argc_ptr, 0x1, current-&gt;</span><span class="function"><span class="title">tgid</span>, 0x1, current-&gt;</span><span class="function"><span class="title">parent</span>-&gt;</span><span class="function"><span class="title">comm</span>, 0x1, current-&gt;</span><span class="function"><span class="title">parent</span>-&gt;</span>tgid, <span class="number">0</span>x1, (uint64_t)total_envpc_ptr == <span class="number">0</span>x10 ? <span class="string">"N/A"</span> : total_envpc_ptr);</span><br><span class="line">  NETLINK_CB(skb).portid = <span class="number">0</span>;</span><br><span class="line">  NETLINK_CB(skb).dst_group = <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<pre><code>        nl_send_len = (path1 != NULL ? strlen(path1) : strlen(path-&gt;name)) + strlen(current-&gt;parent-&gt;comm) + 128;
+    if(!ZERO_OR_NULL_PTR(total_envpc_ptr)) {
+        nl_send_len += strlen(total_envpc_ptr);
+    }   
+    if(!ZERO_OR_NULL_PTR(total_argc_ptr)) {
+        nl_send_len += strlen(total_argc_ptr);
+    }
+    nl_send_len = nl_send_len &lt; PATH_MAX + 2048 ? nl_send_len : PATH_MAX + 2048;
+    skb = alloc_skb(NLMSG_SPACE(nl_send_len), GFP_ATOMIC);
+    if(!skb) {
+        error = -ENOMEM;
+        goto err;
+    }
 
-<p><strong>netlink_broadcast</strong></p>
+    nlh = (struct nlmsghdr *)skb-&gt;data;
+    nlh-&gt;nlmsg_len = NLMSG_SPACE(nl_send_len);
+    nlh-&gt;nlmsg_pid = 0;
+    nlh-&gt;nlmsg_flags = 0;
+    nlh = nlmsg_put(skb, 0, 0, 0, NLMSG_SPACE(nl_send_len) - sizeof (struct nlmsghdr), 0);
+    if(!nlh) {
+        kfree_skb(skb);
+        pr_err(&quot;nlh get failed.\n&quot;);
+        goto err;
+    }
+    snprintf(NLMSG_DATA(nlh), nl_send_len, &quot;%s%c%s%c%u%c%s%c%d%c%s&quot;, path1 != NULL ? path1 : path-&gt;name, 0x1, (uint64_t)total_argc_ptr == 0x10 ? &quot;N/A&quot; : total_argc_ptr, 0x1, current-&gt;tgid, 0x1, current-&gt;parent-&gt;comm, 0x1, current-&gt;parent-&gt;tgid, 0x1, (uint64_t)total_envpc_ptr == 0x10 ? &quot;N/A&quot; : total_envpc_ptr);
+    NETLINK_CB(skb).portid = 0;
+    NETLINK_CB(skb).dst_group = 1;</code></pre><p><strong>netlink_broadcast</strong></p>
 <p>调用netlink_broadcast向连接到netlink的多播组1进行广播（多播），传输的消息体存放在skb中，skb的data段保存了要发送的netlink消息结构：</p>
-<figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">error </span>= netlink_broadcast(syshook_nl_sk, skb, 0, 1, 0);</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>debug</strong></p>
+<pre><code>    error = netlink_broadcast(syshook_nl_sk, skb, 0, 1, 0);</code></pre><p><strong>debug</strong></p>
 <p>Dmesg</p>
 <p><img src="./image-20201023183519589.png" alt="image-20201023183519589"></p>
 <h2 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h2><p>分析到这边就结束了， 总结一下：</p>
@@ -514,6 +1639,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

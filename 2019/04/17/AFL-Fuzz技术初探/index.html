@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x01 AFL-Fuzz介绍模糊测试(Fuzzing)技术作为漏洞挖掘最有效的手段之一，近年来一直是众多安全研究员发现漏洞的首选技术。AFL-Fuzz、LibFuzzer、honggFuzz等操作简单友好的工具相继出现，大大降低了漏洞挖掘的门槛。AFL(American Fuzzy Lop)是由安全研究员Michał Zalewski（@lcamtuf）开发的一款基于覆盖引导(Coverage-">
@@ -103,7 +103,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -386,9 +386,10 @@
 <p>这边<a href="http://lcamtuf.coredump.cx/afl/status_screen.txt" target="_blank" rel="noopener">官网</a>有详述。 </p>
 <h2 id="0x07-Crash"><a href="#0x07-Crash" class="headerlink" title="0x07 Crash"></a>0x07 Crash</h2><p>可以看到AFL在output文件夹下生成了crash和hangs的样本<br><img src="./%E5%B4%A9%E6%BA%83.png" alt="image"><br>拿到样本以后可以动态调试走一波，找到崩溃点，看能否进行利用。<br>这边有个相关的内存检测框架Valgrind，它能根据提供的样本进行异常检测，并将漏洞类型和产生漏洞的地址进行输出，测试者可以直接定位。  </p>
 <h2 id="0x08-黑盒"><a href="#0x08-黑盒" class="headerlink" title="0x08 黑盒"></a>0x08 黑盒</h2><p>AFL也支持无源码插桩，这边利用了qemu进行动态二进制插桩，看dalao博客的解释有点类似JIT，贴一下回去慢慢理解  </p>
-<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">这是因为QEMU使用<span class="keyword">basic </span><span class="keyword">blocks作为翻译单元，利用QEMU做instrumentation，启动很慢的QEMU </span>mode同样使用了一个fork server，和编译期一样，通过把一个已经初始化好的进程镜像，直接拷贝到新的进程中。</span><br><span class="line">所以相当于第一次翻译一个新的<span class="keyword">basic </span><span class="keyword">block，这肯定会有必要的延迟，为了解决这个问题AFL </span>forkserver在emulator和父进程之间提供了一个信息管道。</span><br><span class="line">这个信息管道用来通知父进程新添加的<span class="keyword">blocks的地址，之后把这些blocks放到一个缓存中，以便直接复制到将来的子进程中。</span></span><br><span class="line"><span class="keyword">但这样处理之后，QEMU模式对目标程序造成2-5倍的减速。</span></span><br></pre></td></tr></table></figure>
-
-<p>无源码状态下二进制程序的Fuzz首先需要安装QEMU虚拟机，Fuzz的时候著需要增加-Q选项就能在qemu模式下进行fuzzing了。  </p>
+<pre><code>这是因为QEMU使用basic blocks作为翻译单元，利用QEMU做instrumentation，启动很慢的QEMU mode同样使用了一个fork server，和编译期一样，通过把一个已经初始化好的进程镜像，直接拷贝到新的进程中。
+所以相当于第一次翻译一个新的basic block，这肯定会有必要的延迟，为了解决这个问题AFL forkserver在emulator和父进程之间提供了一个信息管道。
+这个信息管道用来通知父进程新添加的blocks的地址，之后把这些blocks放到一个缓存中，以便直接复制到将来的子进程中。
+但这样处理之后，QEMU模式对目标程序造成2-5倍的减速。</code></pre><p>无源码状态下二进制程序的Fuzz首先需要安装QEMU虚拟机，Fuzz的时候著需要增加-Q选项就能在qemu模式下进行fuzzing了。  </p>
 <blockquote>
 <p>$ afl-fuzz -Q -i input -o output /path/to/program [params] @@  </p>
 </blockquote>
@@ -500,6 +501,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

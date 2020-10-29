@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="ISITDTU CTF 2018 Qualsxoxopwn wp​    看题目只给了一个服务器ip和端口考虑到是盲打，连上去看一下发现好像是一道python沙盒逃逸。常见的语法都被过滤了，使用常见的python内置函数和类试图去发现指定路径下的文件发现沙盒都是显示代码太长了，于是直接file显示当前引用文件的内容，发现dump出的应该就是题目。题目如下：">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -317,11 +317,95 @@
     <div class="post-body" itemprop="articleBody">
         <h1 id="ISITDTU-CTF-2018-Quals"><a href="#ISITDTU-CTF-2018-Quals" class="headerlink" title="ISITDTU CTF 2018 Quals"></a>ISITDTU CTF 2018 Quals</h1><h2 id="xoxopwn-wp"><a href="#xoxopwn-wp" class="headerlink" title="xoxopwn wp"></a>xoxopwn wp</h2><p>​    看题目只给了一个服务器ip和端口考虑到是盲打，连上去看一下发现好像是一道python沙盒逃逸。常见的语法都被过滤了，使用常见的python内置函数和类试图去发现指定路径下的文件发现沙盒都是显示代码太长了，于是直接<strong>file</strong>显示当前引用文件的内容，发现dump出的应该就是题目。<br>题目如下：</p>
 <a id="more"></a>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line">import socket</span><br><span class="line"></span><br><span class="line">import threading</span><br><span class="line"></span><br><span class="line">import SocketServer</span><br><span class="line"></span><br><span class="line">host,<span class="built_in"> port </span>= <span class="string">'0.0.0.0'</span>, 9999</span><br><span class="line"></span><br><span class="line">def o(a):</span><br><span class="line"></span><br><span class="line"><span class="built_in">	secret </span>= <span class="string">"392a3d3c2b3a22125d58595733031c0c070a043a071a37081d300b1d1f0b09"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">	secret </span>= secret.decode(<span class="string">"hex"</span>)</span><br><span class="line"></span><br><span class="line">	key = <span class="string">"pythonwillhelpyouopenthedoor"</span></span><br><span class="line"></span><br><span class="line">	ret = <span class="string">""</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> i <span class="keyword">in</span> xrange(len(a)):</span><br><span class="line"></span><br><span class="line">		ret += chr(ord(a[i])^ord(key[i%len(a)]))</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ret == secret:</span><br><span class="line"></span><br><span class="line">		<span class="builtin-name">print</span> <span class="string">"Open the door"</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">else</span>:</span><br><span class="line"></span><br><span class="line">		<span class="builtin-name">print</span> <span class="string">"Close the door"</span></span><br><span class="line"></span><br><span class="line">def x(a):</span><br><span class="line"></span><br><span class="line">	xxx = <span class="string">"finding secret in o()"</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> len(a)&gt;21:</span><br><span class="line"></span><br><span class="line">		return <span class="string">"Big size ~"</span></span><br><span class="line"></span><br><span class="line">	#<span class="builtin-name">print</span> <span class="string">"[*] "</span>,a</span><br><span class="line"></span><br><span class="line">	return eval(a)</span><br><span class="line"></span><br><span class="line">class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):</span><br><span class="line"></span><br><span class="line">    allow_reuse_address = <span class="literal">True</span></span><br><span class="line"></span><br><span class="line">class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):</span><br><span class="line"></span><br><span class="line">    def handle(self):</span><br><span class="line"></span><br><span class="line">    	self.request.sendall(<span class="string">"This is function x()"</span>)</span><br><span class="line"></span><br><span class="line">        self.request.sendall(<span class="string">"&gt;&gt;&gt; "</span>)</span><br><span class="line"></span><br><span class="line">        self.data = self.request.recv(1024).strip()</span><br><span class="line"></span><br><span class="line">        <span class="builtin-name">print</span> <span class="string">"&#123;&#125; wrote: &#123;&#125;"</span>.format(self.client_address[0],self.data)</span><br><span class="line"></span><br><span class="line">        ret = x(str(self.data))</span><br><span class="line"></span><br><span class="line">        self.request.sendall(str(ret))</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> name == <span class="string">"main"</span>:</span><br><span class="line"></span><br><span class="line">	serverthuong123 = ThreadedTCPServer((host, port), ThreadedTCPRequestHandler)</span><br><span class="line"></span><br><span class="line">	server_thread = threading.Thread(<span class="attribute">target</span>=serverthuong123.serve_forever)</span><br><span class="line"></span><br><span class="line">	server_thread.daemon = <span class="literal">True</span></span><br><span class="line"></span><br><span class="line">	server_thread.start()</span><br><span class="line"></span><br><span class="line">	<span class="builtin-name">print</span> <span class="string">"Server loop running in thread:"</span>, server_thread.name</span><br><span class="line"></span><br><span class="line">	server_thread.join()</span><br></pre></td></tr></table></figure>
+<pre><code>import socket
 
-<p>​    </p>
+import threading
+
+import SocketServer
+
+host, port = &#39;0.0.0.0&#39;, 9999
+
+def o(a):
+
+    secret = &quot;392a3d3c2b3a22125d58595733031c0c070a043a071a37081d300b1d1f0b09&quot;
+
+    secret = secret.decode(&quot;hex&quot;)
+
+    key = &quot;pythonwillhelpyouopenthedoor&quot;
+
+    ret = &quot;&quot;
+
+    for i in xrange(len(a)):
+
+        ret += chr(ord(a[i])^ord(key[i%len(a)]))
+
+    if ret == secret:
+
+        print &quot;Open the door&quot;
+
+    else:
+
+        print &quot;Close the door&quot;
+
+def x(a):
+
+    xxx = &quot;finding secret in o()&quot;
+
+    if len(a)&gt;21:
+
+        return &quot;Big size ~&quot;
+
+    #print &quot;[*] &quot;,a
+
+    return eval(a)
+
+class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+
+    allow_reuse_address = True
+
+class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
+
+    def handle(self):
+
+        self.request.sendall(&quot;This is function x()&quot;)
+
+        self.request.sendall(&quot;&gt;&gt;&gt; &quot;)
+
+        self.data = self.request.recv(1024).strip()
+
+        print &quot;{} wrote: {}&quot;.format(self.client_address[0],self.data)
+
+        ret = x(str(self.data))
+
+        self.request.sendall(str(ret))
+
+if name == &quot;main&quot;:
+
+    serverthuong123 = ThreadedTCPServer((host, port), ThreadedTCPRequestHandler)
+
+    server_thread = threading.Thread(target=serverthuong123.serve_forever)
+
+    server_thread.daemon = True
+
+    server_thread.start()
+
+    print &quot;Server loop running in thread:&quot;, server_thread.name
+
+    server_thread.join()
+</code></pre><p>​    </p>
 <p>​    发现如果输入长度超过21就会显示big size。<br>一个很简单的单字节异或，解密脚本如下:</p>
-<figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">secret=<span class="string">"392a3d3c2b3a22125d58595733031c0c070a043a071a37081d300b1d1f0b09"</span>.decode(<span class="string">"hex"</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">key</span> = <span class="string">"pythonwillhelpyouopenthedoor"</span></span><br><span class="line"></span><br><span class="line">result = <span class="string">""</span></span><br><span class="line"></span><br><span class="line">for i <span class="meta">in</span> <span class="meta">xrange(</span>l<span class="meta">en(</span>secret)):</span><br><span class="line"></span><br><span class="line">        result += chr(ord(secret[i]) ^ ord(<span class="meta">key</span>[i % l<span class="meta">en(</span><span class="meta">key</span>)]))</span><br><span class="line"></span><br><span class="line">print result</span><br></pre></td></tr></table></figure>
+<pre><code>secret=&quot;392a3d3c2b3a22125d58595733031c0c070a043a071a37081d300b1d1f0b09&quot;.decode(&quot;hex&quot;)
+
+key = &quot;pythonwillhelpyouopenthedoor&quot;
+
+result = &quot;&quot;
+
+for i in xrange(len(secret)):
+
+        result += chr(ord(secret[i]) ^ ord(key[i % len(key)]))
+
+print result
+</code></pre>
     </div>
 
     
@@ -426,6 +510,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

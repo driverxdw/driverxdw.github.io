@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="前言之前就对linux上附加的一些小工具像netstat、ps、top等的功能比较感兴趣，虽然知道本质上还是去解析vfs中的信息，但对其细节比较好奇，这边做下源码分析，同时也为后续对其它相对于netstat更复杂的程序&#x2F;项目的分析做下铺垫，如sysdig、osquery、linux kernel等等；这块spoock江城子师傅已经写过类似的文章，个人觉得写的很好，要点都get到了，作为读者受益匪浅">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -320,70 +320,843 @@
 <a id="more"></a>
 
 <h2 id="调试环境"><a href="#调试环境" class="headerlink" title="调试环境"></a>调试环境</h2><p>此次调试是在vscode下使用gdbserver launch远程进行的，调试端的launch.json配置如下，被调端gdbserver挂住就好了</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Use IntelliSense to learn about possible attributes.</span></span><br><span class="line">    <span class="comment">// Hover to view descriptions of existing attributes.</span></span><br><span class="line">    <span class="comment">// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387</span></span><br><span class="line">    <span class="attr">"version"</span>: <span class="string">"0.2.0"</span>,</span><br><span class="line">    <span class="attr">"configurations"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"name"</span>: <span class="string">"(gdb) Launch"</span>,</span><br><span class="line">            <span class="attr">"type"</span>: <span class="string">"cppdbg"</span>,</span><br><span class="line">            <span class="attr">"request"</span>: <span class="string">"launch"</span>,</span><br><span class="line">            <span class="attr">"program"</span>: <span class="string">"$&#123;workspaceFolder&#125;/netstat"</span>,</span><br><span class="line">            <span class="attr">"args"</span>: [],</span><br><span class="line">            <span class="attr">"stopAtEntry"</span>: <span class="literal">false</span>,</span><br><span class="line">            <span class="attr">"cwd"</span>: <span class="string">"$&#123;workspaceFolder&#125;"</span>,</span><br><span class="line">            <span class="attr">"environment"</span>: [],</span><br><span class="line">            <span class="attr">"externalConsole"</span>: <span class="literal">false</span>,</span><br><span class="line">            <span class="attr">"MIMode"</span>: <span class="string">"gdb"</span>,</span><br><span class="line">            <span class="attr">"linux"</span>: &#123;</span><br><span class="line">                <span class="attr">"MIMode"</span>: <span class="string">"gdb"</span>,</span><br><span class="line">                <span class="attr">"miDebuggerPath"</span>: <span class="string">"/usr/bin/gdb"</span>,</span><br><span class="line">                <span class="attr">"miDebuggerServerAddress"</span>: <span class="string">"10.211.55.4:7777"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">"setupCommands"</span>: [</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="attr">"description"</span>: <span class="string">"Enable pretty-printing for gdb"</span>,</span><br><span class="line">                    <span class="attr">"text"</span>: <span class="string">"-enable-pretty-printing"</span>,</span><br><span class="line">                    <span class="attr">"ignoreFailures"</span>: <span class="literal">true</span></span><br><span class="line">                &#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    &quot;version&quot;: &quot;0.2.0&quot;,
+    &quot;configurations&quot;: [
+        {
+            &quot;name&quot;: &quot;(gdb) Launch&quot;,
+            &quot;type&quot;: &quot;cppdbg&quot;,
+            &quot;request&quot;: &quot;launch&quot;,
+            &quot;program&quot;: &quot;${workspaceFolder}/netstat&quot;,
+            &quot;args&quot;: [],
+            &quot;stopAtEntry&quot;: false,
+            &quot;cwd&quot;: &quot;${workspaceFolder}&quot;,
+            &quot;environment&quot;: [],
+            &quot;externalConsole&quot;: false,
+            &quot;MIMode&quot;: &quot;gdb&quot;,
+            &quot;linux&quot;: {
+                &quot;MIMode&quot;: &quot;gdb&quot;,
+                &quot;miDebuggerPath&quot;: &quot;/usr/bin/gdb&quot;,
+                &quot;miDebuggerServerAddress&quot;: &quot;10.211.55.4:7777&quot;
+            },
+            &quot;setupCommands&quot;: [
+                {
+                    &quot;description&quot;: &quot;Enable pretty-printing for gdb&quot;,
+                    &quot;text&quot;: &quot;-enable-pretty-printing&quot;,
+                    &quot;ignoreFailures&quot;: true
+                }
+            ]
+        }
+    ]
+}</code></pre><h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p>2286行之前大量操作用在判断程序启动参数上，并给当作参数标志位使用的变量置位，以及其它一些初始化操作</p>
+<pre><code>#if I18N
+    setlocale (LC_ALL, &quot;&quot;);
+    bindtextdomain(&quot;net-tools&quot;, &quot;/usr/share/locale&quot;);
+    textdomain(&quot;net-tools&quot;);
+#endif
+    getroute_init();        /* Set up AF routing support */
 
+    afname[0] = &#39;\0&#39;;
+    while ((i = getopt_long(argc, argv, &quot;A:CFMacdeghilnNoprsStuUvVWw2fx64?Z&quot;, longopts, &amp;lop)) != EOF)
+    switch (i) {
+    case -1:
+        break;
+    case 1:
+        if (lop &lt; 0 || lop &gt;= AFTRANS_CNT) {
+        EINTERN(&quot;netstat.c&quot;, &quot;longopts 1 range&quot;);
+        break;
+        }
+        if (aftrans_opt(longopts[lop].name))
+        exit(1);
+        break;
+    case &#39;A&#39;:
+        if (aftrans_opt(optarg))
+        exit(1);
+        break;
+    case &#39;M&#39;:
+        flag_mas++;
+        break;
+    case &#39;a&#39;:
+        flag_all++;
+        break;
+    case &#39;l&#39;:
+        flag_lst++;
+        break;
+    case &#39;c&#39;:
+        flag_cnt++;
+        break;
 
+    case &#39;d&#39;:
+        flag_deb++;
+        break;
+    case &#39;g&#39;:
+        flag_igmp++;
+        break;
+    case &#39;e&#39;:
+        flag_exp++;
+        break;
+    case &#39;p&#39;:
+        flag_prg++;
+        break;
+    case &#39;i&#39;:
+        flag_int++;
+        break;
+    case &#39;W&#39;:
+        flag_wide++;
+        break;
+    case &#39;n&#39;:
+        flag_not |= FLAG_NUM;
+        break;
+    case &#39;!&#39;:
+        flag_not |= FLAG_NUM_HOST;
+        break;
+    case &#39;@&#39;:
+        flag_not |= FLAG_NUM_PORT;
+        break;
+    case &#39;#&#39;:
+        flag_not |= FLAG_NUM_USER;
+        break;
+    case &#39;N&#39;:
+        flag_not |= FLAG_SYM;
+        break;
+    case &#39;C&#39;:
+        flag_cf |= FLAG_CACHE;
+        break;
+    case &#39;F&#39;:
+        flag_cf |= FLAG_FIB;
+        break;
+    case &#39;o&#39;:
+        flag_opt++;
+        break;
+    case &#39;6&#39;:
+        if (aftrans_opt(&quot;inet6&quot;))
+        exit(1);
+        break;
+    case &#39;4&#39;:
+        if (aftrans_opt(&quot;inet&quot;))
+        exit(1);
+        break;
+    case &#39;V&#39;:
+        version();
+        /*NOTREACHED */
+    case &#39;v&#39;:
+        flag_ver |= FLAG_VERBOSE;
+        break;
+    case &#39;r&#39;:
+        flag_rou++;
+        break;
+    case &#39;t&#39;:
+        flag_tcp++;
+        break;
+    case &#39;S&#39;:
+        flag_sctp++;
+        break;
+    case &#39;u&#39;:
+        flag_udp++;
+        break;
+        case &#39;U&#39;:
+        flag_udplite++;
+        break;
+    case &#39;w&#39;:
+        flag_raw++;
+        break;
+        case &#39;2&#39;:
+        flag_l2cap++;
+        break;
+        case &#39;f&#39;:
+        flag_rfcomm++;
+        break;
+    case &#39;x&#39;:
+        if (aftrans_opt(&quot;unix&quot;))
+        exit(1);
+        break;
+    case &#39;Z&#39;:
+#if HAVE_SELINUX
+        if (is_selinux_enabled() &lt;= 0) {
+        fprintf(stderr, _(&quot;SELinux is not enabled on this machine.\n&quot;));
+        exit(1);
+        }
+        flag_prg++;
+        flag_selinux++;
+#else
+            fprintf(stderr, _(&quot;SELinux is not enabled for this application.\n&quot;));
+        exit(1);
+#endif
 
-<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p>2286行之前大量操作用在判断程序启动参数上，并给当作参数标志位使用的变量置位，以及其它一些初始化操作</p>
-<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#if I18N</span></span><br><span class="line">    setlocale (LC_ALL, <span class="string">""</span>);</span><br><span class="line">    bindtextdomain(<span class="string">"net-tools"</span>, <span class="string">"/usr/share/locale"</span>);</span><br><span class="line">    textdomain(<span class="string">"net-tools"</span>);</span><br><span class="line"><span class="comment">#endif</span></span><br><span class="line">    getroute_init();		<span class="regexp">/* Set up AF routing support */</span></span><br><span class="line"></span><br><span class="line">    afname[<span class="number">0</span>] = <span class="string">'\0'</span>;</span><br><span class="line">    <span class="keyword">while</span> ((i = getopt_long(argc, argv, <span class="string">"A:CFMacdeghilnNoprsStuUvVWw2fx64?Z"</span>, longopts, &amp;lop)) != EOF)</span><br><span class="line">	switch (i) &#123;</span><br><span class="line">	case -<span class="number">1</span>:</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="number">1</span>:</span><br><span class="line">	    <span class="keyword">if</span> (lop &lt; <span class="number">0</span> || lop &gt;= AFTRANS_CNT) &#123;</span><br><span class="line">		EINTERN(<span class="string">"netstat.c"</span>, <span class="string">"longopts 1 range"</span>);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	    &#125;</span><br><span class="line">	    <span class="keyword">if</span> (aftrans_opt(longopts[lop].name))</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'A'</span>:</span><br><span class="line">	    <span class="keyword">if</span> (aftrans_opt(optarg))</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'M'</span>:</span><br><span class="line">	    flag_mas++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'a'</span>:</span><br><span class="line">	    flag_all++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'l'</span>:</span><br><span class="line">	    flag_lst++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'c'</span>:</span><br><span class="line">	    flag_cnt++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">	case <span class="string">'d'</span>:</span><br><span class="line">	    flag_deb++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'g'</span>:</span><br><span class="line">	    flag_igmp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'e'</span>:</span><br><span class="line">	    flag_exp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'p'</span>:</span><br><span class="line">	    flag_prg++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'i'</span>:</span><br><span class="line">	    flag_int++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'W'</span>:</span><br><span class="line">	    flag_wide++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'n'</span>:</span><br><span class="line">	    flag_not |= FLAG_NUM;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'!'</span>:</span><br><span class="line">	    flag_not |= FLAG_NUM_HOST;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'@'</span>:</span><br><span class="line">	    flag_not |= FLAG_NUM_PORT;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'#'</span>:</span><br><span class="line">	    flag_not |= FLAG_NUM_USER;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'N'</span>:</span><br><span class="line">	    flag_not |= FLAG_SYM;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'C'</span>:</span><br><span class="line">	    flag_cf |= FLAG_CACHE;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'F'</span>:</span><br><span class="line">	    flag_cf |= FLAG_FIB;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'o'</span>:</span><br><span class="line">	    flag_opt++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'6'</span>:</span><br><span class="line">	    <span class="keyword">if</span> (aftrans_opt(<span class="string">"inet6"</span>))</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'4'</span>:</span><br><span class="line">	    <span class="keyword">if</span> (aftrans_opt(<span class="string">"inet"</span>))</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'V'</span>:</span><br><span class="line">	    version();</span><br><span class="line">	    <span class="regexp">/*NOTREACHED */</span></span><br><span class="line">	case <span class="string">'v'</span>:</span><br><span class="line">	    flag_ver |= FLAG_VERBOSE;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'r'</span>:</span><br><span class="line">	    flag_rou++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'t'</span>:</span><br><span class="line">	    flag_tcp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'S'</span>:</span><br><span class="line">	    flag_sctp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'u'</span>:</span><br><span class="line">	    flag_udp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">        case <span class="string">'U'</span>:</span><br><span class="line">	    flag_udplite++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'w'</span>:</span><br><span class="line">	    flag_raw++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">        case <span class="string">'2'</span>:</span><br><span class="line">	    flag_l2cap++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">        case <span class="string">'f'</span>:</span><br><span class="line">	    flag_rfcomm++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'x'</span>:</span><br><span class="line">	    <span class="keyword">if</span> (aftrans_opt(<span class="string">"unix"</span>))</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'Z'</span>:</span><br><span class="line"><span class="comment">#if HAVE_SELINUX</span></span><br><span class="line">	    <span class="keyword">if</span> (is_selinux_enabled() &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">		fprintf(stderr, _(<span class="string">"SELinux is not enabled on this machine.\n"</span>));</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    &#125;</span><br><span class="line">	    flag_prg++;</span><br><span class="line">	    flag_selinux++;</span><br><span class="line"><span class="comment">#else</span></span><br><span class="line">            fprintf(stderr, _(<span class="string">"SELinux is not enabled for this application.\n"</span>));</span><br><span class="line">	    <span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line"><span class="comment">#endif</span></span><br><span class="line"></span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'?'</span>:</span><br><span class="line">	    usage(E_OPTERR);</span><br><span class="line">	case <span class="string">'h'</span>:</span><br><span class="line">	    usage(E_USAGE);</span><br><span class="line">	case <span class="string">'s'</span>:</span><br><span class="line">	    flag_sta++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (flag_int + flag_rou + flag_mas + flag_sta &gt; <span class="number">1</span>)</span><br><span class="line">	usage(E_OPTERR);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((flag_inet || flag_inet6 || flag_sta) &amp;&amp;</span><br><span class="line">        !(flag_tcp || flag_sctp || flag_udp || flag_udplite || flag_raw))</span><br><span class="line">	   flag_noprot = flag_tcp = flag_sctp = flag_udp = flag_udplite = flag_raw = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((flag_tcp || flag_sctp || flag_udp || flag_udplite || flag_raw || flag_igmp) &amp;&amp;</span><br><span class="line">        !(flag_inet || flag_inet6))</span><br><span class="line">        flag_inet = flag_inet6 = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (flag_bluetooth &amp;&amp; !(flag_l2cap || flag_rfcomm))</span><br><span class="line">	   flag_l2cap = flag_rfcomm = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    flag_arg = flag_tcp + flag_sctp + flag_udplite + flag_udp + flag_raw + flag_unx</span><br><span class="line">        + flag_ipx + flag_ax25 + flag_netrom + flag_igmp + flag_x25 + flag_rose</span><br><span class="line">	+ flag_l2cap + flag_rfcomm;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (flag_mas) &#123;</span><br><span class="line"><span class="comment">#if HAVE_FW_MASQUERADE &amp;&amp; HAVE_AFINET</span></span><br><span class="line"><span class="comment">#if MORE_THAN_ONE_MASQ_AF</span></span><br><span class="line">	<span class="keyword">if</span> (!afname[<span class="number">0</span>])</span><br><span class="line">        safe_strncpy(afname, DFLT_AF, sizeof(afname));</span><br><span class="line"><span class="comment">#endif</span></span><br><span class="line">	<span class="keyword">for</span> (;;) &#123;</span><br><span class="line">	    i = ip_masq_info(flag_not &amp; FLAG_NUM_HOST,</span><br><span class="line">			     flag_not &amp; FLAG_NUM_PORT, flag_exp);</span><br><span class="line">	    <span class="keyword">if</span> (i || !flag_cnt)</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	    wait_continous();</span><br><span class="line">	&#125;</span><br><span class="line"><span class="comment">#else</span></span><br><span class="line">	ENOSUPP(<span class="string">"netstat"</span>, <span class="string">"FW_MASQUERADE"</span>);</span><br><span class="line">	i = -<span class="number">1</span>;</span><br><span class="line"><span class="comment">#endif</span></span><br><span class="line">	return (i);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (flag_sta) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!afname[<span class="number">0</span>])</span><br><span class="line">            safe_strncpy(afname, DFLT_AF, sizeof(afname));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!strcmp(afname, <span class="string">"inet"</span>)) &#123;</span><br><span class="line"><span class="comment">#if HAVE_AFINET</span></span><br><span class="line">            parsesnmp(flag_raw, flag_tcp, flag_udp, flag_sctp);</span><br><span class="line"><span class="comment">#else</span></span><br><span class="line">            ENOSUPP(<span class="string">"netstat"</span>, <span class="string">"AF INET"</span>);</span><br><span class="line"><span class="comment">#endif</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span>(!strcmp(afname, <span class="string">"inet6"</span>)) &#123;</span><br><span class="line"><span class="comment">#if HAVE_AFINET6</span></span><br><span class="line">            parsesnmp6(flag_raw, flag_tcp, flag_udp);</span><br><span class="line"><span class="comment">#else</span></span><br><span class="line">            ENOSUPP(<span class="string">"netstat"</span>, <span class="string">"AF INET6"</span>);</span><br><span class="line"><span class="comment">#endif</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          printf(_(<span class="string">"netstat: No statistics support for specified address family: %s\n"</span>), afname);</span><br><span class="line">          <span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">exit</span>(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (flag_rou) &#123;</span><br><span class="line">	int options = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (!afname[<span class="number">0</span>])</span><br><span class="line">        safe_strncpy(afname, DFLT_AF, sizeof(afname));</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (flag_exp == <span class="number">2</span>)</span><br><span class="line">	    flag_exp = <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span> (flag_exp == <span class="number">1</span>)</span><br><span class="line">	    flag_exp = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">	options = (flag_exp &amp; FLAG_EXT) | flag_not | flag_cf | flag_ver;</span><br><span class="line">	<span class="keyword">if</span> (!flag_cf)</span><br><span class="line">	    options |= FLAG_FIB;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (;;) &#123;</span><br><span class="line">	    i = route_info(afname, options);</span><br><span class="line">	    <span class="keyword">if</span> (i || !flag_cnt)</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">            wait_continous();</span><br><span class="line">	&#125;</span><br><span class="line">	return (i);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (flag_int) &#123;</span><br><span class="line">	<span class="keyword">for</span> (;;) &#123;</span><br><span class="line">	    i = iface_info();</span><br><span class="line">	    <span class="keyword">if</span> (!flag_cnt || i)</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">            wait_continous();</span><br><span class="line">	&#125;</span><br><span class="line">	return (i);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+        break;
+    case &#39;?&#39;:
+        usage(E_OPTERR);
+    case &#39;h&#39;:
+        usage(E_USAGE);
+    case &#39;s&#39;:
+        flag_sta++;
+    }
 
-<p><strong>prg_cache_load</strong></p>
-<figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">#<span class="keyword">if</span> HAVE_AFINET</span><br><span class="line">	    prg_cache_load();</span><br><span class="line">	    <span class="built_in">printf</span>(<span class="symbol">_</span>(<span class="string">"Active Internet connections "</span>));	<span class="comment">/* xxx */</span></span><br><span class="line"></span><br><span class="line">	    <span class="keyword">if</span> (flag_all)</span><br><span class="line">		<span class="built_in">printf</span>(<span class="symbol">_</span>(<span class="string">"(servers and established)"</span>));</span><br><span class="line">	    <span class="keyword">else</span> &#123;</span><br><span class="line">	      <span class="keyword">if</span> (flag_lst)</span><br><span class="line">		<span class="built_in">printf</span>(<span class="symbol">_</span>(<span class="string">"(only servers)"</span>));</span><br><span class="line">	      <span class="keyword">else</span></span><br><span class="line">		<span class="built_in">printf</span>(<span class="symbol">_</span>(<span class="string">"(w/o servers)"</span>));</span><br><span class="line">	    &#125;</span><br><span class="line">	    <span class="built_in">printf</span>(<span class="symbol">_</span>(<span class="string">"\nProto Recv-Q Send-Q Local Address           Foreign Address         State      "</span>));	<span class="comment">/* xxx */</span></span><br><span class="line">	    <span class="keyword">if</span> (flag_exp &gt; <span class="number">1</span>)</span><br><span class="line">		<span class="built_in">printf</span>(<span class="symbol">_</span>(<span class="string">" User       Inode     "</span>));</span><br><span class="line">	    print_progname_banner();</span><br><span class="line">	    print_selinux_banner();</span><br><span class="line">	    <span class="keyword">if</span> (flag_opt)</span><br><span class="line">		<span class="built_in">printf</span>(<span class="symbol">_</span>(<span class="string">" Timer"</span>));	<span class="comment">/* xxx */</span></span><br><span class="line">	    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line">#<span class="keyword">else</span></span><br><span class="line">	    <span class="keyword">if</span> (flag_arg) &#123;</span><br><span class="line">		i = <span class="number">1</span>;</span><br><span class="line">		ENOSUPP(<span class="string">"netstat"</span>, <span class="string">"AF INET"</span>);</span><br><span class="line">	    &#125;</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+    if (flag_int + flag_rou + flag_mas + flag_sta &gt; 1)
+    usage(E_OPTERR);
 
-<p>​    2286行之后，首先需要引起注意的是<code>#if HAVE_AFINET</code>这句判断，需要了解的是，socket套接字协议类型是种类繁多的，官方将不同种类和功能的socket根据协议分类到不同的socket协议族中，如AF_BLUETOOTH、AF_NETLINK、AF_INET、AF_INET6等，这些不同协议族中的socket有的是用于进程间通信，有的是用于和硬件通信，有的是用于网络通信等等，不同类型功能各不相同，所以需要分类去显示，<code>#if HAVE_xxxx</code>也就是用于netstat去分类显示用的。</p>
+    if ((flag_inet || flag_inet6 || flag_sta) &amp;&amp;
+        !(flag_tcp || flag_sctp || flag_udp || flag_udplite || flag_raw))
+       flag_noprot = flag_tcp = flag_sctp = flag_udp = flag_udplite = flag_raw = 1;
+
+    if ((flag_tcp || flag_sctp || flag_udp || flag_udplite || flag_raw || flag_igmp) &amp;&amp;
+        !(flag_inet || flag_inet6))
+        flag_inet = flag_inet6 = 1;
+
+    if (flag_bluetooth &amp;&amp; !(flag_l2cap || flag_rfcomm))
+       flag_l2cap = flag_rfcomm = 1;
+
+    flag_arg = flag_tcp + flag_sctp + flag_udplite + flag_udp + flag_raw + flag_unx
+        + flag_ipx + flag_ax25 + flag_netrom + flag_igmp + flag_x25 + flag_rose
+    + flag_l2cap + flag_rfcomm;
+
+    if (flag_mas) {
+#if HAVE_FW_MASQUERADE &amp;&amp; HAVE_AFINET
+#if MORE_THAN_ONE_MASQ_AF
+    if (!afname[0])
+        safe_strncpy(afname, DFLT_AF, sizeof(afname));
+#endif
+    for (;;) {
+        i = ip_masq_info(flag_not &amp; FLAG_NUM_HOST,
+                 flag_not &amp; FLAG_NUM_PORT, flag_exp);
+        if (i || !flag_cnt)
+        break;
+        wait_continous();
+    }
+#else
+    ENOSUPP(&quot;netstat&quot;, &quot;FW_MASQUERADE&quot;);
+    i = -1;
+#endif
+    return (i);
+    }
+
+    if (flag_sta) {
+        if (!afname[0])
+            safe_strncpy(afname, DFLT_AF, sizeof(afname));
+
+        if (!strcmp(afname, &quot;inet&quot;)) {
+#if HAVE_AFINET
+            parsesnmp(flag_raw, flag_tcp, flag_udp, flag_sctp);
+#else
+            ENOSUPP(&quot;netstat&quot;, &quot;AF INET&quot;);
+#endif
+        } else if(!strcmp(afname, &quot;inet6&quot;)) {
+#if HAVE_AFINET6
+            parsesnmp6(flag_raw, flag_tcp, flag_udp);
+#else
+            ENOSUPP(&quot;netstat&quot;, &quot;AF INET6&quot;);
+#endif
+        } else {
+          printf(_(&quot;netstat: No statistics support for specified address family: %s\n&quot;), afname);
+          exit(1);
+        }
+        exit(0);
+    }
+
+    if (flag_rou) {
+    int options = 0;
+
+    if (!afname[0])
+        safe_strncpy(afname, DFLT_AF, sizeof(afname));
+
+    if (flag_exp == 2)
+        flag_exp = 1;
+    else if (flag_exp == 1)
+        flag_exp = 2;
+
+    options = (flag_exp &amp; FLAG_EXT) | flag_not | flag_cf | flag_ver;
+    if (!flag_cf)
+        options |= FLAG_FIB;
+
+    for (;;) {
+        i = route_info(afname, options);
+        if (i || !flag_cnt)
+        break;
+            wait_continous();
+    }
+    return (i);
+    }
+    if (flag_int) {
+    for (;;) {
+        i = iface_info();
+        if (!flag_cnt || i)
+        break;
+            wait_continous();
+    }
+    return (i);
+    }</code></pre><p><strong>prg_cache_load</strong></p>
+<pre><code>#if HAVE_AFINET
+        prg_cache_load();
+        printf(_(&quot;Active Internet connections &quot;));    /* xxx */
+
+        if (flag_all)
+        printf(_(&quot;(servers and established)&quot;));
+        else {
+          if (flag_lst)
+        printf(_(&quot;(only servers)&quot;));
+          else
+        printf(_(&quot;(w/o servers)&quot;));
+        }
+        printf(_(&quot;\nProto Recv-Q Send-Q Local Address           Foreign Address         State      &quot;));    /* xxx */
+        if (flag_exp &gt; 1)
+        printf(_(&quot; User       Inode     &quot;));
+        print_progname_banner();
+        print_selinux_banner();
+        if (flag_opt)
+        printf(_(&quot; Timer&quot;));    /* xxx */
+        printf(&quot;\n&quot;);
+#else
+        if (flag_arg) {
+        i = 1;
+        ENOSUPP(&quot;netstat&quot;, &quot;AF INET&quot;);
+        }
+#endif</code></pre><p>​    2286行之后，首先需要引起注意的是<code>#if HAVE_AFINET</code>这句判断，需要了解的是，socket套接字协议类型是种类繁多的，官方将不同种类和功能的socket根据协议分类到不同的socket协议族中，如AF_BLUETOOTH、AF_NETLINK、AF_INET、AF_INET6等，这些不同协议族中的socket有的是用于进程间通信，有的是用于和硬件通信，有的是用于网络通信等等，不同类型功能各不相同，所以需要分类去显示，<code>#if HAVE_xxxx</code>也就是用于netstat去分类显示用的。</p>
 <p>​    其次比较重要的是prg_cache_load这个函数，先贴下</p>
-<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">prg_cache_load</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> <span class="built_in">line</span>[LINE_MAX], eacces=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> procfdlen, fd, cmdllen, lnamelen;</span><br><span class="line">    <span class="keyword">char</span> lname[<span class="number">30</span>], cmdlbuf[<span class="number">512</span>], finbuf[PROGNAME_WIDTH];</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> inode;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *cs, *cmdlp;</span><br><span class="line">    DIR *dirproc = <span class="literal">NULL</span>, *dirfd = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">dirent</span> *<span class="title">direproc</span>, *<span class="title">direfd</span>;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> HAVE_SELINUX</span></span><br><span class="line">    <span class="keyword">security_context_t</span> scon = <span class="literal">NULL</span>;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (prg_cache_loaded || !flag_prg) <span class="keyword">return</span>;</span><br><span class="line">    prg_cache_loaded = <span class="number">1</span>;</span><br><span class="line">    cmdlbuf[<span class="keyword">sizeof</span>(cmdlbuf) - <span class="number">1</span>] = <span class="string">'\0'</span>;</span><br><span class="line">    <span class="keyword">if</span> (!(dirproc=opendir(PATH_PROC))) <span class="keyword">goto</span> fail;</span><br><span class="line">    <span class="keyword">while</span> (errno = <span class="number">0</span>, direproc = readdir(dirproc)) &#123;</span><br><span class="line">	<span class="keyword">for</span> (cs = direproc-&gt;d_name; *cs; cs++)</span><br><span class="line">	    <span class="keyword">if</span> (!<span class="built_in">isdigit</span>(*cs))</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">if</span> (*cs)</span><br><span class="line">	    <span class="keyword">continue</span>;</span><br><span class="line">	procfdlen = <span class="built_in">snprintf</span>(<span class="built_in">line</span>,<span class="keyword">sizeof</span>(<span class="built_in">line</span>),PATH_PROC_X_FD,direproc-&gt;d_name);</span><br><span class="line">	<span class="keyword">if</span> (procfdlen &lt;= <span class="number">0</span> || procfdlen &gt;= <span class="keyword">sizeof</span>(<span class="built_in">line</span>) - <span class="number">5</span>)</span><br><span class="line">	    <span class="keyword">continue</span>;</span><br><span class="line">	errno = <span class="number">0</span>;</span><br><span class="line">	dirfd = opendir(<span class="built_in">line</span>);</span><br><span class="line">	<span class="keyword">if</span> (! dirfd) &#123;</span><br><span class="line">	    <span class="keyword">if</span> (errno == EACCES)</span><br><span class="line">		eacces = <span class="number">1</span>;</span><br><span class="line">	    <span class="keyword">continue</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">line</span>[procfdlen] = <span class="string">'/'</span>;</span><br><span class="line">	cmdlp = <span class="literal">NULL</span>;</span><br><span class="line">	<span class="keyword">while</span> ((direfd = readdir(dirfd))) &#123;</span><br><span class="line">           <span class="comment">/* Skip . and .. */</span></span><br><span class="line">           <span class="keyword">if</span> (!<span class="built_in">isdigit</span>(direfd-&gt;d_name[<span class="number">0</span>]))</span><br><span class="line">               <span class="keyword">continue</span>;</span><br><span class="line">	    <span class="keyword">if</span> (procfdlen + <span class="number">1</span> + <span class="built_in">strlen</span>(direfd-&gt;d_name) + <span class="number">1</span> &gt; <span class="keyword">sizeof</span>(<span class="built_in">line</span>))</span><br><span class="line">		<span class="keyword">continue</span>;</span><br><span class="line">	    <span class="built_in">memcpy</span>(<span class="built_in">line</span> + procfdlen - PATH_FD_SUFFl, PATH_FD_SUFF <span class="string">"/"</span>,</span><br><span class="line">		   PATH_FD_SUFFl + <span class="number">1</span>);</span><br><span class="line">        safe_strncpy(<span class="built_in">line</span> + procfdlen + <span class="number">1</span>, direfd-&gt;d_name,</span><br><span class="line">                        <span class="keyword">sizeof</span>(<span class="built_in">line</span>) - procfdlen - <span class="number">1</span>);</span><br><span class="line">	    lnamelen = readlink(<span class="built_in">line</span>, lname, <span class="keyword">sizeof</span>(lname) - <span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">if</span> (lnamelen == <span class="number">-1</span>)</span><br><span class="line">		    <span class="keyword">continue</span>;</span><br><span class="line">            lname[lnamelen] = <span class="string">'\0'</span>;  <span class="comment">/*make it a null-terminated string*/</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (extract_type_1_socket_inode(lname, &amp;inode) &lt; <span class="number">0</span>)</span><br><span class="line">              <span class="keyword">if</span> (extract_type_2_socket_inode(lname, &amp;inode) &lt; <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">	    <span class="keyword">if</span> (!cmdlp) &#123;</span><br><span class="line">		<span class="keyword">if</span> (procfdlen - PATH_FD_SUFFl + PATH_CMDLINEl &gt;=</span><br><span class="line">		    <span class="keyword">sizeof</span>(<span class="built_in">line</span>) - <span class="number">5</span>)</span><br><span class="line">		    <span class="keyword">continue</span>;</span><br><span class="line">        safe_strncpy(<span class="built_in">line</span> + procfdlen - PATH_FD_SUFFl, PATH_CMDLINE,</span><br><span class="line">                        <span class="keyword">sizeof</span>(<span class="built_in">line</span>) - procfdlen + PATH_FD_SUFFl);</span><br><span class="line">		fd = <span class="built_in">open</span>(<span class="built_in">line</span>, O_RDONLY);</span><br><span class="line">		<span class="keyword">if</span> (fd &lt; <span class="number">0</span>)</span><br><span class="line">		    <span class="keyword">continue</span>;</span><br><span class="line">		cmdllen = <span class="built_in">read</span>(fd, cmdlbuf, <span class="keyword">sizeof</span>(cmdlbuf) - <span class="number">1</span>);</span><br><span class="line">		<span class="keyword">if</span> (<span class="built_in">close</span>(fd))</span><br><span class="line">		    <span class="keyword">continue</span>;</span><br><span class="line">		<span class="keyword">if</span> (cmdllen == <span class="number">-1</span>)</span><br><span class="line">		    <span class="keyword">continue</span>;</span><br><span class="line">		<span class="keyword">if</span> (cmdllen &lt; <span class="keyword">sizeof</span>(cmdlbuf) - <span class="number">1</span>)</span><br><span class="line">		    cmdlbuf[cmdllen]=<span class="string">'\0'</span>;</span><br><span class="line">		<span class="keyword">if</span> (cmdlbuf[<span class="number">0</span>] == <span class="string">'/'</span> &amp;&amp; (cmdlp = <span class="built_in">strrchr</span>(cmdlbuf, <span class="string">'/'</span>)))</span><br><span class="line">		    cmdlp++;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">		    cmdlp = cmdlbuf;</span><br><span class="line">	    &#125;</span><br><span class="line"></span><br><span class="line">	    <span class="built_in">snprintf</span>(finbuf, <span class="keyword">sizeof</span>(finbuf), <span class="string">"%s/%s"</span>, direproc-&gt;d_name, cmdlp);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> HAVE_SELINUX</span></span><br><span class="line">	    <span class="keyword">if</span> (getpidcon(atoi(direproc-&gt;d_name), &amp;scon) == <span class="number">-1</span>) &#123;</span><br><span class="line">		    scon=xstrdup(<span class="string">"-"</span>);</span><br><span class="line">	    &#125;</span><br><span class="line">	    prg_cache_add(inode, finbuf, scon);</span><br><span class="line">	    freecon(scon);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">	    prg_cache_add(inode, finbuf, <span class="string">"-"</span>);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	&#125;</span><br><span class="line">	closedir(dirfd);</span><br><span class="line">	dirfd = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (dirproc)</span><br><span class="line">	closedir(dirproc);</span><br><span class="line">    <span class="keyword">if</span> (dirfd)</span><br><span class="line">	closedir(dirfd);</span><br><span class="line">    <span class="keyword">if</span> (!eacces)</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">if</span> (prg_cache_loaded == <span class="number">1</span>) &#123;</span><br><span class="line">    fail:</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,_(<span class="string">"(No info could be read for \"-p\": geteuid()=%d but you should be root.)\n"</span>),</span><br><span class="line">		geteuid());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, _(<span class="string">"(Not all processes could be identified, non-owned process info\n"</span></span><br><span class="line">			 <span class="string">" will not be shown, you would have to be root to see it all.)\n"</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>static void prg_cache_load(void)
+{
+    char line[LINE_MAX], eacces=0;
+    int procfdlen, fd, cmdllen, lnamelen;
+    char lname[30], cmdlbuf[512], finbuf[PROGNAME_WIDTH];
+    unsigned long inode;
+    const char *cs, *cmdlp;
+    DIR *dirproc = NULL, *dirfd = NULL;
+    struct dirent *direproc, *direfd;
+#if HAVE_SELINUX
+    security_context_t scon = NULL;
+#endif
 
-<p>​    这部分代码主要用来初始化保存pid/cmdline-inode之间对应关系的缓存链表，看上去很长，其实逻辑很清晰，首先<code>if (prg_cache_loaded || !flag_prg) return;</code>一句通过判断prg_cache是否已经加载以及netstat -p参数是否置位，来决定是否进入此分支；一旦进入此分支，则利用readdir进行二次循环，第一次拿到/proc下pid，第二次解析出/proc/pid/fd下的inode以及拿到cmdline等数据；最后，利用<code>prg_cache_add(inode, finbuf, &quot;-&quot;)</code>将解析出的inode及findbuf放入prg_node链表中，此处的finbuf是pid和cmdline的拼接，第三个参数scon为”-“，后面可知由于proc下pid具有瞬时特性，pid数据可能存在丢失，一旦netstat未解析出网络数据对应的pid，则用”-“在pid/program一栏进行代替。</p>
+    if (prg_cache_loaded || !flag_prg) return;
+    prg_cache_loaded = 1;
+    cmdlbuf[sizeof(cmdlbuf) - 1] = &#39;\0&#39;;
+    if (!(dirproc=opendir(PATH_PROC))) goto fail;
+    while (errno = 0, direproc = readdir(dirproc)) {
+    for (cs = direproc-&gt;d_name; *cs; cs++)
+        if (!isdigit(*cs))
+        break;
+    if (*cs)
+        continue;
+    procfdlen = snprintf(line,sizeof(line),PATH_PROC_X_FD,direproc-&gt;d_name);
+    if (procfdlen &lt;= 0 || procfdlen &gt;= sizeof(line) - 5)
+        continue;
+    errno = 0;
+    dirfd = opendir(line);
+    if (! dirfd) {
+        if (errno == EACCES)
+        eacces = 1;
+        continue;
+    }
+    line[procfdlen] = &#39;/&#39;;
+    cmdlp = NULL;
+    while ((direfd = readdir(dirfd))) {
+           /* Skip . and .. */
+           if (!isdigit(direfd-&gt;d_name[0]))
+               continue;
+        if (procfdlen + 1 + strlen(direfd-&gt;d_name) + 1 &gt; sizeof(line))
+        continue;
+        memcpy(line + procfdlen - PATH_FD_SUFFl, PATH_FD_SUFF &quot;/&quot;,
+           PATH_FD_SUFFl + 1);
+        safe_strncpy(line + procfdlen + 1, direfd-&gt;d_name,
+                        sizeof(line) - procfdlen - 1);
+        lnamelen = readlink(line, lname, sizeof(lname) - 1);
+        if (lnamelen == -1)
+            continue;
+            lname[lnamelen] = &#39;\0&#39;;  /*make it a null-terminated string*/
+
+            if (extract_type_1_socket_inode(lname, &amp;inode) &lt; 0)
+              if (extract_type_2_socket_inode(lname, &amp;inode) &lt; 0)
+                continue;
+
+        if (!cmdlp) {
+        if (procfdlen - PATH_FD_SUFFl + PATH_CMDLINEl &gt;=
+            sizeof(line) - 5)
+            continue;
+        safe_strncpy(line + procfdlen - PATH_FD_SUFFl, PATH_CMDLINE,
+                        sizeof(line) - procfdlen + PATH_FD_SUFFl);
+        fd = open(line, O_RDONLY);
+        if (fd &lt; 0)
+            continue;
+        cmdllen = read(fd, cmdlbuf, sizeof(cmdlbuf) - 1);
+        if (close(fd))
+            continue;
+        if (cmdllen == -1)
+            continue;
+        if (cmdllen &lt; sizeof(cmdlbuf) - 1)
+            cmdlbuf[cmdllen]=&#39;\0&#39;;
+        if (cmdlbuf[0] == &#39;/&#39; &amp;&amp; (cmdlp = strrchr(cmdlbuf, &#39;/&#39;)))
+            cmdlp++;
+        else
+            cmdlp = cmdlbuf;
+        }
+
+        snprintf(finbuf, sizeof(finbuf), &quot;%s/%s&quot;, direproc-&gt;d_name, cmdlp);
+#if HAVE_SELINUX
+        if (getpidcon(atoi(direproc-&gt;d_name), &amp;scon) == -1) {
+            scon=xstrdup(&quot;-&quot;);
+        }
+        prg_cache_add(inode, finbuf, scon);
+        freecon(scon);
+#else
+        prg_cache_add(inode, finbuf, &quot;-&quot;);
+#endif
+    }
+    closedir(dirfd);
+    dirfd = NULL;
+    }
+    if (dirproc)
+    closedir(dirproc);
+    if (dirfd)
+    closedir(dirfd);
+    if (!eacces)
+    return;
+    if (prg_cache_loaded == 1) {
+    fail:
+    fprintf(stderr,_(&quot;(No info could be read for \&quot;-p\&quot;: geteuid()=%d but you should be root.)\n&quot;),
+        geteuid());
+    }
+    else
+    fprintf(stderr, _(&quot;(Not all processes could be identified, non-owned process info\n&quot;
+             &quot; will not be shown, you would have to be root to see it all.)\n&quot;));
+}</code></pre><p>​    这部分代码主要用来初始化保存pid/cmdline-inode之间对应关系的缓存链表，看上去很长，其实逻辑很清晰，首先<code>if (prg_cache_loaded || !flag_prg) return;</code>一句通过判断prg_cache是否已经加载以及netstat -p参数是否置位，来决定是否进入此分支；一旦进入此分支，则利用readdir进行二次循环，第一次拿到/proc下pid，第二次解析出/proc/pid/fd下的inode以及拿到cmdline等数据；最后，利用<code>prg_cache_add(inode, finbuf, &quot;-&quot;)</code>将解析出的inode及findbuf放入prg_node链表中，此处的finbuf是pid和cmdline的拼接，第三个参数scon为”-“，后面可知由于proc下pid具有瞬时特性，pid数据可能存在丢失，一旦netstat未解析出网络数据对应的pid，则用”-“在pid/program一栏进行代替。</p>
 <p>​    看下prg_cache_add，如下，与之联动对链表进行增、查、删操作的还有prg_cache_get和prg_cache_get_con以及prg_cache_clear，一并贴下：</p>
-<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">static void prg<span class="constructor">_cache_add(<span class="params">unsigned</span> <span class="params">long</span> <span class="params">inode</span>, <span class="params">char</span> <span class="operator">*</span><span class="params">name</span>, <span class="params">const</span> <span class="params">char</span> <span class="operator">*</span><span class="params">scon</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    unsigned hi = <span class="constructor">PRG_HASHIT(<span class="params">inode</span>)</span>;</span><br><span class="line">    <span class="keyword">struct</span> prg_node **pnp,*pn;</span><br><span class="line"></span><br><span class="line">    prg_cache_loaded = <span class="number">2</span>;</span><br><span class="line">    for (pnp = prg_hash + hi; (pn = *pnp); pnp = &amp;pn-&gt;next) &#123;</span><br><span class="line">	<span class="keyword">if</span> (pn-&gt;inode<span class="operator"> == </span>inode) &#123;</span><br><span class="line">	    <span class="comment">/* Some warning should be appropriate here</span></span><br><span class="line"><span class="comment">	       as we got multiple processes for one i-node */</span></span><br><span class="line">	    return;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!(*pnp = malloc(sizeof(**pnp))))</span><br><span class="line">	return;</span><br><span class="line">    pn = *pnp;</span><br><span class="line">    pn-&gt;next = NULL;</span><br><span class="line">    pn-&gt;inode = inode;</span><br><span class="line">    safe<span class="constructor">_strncpy(<span class="params">pn</span>-&gt;<span class="params">name</span>, <span class="params">name</span>, <span class="params">sizeof</span>(<span class="params">pn</span>-&gt;<span class="params">name</span>)</span>);</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">	<span class="built_in">int</span> len = (strlen(scon) - sizeof(pn-&gt;scon)) + <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">if</span> (len &gt; <span class="number">0</span>)</span><br><span class="line">            safe<span class="constructor">_strncpy(<span class="params">pn</span>-&gt;<span class="params">scon</span>, &amp;<span class="params">scon</span>[<span class="params">len</span> + 1], <span class="params">sizeof</span>(<span class="params">pn</span>-&gt;<span class="params">scon</span>)</span>);</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">            safe<span class="constructor">_strncpy(<span class="params">pn</span>-&gt;<span class="params">scon</span>, <span class="params">scon</span>, <span class="params">sizeof</span>(<span class="params">pn</span>-&gt;<span class="params">scon</span>)</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">static const <span class="built_in">char</span> *prg<span class="constructor">_cache_get(<span class="params">unsigned</span> <span class="params">long</span> <span class="params">inode</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    unsigned hi = <span class="constructor">PRG_HASHIT(<span class="params">inode</span>)</span>;</span><br><span class="line">    <span class="keyword">struct</span> prg_node *pn;</span><br><span class="line"></span><br><span class="line">    for (pn = prg_hash<span class="literal">[<span class="identifier">hi</span>]</span>; pn; pn = pn-&gt;next)</span><br><span class="line">	<span class="keyword">if</span> (pn-&gt;inode<span class="operator"> == </span>inode)</span><br><span class="line">	    return (pn-&gt;name);</span><br><span class="line">    return (<span class="string">"-"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static const <span class="built_in">char</span> *prg<span class="constructor">_cache_get_con(<span class="params">unsigned</span> <span class="params">long</span> <span class="params">inode</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    unsigned hi = <span class="constructor">PRG_HASHIT(<span class="params">inode</span>)</span>;</span><br><span class="line">    <span class="keyword">struct</span> prg_node *pn;</span><br><span class="line"></span><br><span class="line">    for (pn = prg_hash<span class="literal">[<span class="identifier">hi</span>]</span>; pn; pn = pn-&gt;next)</span><br><span class="line">	<span class="keyword">if</span> (pn-&gt;inode<span class="operator"> == </span>inode)</span><br><span class="line">	    return (pn-&gt;scon);</span><br><span class="line">    return (<span class="string">"-"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static void prg<span class="constructor">_cache_clear(<span class="params">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">struct</span> prg_node **pnp,*pn;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (prg_cache_loaded<span class="operator"> == </span><span class="number">2</span>)</span><br><span class="line">	for (pnp = prg_hash; pnp &lt; prg_hash + PRG_HASH_SIZE; pnp++)</span><br><span class="line">	    <span class="keyword">while</span> ((pn = *pnp)) &#123;</span><br><span class="line">		*pnp = pn-&gt;next;</span><br><span class="line">		free(pn);</span><br><span class="line">	    &#125;</span><br><span class="line">    prg_cache_loaded = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>static void prg_cache_add(unsigned long inode, char *name, const char *scon)
+{
+    unsigned hi = PRG_HASHIT(inode);
+    struct prg_node **pnp,*pn;
 
-<p><strong>tcp_info</strong></p>
+    prg_cache_loaded = 2;
+    for (pnp = prg_hash + hi; (pn = *pnp); pnp = &amp;pn-&gt;next) {
+    if (pn-&gt;inode == inode) {
+        /* Some warning should be appropriate here
+           as we got multiple processes for one i-node */
+        return;
+    }
+    }
+    if (!(*pnp = malloc(sizeof(**pnp))))
+    return;
+    pn = *pnp;
+    pn-&gt;next = NULL;
+    pn-&gt;inode = inode;
+    safe_strncpy(pn-&gt;name, name, sizeof(pn-&gt;name));
+
+    {
+    int len = (strlen(scon) - sizeof(pn-&gt;scon)) + 1;
+    if (len &gt; 0)
+            safe_strncpy(pn-&gt;scon, &amp;scon[len + 1], sizeof(pn-&gt;scon));
+    else
+            safe_strncpy(pn-&gt;scon, scon, sizeof(pn-&gt;scon));
+    }
+
+}
+static const char *prg_cache_get(unsigned long inode)
+{
+    unsigned hi = PRG_HASHIT(inode);
+    struct prg_node *pn;
+
+    for (pn = prg_hash[hi]; pn; pn = pn-&gt;next)
+    if (pn-&gt;inode == inode)
+        return (pn-&gt;name);
+    return (&quot;-&quot;);
+}
+
+static const char *prg_cache_get_con(unsigned long inode)
+{
+    unsigned hi = PRG_HASHIT(inode);
+    struct prg_node *pn;
+
+    for (pn = prg_hash[hi]; pn; pn = pn-&gt;next)
+    if (pn-&gt;inode == inode)
+        return (pn-&gt;scon);
+    return (&quot;-&quot;);
+}
+
+static void prg_cache_clear(void)
+{
+    struct prg_node **pnp,*pn;
+
+    if (prg_cache_loaded == 2)
+    for (pnp = prg_hash; pnp &lt; prg_hash + PRG_HASH_SIZE; pnp++)
+        while ((pn = *pnp)) {
+        *pnp = pn-&gt;next;
+        free(pn);
+        }
+    prg_cache_loaded = 0;
+}</code></pre><p><strong>tcp_info</strong></p>
 <p>Prg_load之后正式进入解析流程，首先依旧是判断socket协议族类型，不同协议族进入不同分支进行处理，这边主要关注<code>HAVE_AFINET</code>协议，HAVE_AFINET协议族内部又包含不同socket类型，具体包括tcp、udp、raw_info等，此处主要分析tcp，因为流程都类似。</p>
-<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">if</span> <span class="string">HAVE_AFINET</span></span><br><span class="line">	<span class="attr">if</span> <span class="string">(!flag_arg || flag_tcp) &#123;</span></span><br><span class="line">	    <span class="attr">i</span> = <span class="string">tcp_info();</span></span><br><span class="line">	    <span class="attr">if</span> <span class="string">(i)</span></span><br><span class="line">		<span class="attr">return</span> <span class="string">(i);</span></span><br><span class="line">	<span class="attr">&#125;</span></span><br><span class="line"></span><br><span class="line">	<span class="attr">if</span> <span class="string">(!flag_arg || flag_sctp) &#123;</span></span><br><span class="line">	    <span class="attr">i</span> = <span class="string">sctp_info();</span></span><br><span class="line">	    <span class="attr">if</span> <span class="string">(i)</span></span><br><span class="line">		<span class="attr">return</span> <span class="string">(i);</span></span><br><span class="line">	<span class="attr">&#125;</span></span><br><span class="line"></span><br><span class="line">	<span class="attr">if</span> <span class="string">(!flag_arg || flag_udp) &#123;</span></span><br><span class="line">	    <span class="attr">i</span> = <span class="string">udp_info();</span></span><br><span class="line">	    <span class="attr">if</span> <span class="string">(i)</span></span><br><span class="line">		<span class="attr">return</span> <span class="string">(i);</span></span><br><span class="line">	<span class="attr">&#125;</span></span><br><span class="line"></span><br><span class="line">	<span class="attr">if</span> <span class="string">(!flag_arg || flag_udplite) &#123;</span></span><br><span class="line">	    <span class="attr">i</span> = <span class="string">udplite_info();</span></span><br><span class="line">	    <span class="attr">if</span> <span class="string">(i)</span></span><br><span class="line">		<span class="attr">return</span> <span class="string">(i);</span></span><br><span class="line">	<span class="attr">&#125;</span></span><br><span class="line"></span><br><span class="line">	<span class="attr">if</span> <span class="string">(!flag_arg || flag_raw) &#123;</span></span><br><span class="line">	    <span class="attr">i</span> = <span class="string">raw_info();</span></span><br><span class="line">	    <span class="attr">if</span> <span class="string">(i)</span></span><br><span class="line">		<span class="attr">return</span> <span class="string">(i);</span></span><br><span class="line">	<span class="attr">&#125;</span></span><br></pre></td></tr></table></figure>
+<pre><code>if HAVE_AFINET
+    if (!flag_arg || flag_tcp) {
+        i = tcp_info();
+        if (i)
+        return (i);
+    }
 
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tcp_info</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    INFO_GUTS6(_PATH_PROCNET_TCP, _PATH_PROCNET_TCP6, <span class="string">"AF INET (tcp)"</span>,</span><br><span class="line">	       tcp_do_one, <span class="string">"tcp"</span>, <span class="string">"tcp6"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    if (!flag_arg || flag_sctp) {
+        i = sctp_info();
+        if (i)
+        return (i);
+    }
 
-<p>tcp_info调用了<code>INFO_GUTS6</code>，INFO_GUTS6有六个参数，前两个是lib/pathnames.h中定义的宏，分表vfs下的tcp4/6存储文件：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _PATH_PROCNET_TCP		<span class="meta-string">"/proc/net/tcp"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _PATH_PROCNET_TCP6		<span class="meta-string">"/proc/net/tcp6"</span></span></span><br></pre></td></tr></table></figure>
+    if (!flag_arg || flag_udp) {
+        i = udp_info();
+        if (i)
+        return (i);
+    }
 
-<p>剩下的tcp_do_one看上去像函数指针，猜测是在INFO_GUTS6中进行了调用，跟进<code>INFO_GUTS6</code>：</p>
-<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#define <span class="constructor">INFO_GUTS6(<span class="params">file</span>,<span class="params">file6</span>,<span class="params">name</span>,<span class="params">proc</span>,<span class="params">prot4</span>,<span class="params">prot6</span>)</span>	\</span><br><span class="line"> <span class="built_in">char</span> buffer<span class="literal">[<span class="number">8192</span>]</span>;					\</span><br><span class="line"> <span class="built_in">int</span> rc = <span class="number">0</span>;						\</span><br><span class="line"> <span class="built_in">int</span> lnr = <span class="number">0</span>;						\</span><br><span class="line"> <span class="keyword">if</span> (!flag_arg<span class="operator"> || </span>flag_inet) &#123;				\</span><br><span class="line">    <span class="constructor">INFO_GUTS1(<span class="params">file</span>,<span class="params">name</span>,<span class="params">proc</span>,<span class="params">prot4</span>)</span>			\</span><br><span class="line"> &#125;							\</span><br><span class="line"> <span class="keyword">if</span> (!flag_arg<span class="operator"> || </span>flag_inet6) &#123;				\</span><br><span class="line">    <span class="constructor">INFO_GUTS2(<span class="params">file6</span>,<span class="params">proc</span>,<span class="params">prot6</span>)</span>			\</span><br><span class="line"> &#125;							\</span><br><span class="line"> INFO_GUTS3</span><br></pre></td></tr></table></figure>
+    if (!flag_arg || flag_udplite) {
+        i = udplite_info();
+        if (i)
+        return (i);
+    }
 
-<p>这边是用的宏去定义函数，可以看到其根据数据包ipv4/ipv6协议类型分设了两条分支，这边只看ipv4，进入INFO_GUTS1：</p>
-<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#define INFO_GUTS1(file,name,proc,prot)			\</span></span><br><span class="line">  procinfo = proc_fopen((file));			<span class="string">\</span></span><br><span class="line">  <span class="keyword">if</span> (procinfo == NULL) &#123;				<span class="string">\</span></span><br><span class="line">    <span class="keyword">if</span> (errno != ENOENT &amp;&amp; errno != EACCES) &#123;		<span class="string">\</span></span><br><span class="line">      perror((file));					<span class="string">\</span></span><br><span class="line">      <span class="keyword">return</span> -<span class="number">1</span>;					<span class="string">\</span></span><br><span class="line">    &#125;							<span class="string">\</span></span><br><span class="line">    <span class="keyword">if</span> (!flag_noprot &amp;&amp; (flag_arg || flag_ver))		<span class="string">\</span></span><br><span class="line">      ESYSNOT(<span class="string">"netstat"</span>, (name));			<span class="string">\</span></span><br><span class="line">    <span class="keyword">if</span> (!flag_noprot &amp;&amp; flag_arg)			<span class="string">\</span></span><br><span class="line">      rc = <span class="number">1</span>;						<span class="string">\</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;						<span class="string">\</span></span><br><span class="line">    <span class="keyword">do</span> &#123;						<span class="string">\</span></span><br><span class="line">      <span class="keyword">if</span> (fgets(buffer, sizeof(buffer), procinfo))	<span class="string">\</span></span><br><span class="line">        (proc)(lnr++, buffer,prot);			<span class="string">\</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (!feof(procinfo));				<span class="string">\</span></span><br><span class="line">    fclose(procinfo);					<span class="string">\</span></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-
-<p>同样是一个宏，首先利用proc_fopn获取/proc/net/tcp文件句柄，然后fgets读取文件中的每一行到8192字节的buffer中，<code>(proc)(lnr++, buffer,prot);</code>调用了INFO_GUTS6传入的tcp_do_one函数指针，将/proc/net/tcp中的每一行传入作为tcp_do_one的参数进行循环处理，猜测是对buffer进行内容进行解析。</p>
+    if (!flag_arg || flag_raw) {
+        i = raw_info();
+        if (i)
+        return (i);
+    }
+</code></pre><pre><code>static int tcp_info(void)
+{
+    INFO_GUTS6(_PATH_PROCNET_TCP, _PATH_PROCNET_TCP6, &quot;AF INET (tcp)&quot;,
+           tcp_do_one, &quot;tcp&quot;, &quot;tcp6&quot;);
+}</code></pre><p>tcp_info调用了<code>INFO_GUTS6</code>，INFO_GUTS6有六个参数，前两个是lib/pathnames.h中定义的宏，分表vfs下的tcp4/6存储文件：</p>
+<pre><code>#define _PATH_PROCNET_TCP        &quot;/proc/net/tcp&quot;
+#define _PATH_PROCNET_TCP6        &quot;/proc/net/tcp6&quot;</code></pre><p>剩下的tcp_do_one看上去像函数指针，猜测是在INFO_GUTS6中进行了调用，跟进<code>INFO_GUTS6</code>：</p>
+<pre><code>#define INFO_GUTS6(file,file6,name,proc,prot4,prot6)    \
+ char buffer[8192];                    \
+ int rc = 0;                        \
+ int lnr = 0;                        \
+ if (!flag_arg || flag_inet) {                \
+    INFO_GUTS1(file,name,proc,prot4)            \
+ }                            \
+ if (!flag_arg || flag_inet6) {                \
+    INFO_GUTS2(file6,proc,prot6)            \
+ }                            \
+ INFO_GUTS3</code></pre><p>这边是用的宏去定义函数，可以看到其根据数据包ipv4/ipv6协议类型分设了两条分支，这边只看ipv4，进入INFO_GUTS1：</p>
+<pre><code>#define INFO_GUTS1(file,name,proc,prot)            \
+  procinfo = proc_fopen((file));            \
+  if (procinfo == NULL) {                \
+    if (errno != ENOENT &amp;&amp; errno != EACCES) {        \
+      perror((file));                    \
+      return -1;                    \
+    }                            \
+    if (!flag_noprot &amp;&amp; (flag_arg || flag_ver))        \
+      ESYSNOT(&quot;netstat&quot;, (name));            \
+    if (!flag_noprot &amp;&amp; flag_arg)            \
+      rc = 1;                        \
+  } else {                        \
+    do {                        \
+      if (fgets(buffer, sizeof(buffer), procinfo))    \
+        (proc)(lnr++, buffer,prot);            \
+    } while (!feof(procinfo));                \
+    fclose(procinfo);                    \
+  }</code></pre><p>同样是一个宏，首先利用proc_fopn获取/proc/net/tcp文件句柄，然后fgets读取文件中的每一行到8192字节的buffer中，<code>(proc)(lnr++, buffer,prot);</code>调用了INFO_GUTS6传入的tcp_do_one函数指针，将/proc/net/tcp中的每一行传入作为tcp_do_one的参数进行循环处理，猜测是对buffer进行内容进行解析。</p>
 <p><strong>tcp_do_one</strong></p>
 <p>首先贴下代码：</p>
-<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">tcp_do_one</span><span class="params">(<span class="keyword">int</span> lnr, <span class="keyword">const</span> <span class="keyword">char</span> *<span class="built_in">line</span>, <span class="keyword">const</span> <span class="keyword">char</span> *prot)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> rxq, txq, time_len, retr, inode;</span><br><span class="line">    <span class="keyword">int</span> num, local_port, rem_port, d, state, uid, timer_run, timeout;</span><br><span class="line">    <span class="keyword">char</span> rem_addr[<span class="number">128</span>], local_addr[<span class="number">128</span>], timers[<span class="number">64</span>];</span><br><span class="line">    <span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">aftype</span> *<span class="title">ap</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_storage</span> <span class="title">localsas</span>, <span class="title">remsas</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> *<span class="title">localaddr</span> = (<span class="title">struct</span> <span class="title">sockaddr_in</span> *)&amp;<span class="title">localsas</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> *<span class="title">remaddr</span> = (<span class="title">struct</span> <span class="title">sockaddr_in</span> *)&amp;<span class="title">remsas</span>;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> HAVE_AFINET6</span></span><br><span class="line">    <span class="keyword">char</span> addr6[INET6_ADDRSTRLEN];</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">in6_addr</span> <span class="title">in6</span>;</span></span><br><span class="line">    <span class="keyword">extern</span> <span class="class"><span class="keyword">struct</span> <span class="title">aftype</span> <span class="title">inet6_aftype</span>;</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    <span class="keyword">long</span> clk_tck = ticks_per_second();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (lnr == <span class="number">0</span>)</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    num = <span class="built_in">sscanf</span>(<span class="built_in">line</span>,</span><br><span class="line">    <span class="string">"%d: %64[0-9A-Fa-f]:%X %64[0-9A-Fa-f]:%X %X %lX:%lX %X:%lX %lX %d %d %lu %*s\n"</span>,</span><br><span class="line">		 &amp;d, local_addr, &amp;local_port, rem_addr, &amp;rem_port, &amp;state,</span><br><span class="line">		 &amp;txq, &amp;rxq, &amp;timer_run, &amp;time_len, &amp;retr, &amp;uid, &amp;timeout, &amp;inode);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (num &lt; <span class="number">11</span>) &#123;</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, _(<span class="string">"warning, got bogus tcp line.\n"</span>));</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!flag_all &amp;&amp; ((flag_lst &amp;&amp; rem_port) || (!flag_lst &amp;&amp; !rem_port)))</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">strlen</span>(local_addr) &gt; <span class="number">8</span>) &#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> HAVE_AFINET6</span></span><br><span class="line">	<span class="comment">/* Demangle what the kernel gives us */</span></span><br><span class="line">	<span class="built_in">sscanf</span>(local_addr, <span class="string">"%08X%08X%08X%08X"</span>,</span><br><span class="line">	       &amp;in6.s6_addr32[<span class="number">0</span>], &amp;in6.s6_addr32[<span class="number">1</span>],</span><br><span class="line">           &amp;in6.s6_addr32[<span class="number">2</span>], &amp;in6.s6_addr32[<span class="number">3</span>]);</span><br><span class="line">	inet_ntop(AF_INET6, &amp;in6, addr6, <span class="keyword">sizeof</span>(addr6));</span><br><span class="line">	inet6_aftype.input(<span class="number">1</span>, addr6, &amp;localsas);</span><br><span class="line">	<span class="built_in">sscanf</span>(rem_addr, <span class="string">"%08X%08X%08X%08X"</span>,</span><br><span class="line">	       &amp;in6.s6_addr32[<span class="number">0</span>], &amp;in6.s6_addr32[<span class="number">1</span>],</span><br><span class="line">	       &amp;in6.s6_addr32[<span class="number">2</span>], &amp;in6.s6_addr32[<span class="number">3</span>]);</span><br><span class="line">	inet_ntop(AF_INET6, &amp;in6, addr6, <span class="keyword">sizeof</span>(addr6));</span><br><span class="line">	inet6_aftype.input(<span class="number">1</span>, addr6, &amp;remsas);</span><br><span class="line">	localsas.ss_family = AF_INET6;</span><br><span class="line">	remsas.ss_family = AF_INET6;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	<span class="built_in">sscanf</span>(local_addr, <span class="string">"%X"</span>, &amp;localaddr-&gt;sin_addr.s_addr);</span><br><span class="line">	<span class="built_in">sscanf</span>(rem_addr, <span class="string">"%X"</span>, &amp;remaddr-&gt;sin_addr.s_addr);</span><br><span class="line">	localsas.ss_family = AF_INET;</span><br><span class="line">	remsas.ss_family = AF_INET;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((ap = get_afntype(localsas.ss_family)) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, _(<span class="string">"netstat: unsupported address family %d !\n"</span>),</span><br><span class="line">		localsas.ss_family);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	addr_do_one(local_addr, <span class="keyword">sizeof</span>(local_addr), <span class="number">22</span>, ap, &amp;localsas, local_port, <span class="string">"tcp"</span>);</span><br><span class="line">	addr_do_one(rem_addr, <span class="keyword">sizeof</span>(rem_addr), <span class="number">22</span>, ap, &amp;remsas, rem_port, <span class="string">"tcp"</span>);</span><br><span class="line"></span><br><span class="line">	timers[<span class="number">0</span>] = <span class="string">'\0'</span>;</span><br><span class="line">	<span class="keyword">if</span> (flag_opt)</span><br><span class="line">	    <span class="keyword">switch</span> (timer_run) &#123;</span><br><span class="line">	    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">		<span class="built_in">snprintf</span>(timers, <span class="keyword">sizeof</span>(timers), _(<span class="string">"off (0.00/%ld/%d)"</span>), retr, timeout);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">	    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">		<span class="built_in">snprintf</span>(timers, <span class="keyword">sizeof</span>(timers), _(<span class="string">"on (%2.2f/%ld/%d)"</span>),</span><br><span class="line">			 (<span class="keyword">double</span>) time_len / clk_tck, retr, timeout);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">	    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">		<span class="built_in">snprintf</span>(timers, <span class="keyword">sizeof</span>(timers), _(<span class="string">"keepalive (%2.2f/%ld/%d)"</span>),</span><br><span class="line">			 (<span class="keyword">double</span>) time_len / clk_tck, retr, timeout);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">	    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">		<span class="built_in">snprintf</span>(timers, <span class="keyword">sizeof</span>(timers), _(<span class="string">"timewait (%2.2f/%ld/%d)"</span>),</span><br><span class="line">			 (<span class="keyword">double</span>) time_len / clk_tck, retr, timeout);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">	    <span class="keyword">case</span> <span class="number">4</span>:</span><br><span class="line">		<span class="built_in">snprintf</span>(timers, <span class="keyword">sizeof</span>(timers), _(<span class="string">"probe (%2.2f/%ld/%d)"</span>),</span><br><span class="line">			 (<span class="keyword">double</span>) time_len / clk_tck, retr, timeout);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">	    <span class="keyword">default</span>:</span><br><span class="line">		<span class="built_in">snprintf</span>(timers, <span class="keyword">sizeof</span>(timers), _(<span class="string">"unkn-%d (%2.2f/%ld/%d)"</span>),</span><br><span class="line">			 timer_run, (<span class="keyword">double</span>) time_len / clk_tck, retr, timeout);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"%-4s  %6ld %6ld %-*s %-*s %-11s"</span>,</span><br><span class="line">	       prot, rxq, txq, (<span class="keyword">int</span>)netmax(<span class="number">23</span>,<span class="built_in">strlen</span>(local_addr)), local_addr, (<span class="keyword">int</span>)netmax(<span class="number">23</span>,<span class="built_in">strlen</span>(rem_addr)), rem_addr, _(tcp_state[state]));</span><br><span class="line"></span><br><span class="line">	finish_this_one(uid,inode,timers);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>static void tcp_do_one(int lnr, const char *line, const char *prot)
+{
+    unsigned long rxq, txq, time_len, retr, inode;
+    int num, local_port, rem_port, d, state, uid, timer_run, timeout;
+    char rem_addr[128], local_addr[128], timers[64];
+    const struct aftype *ap;
+    struct sockaddr_storage localsas, remsas;
+    struct sockaddr_in *localaddr = (struct sockaddr_in *)&amp;localsas;
+    struct sockaddr_in *remaddr = (struct sockaddr_in *)&amp;remsas;
+#if HAVE_AFINET6
+    char addr6[INET6_ADDRSTRLEN];
+    struct in6_addr in6;
+    extern struct aftype inet6_aftype;
+#endif
+    long clk_tck = ticks_per_second();
 
-<p>几个点，首先解析/proc/net/tcp文件中的每一行数据，将每个字段的数据赋值到不同变量：</p>
-<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">num = sscanf(line,<span class="string">"%d: %64[0-9A-Fa-f]:%X %64[0-9A-Fa-f]:%X %X %lX:%lX %X:%lX %lX %d %d %lu %*s\n"</span>,</span><br><span class="line">&amp;d, local_addr, &amp;local_port, rem_addr, &amp;rem_port, &amp;<span class="keyword">state</span>,</span><br><span class="line">&amp;txq, &amp;rxq, &amp;timer_run, &amp;time_len, &amp;retr, &amp;uid, &amp;timeout, &amp;inode);</span><br></pre></td></tr></table></figure>
+    if (lnr == 0)
+    return;
 
-<p>其次针对local/remote address进行解析，将解析出的字符数组转为hex整形数据：</p>
-<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sscanf(<span class="name">local_addr</span>, <span class="string">"%X"</span>, <span class="symbol">&amp;localaddr-&gt;sin_addr</span>.s_addr)<span class="comment">;</span></span><br><span class="line">sscanf(<span class="name">rem_addr</span>, <span class="string">"%X"</span>, <span class="symbol">&amp;remaddr-&gt;sin_addr</span>.s_addr)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+    num = sscanf(line,
+    &quot;%d: %64[0-9A-Fa-f]:%X %64[0-9A-Fa-f]:%X %X %lX:%lX %X:%lX %lX %d %d %lu %*s\n&quot;,
+         &amp;d, local_addr, &amp;local_port, rem_addr, &amp;rem_port, &amp;state,
+         &amp;txq, &amp;rxq, &amp;timer_run, &amp;time_len, &amp;retr, &amp;uid, &amp;timeout, &amp;inode);
 
-<p>再之后，adore_do_one函数，对addr及port进行操作：</p>
-<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">addr_do_one(<span class="name">local_addr</span>, sizeof(<span class="name">local_addr</span>), <span class="number">22</span>, ap, <span class="symbol">&amp;localsas</span>, local_port, <span class="string">"tcp"</span>)<span class="comment">;</span></span><br><span class="line">addr_do_one(<span class="name">rem_addr</span>, sizeof(<span class="name">rem_addr</span>), <span class="number">22</span>, ap, <span class="symbol">&amp;remsas</span>, rem_port, <span class="string">"tcp"</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+    if (num &lt; 11) {
+    fprintf(stderr, _(&quot;warning, got bogus tcp line.\n&quot;));
+    return;
+    }
 
-<p>跟进：</p>
-<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">static</span> void <span class="keyword">addr_do_one(char </span>*<span class="keyword">buf, </span>size_t <span class="keyword">buf_len, </span>size_t short_len, const <span class="keyword">struct </span>aftype *ap,</span><br><span class="line">			const <span class="keyword">struct </span>sockaddr_storage *<span class="keyword">addr,</span></span><br><span class="line"><span class="keyword">	</span>		int port, const char *proto</span><br><span class="line">)</span><br><span class="line">&#123;</span><br><span class="line">    const char *sport, *<span class="keyword">saddr;</span></span><br><span class="line"><span class="keyword"> </span>   size_t port_len, <span class="keyword">addr_len;</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword"> </span>   <span class="keyword">saddr </span>= ap-&gt;sprint(<span class="keyword">addr, </span>flag_not &amp; FLAG_NUM_HOST)<span class="comment">;</span></span><br><span class="line">    sport = get_sname(htons(port), proto, flag_not &amp; FLAG_NUM_PORT)<span class="comment">;</span></span><br><span class="line">    <span class="keyword">addr_len </span>= <span class="keyword">strlen(saddr);</span></span><br><span class="line"><span class="keyword"> </span>   port_len = <span class="keyword">strlen(sport);</span></span><br><span class="line"><span class="keyword"> </span>   <span class="meta">if</span> (!flag_wide &amp;&amp; (<span class="keyword">addr_len </span>+ port_len &gt; short_len)) &#123;</span><br><span class="line">	<span class="comment">/* Assume port name is short */</span></span><br><span class="line">	port_len = netmin(port_len, short_len - <span class="number">4</span>)<span class="comment">;</span></span><br><span class="line">	<span class="keyword">addr_len </span>= short_len - port_len<span class="comment">;</span></span><br><span class="line">	<span class="keyword">strncpy(buf, </span><span class="keyword">saddr, </span><span class="keyword">addr_len);</span></span><br><span class="line"><span class="keyword">	</span><span class="keyword">buf[addr_len] </span>= <span class="string">'\0'</span><span class="comment">;</span></span><br><span class="line">	<span class="keyword">strcat(buf, </span><span class="string">":"</span>)<span class="comment">;</span></span><br><span class="line">	<span class="keyword">strncat(buf, </span>sport, port_len)<span class="comment">;</span></span><br><span class="line">    &#125; <span class="meta">else</span></span><br><span class="line">	snprintf(<span class="keyword">buf, </span><span class="keyword">buf_len, </span><span class="string">"%s:%s"</span>, <span class="keyword">saddr, </span>sport)<span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    if (!flag_all &amp;&amp; ((flag_lst &amp;&amp; rem_port) || (!flag_lst &amp;&amp; !rem_port)))
+      return;
 
-<p>发现其addr和port进行拼接，比较有意思的一点是利用short_len对addr和port拼接后的长度进行限制，若长度超过23，且-W参数对应变量置位，则对addr进行截断显示。</p>
+    if (strlen(local_addr) &gt; 8) {
+#if HAVE_AFINET6
+    /* Demangle what the kernel gives us */
+    sscanf(local_addr, &quot;%08X%08X%08X%08X&quot;,
+           &amp;in6.s6_addr32[0], &amp;in6.s6_addr32[1],
+           &amp;in6.s6_addr32[2], &amp;in6.s6_addr32[3]);
+    inet_ntop(AF_INET6, &amp;in6, addr6, sizeof(addr6));
+    inet6_aftype.input(1, addr6, &amp;localsas);
+    sscanf(rem_addr, &quot;%08X%08X%08X%08X&quot;,
+           &amp;in6.s6_addr32[0], &amp;in6.s6_addr32[1],
+           &amp;in6.s6_addr32[2], &amp;in6.s6_addr32[3]);
+    inet_ntop(AF_INET6, &amp;in6, addr6, sizeof(addr6));
+    inet6_aftype.input(1, addr6, &amp;remsas);
+    localsas.ss_family = AF_INET6;
+    remsas.ss_family = AF_INET6;
+#endif
+    } else {
+    sscanf(local_addr, &quot;%X&quot;, &amp;localaddr-&gt;sin_addr.s_addr);
+    sscanf(rem_addr, &quot;%X&quot;, &amp;remaddr-&gt;sin_addr.s_addr);
+    localsas.ss_family = AF_INET;
+    remsas.ss_family = AF_INET;
+    }
+
+    if ((ap = get_afntype(localsas.ss_family)) == NULL) {
+    fprintf(stderr, _(&quot;netstat: unsupported address family %d !\n&quot;),
+        localsas.ss_family);
+    return;
+    }
+
+    addr_do_one(local_addr, sizeof(local_addr), 22, ap, &amp;localsas, local_port, &quot;tcp&quot;);
+    addr_do_one(rem_addr, sizeof(rem_addr), 22, ap, &amp;remsas, rem_port, &quot;tcp&quot;);
+
+    timers[0] = &#39;\0&#39;;
+    if (flag_opt)
+        switch (timer_run) {
+        case 0:
+        snprintf(timers, sizeof(timers), _(&quot;off (0.00/%ld/%d)&quot;), retr, timeout);
+        break;
+
+        case 1:
+        snprintf(timers, sizeof(timers), _(&quot;on (%2.2f/%ld/%d)&quot;),
+             (double) time_len / clk_tck, retr, timeout);
+        break;
+
+        case 2:
+        snprintf(timers, sizeof(timers), _(&quot;keepalive (%2.2f/%ld/%d)&quot;),
+             (double) time_len / clk_tck, retr, timeout);
+        break;
+
+        case 3:
+        snprintf(timers, sizeof(timers), _(&quot;timewait (%2.2f/%ld/%d)&quot;),
+             (double) time_len / clk_tck, retr, timeout);
+        break;
+
+        case 4:
+        snprintf(timers, sizeof(timers), _(&quot;probe (%2.2f/%ld/%d)&quot;),
+             (double) time_len / clk_tck, retr, timeout);
+        break;
+
+        default:
+        snprintf(timers, sizeof(timers), _(&quot;unkn-%d (%2.2f/%ld/%d)&quot;),
+             timer_run, (double) time_len / clk_tck, retr, timeout);
+        break;
+        }
+
+    printf(&quot;%-4s  %6ld %6ld %-*s %-*s %-11s&quot;,
+           prot, rxq, txq, (int)netmax(23,strlen(local_addr)), local_addr, (int)netmax(23,strlen(rem_addr)), rem_addr, _(tcp_state[state]));
+
+    finish_this_one(uid,inode,timers);
+}</code></pre><p>几个点，首先解析/proc/net/tcp文件中的每一行数据，将每个字段的数据赋值到不同变量：</p>
+<pre><code>num = sscanf(line,&quot;%d: %64[0-9A-Fa-f]:%X %64[0-9A-Fa-f]:%X %X %lX:%lX %X:%lX %lX %d %d %lu %*s\n&quot;,
+&amp;d, local_addr, &amp;local_port, rem_addr, &amp;rem_port, &amp;state,
+&amp;txq, &amp;rxq, &amp;timer_run, &amp;time_len, &amp;retr, &amp;uid, &amp;timeout, &amp;inode);</code></pre><p>其次针对local/remote address进行解析，将解析出的字符数组转为hex整形数据：</p>
+<pre><code>sscanf(local_addr, &quot;%X&quot;, &amp;localaddr-&gt;sin_addr.s_addr);
+sscanf(rem_addr, &quot;%X&quot;, &amp;remaddr-&gt;sin_addr.s_addr);</code></pre><p>再之后，adore_do_one函数，对addr及port进行操作：</p>
+<pre><code>addr_do_one(local_addr, sizeof(local_addr), 22, ap, &amp;localsas, local_port, &quot;tcp&quot;);
+addr_do_one(rem_addr, sizeof(rem_addr), 22, ap, &amp;remsas, rem_port, &quot;tcp&quot;);</code></pre><p>跟进：</p>
+<pre><code>static void addr_do_one(char *buf, size_t buf_len, size_t short_len, const struct aftype *ap,
+            const struct sockaddr_storage *addr,
+            int port, const char *proto
+)
+{
+    const char *sport, *saddr;
+    size_t port_len, addr_len;
+
+    saddr = ap-&gt;sprint(addr, flag_not &amp; FLAG_NUM_HOST);
+    sport = get_sname(htons(port), proto, flag_not &amp; FLAG_NUM_PORT);
+    addr_len = strlen(saddr);
+    port_len = strlen(sport);
+    if (!flag_wide &amp;&amp; (addr_len + port_len &gt; short_len)) {
+    /* Assume port name is short */
+    port_len = netmin(port_len, short_len - 4);
+    addr_len = short_len - port_len;
+    strncpy(buf, saddr, addr_len);
+    buf[addr_len] = &#39;\0&#39;;
+    strcat(buf, &quot;:&quot;);
+    strncat(buf, sport, port_len);
+    } else
+    snprintf(buf, buf_len, &quot;%s:%s&quot;, saddr, sport);
+}</code></pre><p>发现其addr和port进行拼接，比较有意思的一点是利用short_len对addr和port拼接后的长度进行限制，若长度超过23，且-W参数对应变量置位，则对addr进行截断显示。</p>
 <p>最后对addr:port拼接后的数据及前面在/proc/net/tcp中解析出的字段进行输出：</p>
-<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">printf(<span class="string">"%-4s  %6ld %6ld %-*s %-*s %-11s"</span>,prot, rxq, txq, (<span class="name">int</span>)netmax(<span class="number">23</span>,strlen(<span class="name">local_addr</span>)), local_addr, (<span class="name">int</span>)netmax(<span class="number">23</span>,strlen(<span class="name">rem_addr</span>)), rem_addr, _(<span class="name">tcp_state</span>[state]))<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+<pre><code>printf(&quot;%-4s  %6ld %6ld %-*s %-*s %-11s&quot;,prot, rxq, txq, (int)netmax(23,strlen(local_addr)), local_addr, (int)netmax(23,strlen(rem_addr)), rem_addr, _(tcp_state[state]));</code></pre><p>剩下的最后一个 <code>finish_this_one</code>函数，跟进分析后发现其主要是在以上的基础输出外检测变量是否置位，即参数使用情况来输出指定类型的数据栏目：</p>
+<pre><code>static void finish_this_one(int uid, unsigned long inode, const char *timers)
+{
+    struct passwd *pw;
 
-<p>剩下的最后一个 <code>finish_this_one</code>函数，跟进分析后发现其主要是在以上的基础输出外检测变量是否置位，即参数使用情况来输出指定类型的数据栏目：</p>
-<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">static void finish_this_one(<span class="name">int</span> uid, unsigned long inode, const char *timers)</span><br><span class="line">&#123;</span><br><span class="line">    struct passwd *pw<span class="comment">;</span></span><br><span class="line"></span><br><span class="line">    if (<span class="name">flag_exp</span> &gt; <span class="number">1</span>) &#123;</span><br><span class="line">	if (!(<span class="name">flag_not</span> &amp; FLAG_NUM_USER) <span class="symbol">&amp;&amp;</span> ((<span class="name">pw</span> = getpwuid(<span class="name">uid</span>)) != NULL))</span><br><span class="line">	    printf(<span class="string">" %-10s "</span>, pw-&gt;pw_name)<span class="comment">;</span></span><br><span class="line">	else</span><br><span class="line">	    printf(<span class="string">" %-10d "</span>, uid)<span class="comment">;</span></span><br><span class="line">	printf(<span class="string">"%-10lu"</span>,inode)<span class="comment">;</span></span><br><span class="line">    &#125;</span><br><span class="line">    if (<span class="name">flag_prg</span>)</span><br><span class="line">	printf(<span class="string">" %-"</span> PROGNAME_WIDTHs <span class="string">"s"</span>,prg_cache_get(<span class="name">inode</span>))<span class="comment">;</span></span><br><span class="line">    if (<span class="name">flag_selinux</span>)</span><br><span class="line">	printf(<span class="string">" %-"</span> SELINUX_WIDTHs <span class="string">"s"</span>,prg_cache_get_con(<span class="name">inode</span>))<span class="comment">;</span></span><br><span class="line"></span><br><span class="line">    if (<span class="name">flag_opt</span>)</span><br><span class="line">	printf(<span class="string">" %s"</span>, timers)<span class="comment">;</span></span><br><span class="line">    putchar('\n')<span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    if (flag_exp &gt; 1) {
+    if (!(flag_not &amp; FLAG_NUM_USER) &amp;&amp; ((pw = getpwuid(uid)) != NULL))
+        printf(&quot; %-10s &quot;, pw-&gt;pw_name);
+    else
+        printf(&quot; %-10d &quot;, uid);
+    printf(&quot;%-10lu&quot;,inode);
+    }
+    if (flag_prg)
+    printf(&quot; %-&quot; PROGNAME_WIDTHs &quot;s&quot;,prg_cache_get(inode));
+    if (flag_selinux)
+    printf(&quot; %-&quot; SELINUX_WIDTHs &quot;s&quot;,prg_cache_get_con(inode));
 
-<p>其中flag_exp、flag_prg、flag_selinux、flag_opt分别对应-e、-p、-Z、-o：</p>
-<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><span class="line">	case <span class="string">'A'</span>:</span><br><span class="line">	    <span class="keyword">if</span> (aftrans_opt(optarg))</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'M'</span>:</span><br><span class="line">	    flag_mas++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'a'</span>:</span><br><span class="line">	    flag_all++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'l'</span>:</span><br><span class="line">	    flag_lst++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'c'</span>:</span><br><span class="line">	    flag_cnt++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">	case <span class="string">'d'</span>:</span><br><span class="line">	    flag_deb++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'g'</span>:</span><br><span class="line">	    flag_igmp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'e'</span>:</span><br><span class="line">	    flag_exp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'p'</span>:</span><br><span class="line">	    flag_prg++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'i'</span>:</span><br><span class="line">	    flag_int++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'W'</span>:</span><br><span class="line">	    flag_wide++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'n'</span>:</span><br><span class="line">	    flag_not |= FLAG_NUM;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'!'</span>:</span><br><span class="line">	    flag_not |= FLAG_NUM_HOST;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'@'</span>:</span><br><span class="line">	    flag_not |= FLAG_NUM_PORT;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'#'</span>:</span><br><span class="line">	    flag_not |= FLAG_NUM_USER;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'N'</span>:</span><br><span class="line">	    flag_not |= FLAG_SYM;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'C'</span>:</span><br><span class="line">	    flag_cf |= FLAG_CACHE;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'F'</span>:</span><br><span class="line">	    flag_cf |= FLAG_FIB;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'o'</span>:</span><br><span class="line">	    flag_opt++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'6'</span>:</span><br><span class="line">	    <span class="keyword">if</span> (aftrans_opt(<span class="string">"inet6"</span>))</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'4'</span>:</span><br><span class="line">	    <span class="keyword">if</span> (aftrans_opt(<span class="string">"inet"</span>))</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'V'</span>:</span><br><span class="line">	    version();</span><br><span class="line">	    <span class="regexp">/*NOTREACHED */</span></span><br><span class="line">	case <span class="string">'v'</span>:</span><br><span class="line">	    flag_ver |= FLAG_VERBOSE;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'r'</span>:</span><br><span class="line">	    flag_rou++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'t'</span>:</span><br><span class="line">	    flag_tcp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'S'</span>:</span><br><span class="line">	    flag_sctp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'u'</span>:</span><br><span class="line">	    flag_udp++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">        case <span class="string">'U'</span>:</span><br><span class="line">	    flag_udplite++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'w'</span>:</span><br><span class="line">	    flag_raw++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">        case <span class="string">'2'</span>:</span><br><span class="line">	    flag_l2cap++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">        case <span class="string">'f'</span>:</span><br><span class="line">	    flag_rfcomm++;</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'x'</span>:</span><br><span class="line">	    <span class="keyword">if</span> (aftrans_opt(<span class="string">"unix"</span>))</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    <span class="keyword">break</span>;</span><br><span class="line">	case <span class="string">'Z'</span>:</span><br><span class="line"><span class="comment">#if HAVE_SELINUX</span></span><br><span class="line">	    <span class="keyword">if</span> (is_selinux_enabled() &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">		fprintf(stderr, _(<span class="string">"SELinux is not enabled on this machine.\n"</span>));</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	    &#125;</span><br><span class="line">	    flag_prg++;</span><br><span class="line">	    flag_selinux++;</span><br></pre></td></tr></table></figure>
+    if (flag_opt)
+    printf(&quot; %s&quot;, timers);
+    putchar(&#39;\n&#39;);
+}</code></pre><p>其中flag_exp、flag_prg、flag_selinux、flag_opt分别对应-e、-p、-Z、-o：</p>
+<pre><code>    case &#39;A&#39;:
+        if (aftrans_opt(optarg))
+        exit(1);
+        break;
+    case &#39;M&#39;:
+        flag_mas++;
+        break;
+    case &#39;a&#39;:
+        flag_all++;
+        break;
+    case &#39;l&#39;:
+        flag_lst++;
+        break;
+    case &#39;c&#39;:
+        flag_cnt++;
+        break;
 
-<p>具体参数对应含义：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">usage</span><span class="params">(<span class="keyword">int</span> rc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    FILE *fp = rc ? <span class="built_in">stderr</span> : <span class="built_in">stdout</span>;</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"usage: netstat [-vWeenNcCF] [&lt;Af&gt;] -r         netstat &#123;-V|--version|-h|--help&#125;\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"       netstat [-vWnNcaeol] [&lt;Socket&gt; ...]\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"       netstat &#123; [-vWeenNac] -i | [-cnNe] -M | -s [-6tuw] &#125;\n\n"</span>));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -r, --route              display routing table\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -i, --interfaces         display interface table\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -g, --groups             display multicast group memberships\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -s, --statistics         display networking statistics (like SNMP)\n"</span>));</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> HAVE_FW_MASQUERADE</span></span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -M, --masquerade         display masqueraded connections\n\n"</span>));</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -v, --verbose            be verbose\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -W, --wide               don't truncate IP addresses\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -n, --numeric            don't resolve names\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        --numeric-hosts          don't resolve host names\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        --numeric-ports          don't resolve port names\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        --numeric-users          don't resolve user names\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -N, --symbolic           resolve hardware names\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -e, --extend             display other/more information\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -p, --programs           display PID/Program name for sockets\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -o, --timers             display timers\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -c, --continuous         continuous listing\n\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -l, --listening          display listening server sockets\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -a, --all                display all sockets (default: connected)\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -F, --fib                display Forwarding Information Base (default)\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -C, --cache              display routing cache instead of FIB\n"</span>));</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> HAVE_SELINUX</span></span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"        -Z, --context            display SELinux security context for sockets\n"</span>));</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"\n  &lt;Socket&gt;=&#123;-t|--tcp&#125; &#123;-u|--udp&#125; &#123;-U|--udplite&#125; &#123;-S|--sctp&#125; &#123;-w|--raw&#125;\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"           &#123;-x|--unix&#125; --ax25 --ipx --netrom\n"</span>));</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"  &lt;AF&gt;=Use '-6|-4' or '-A &lt;af&gt;' or '--&lt;af&gt;'; default: %s\n"</span>), DFLT_AF);</span><br><span class="line">    <span class="built_in">fprintf</span>(fp, _(<span class="string">"  List of possible address families (which support routing):\n"</span>));</span><br><span class="line">    print_aflist(<span class="number">1</span>); <span class="comment">/* 1 = routeable */</span></span><br><span class="line">    <span class="built_in">exit</span>(rc);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    case &#39;d&#39;:
+        flag_deb++;
+        break;
+    case &#39;g&#39;:
+        flag_igmp++;
+        break;
+    case &#39;e&#39;:
+        flag_exp++;
+        break;
+    case &#39;p&#39;:
+        flag_prg++;
+        break;
+    case &#39;i&#39;:
+        flag_int++;
+        break;
+    case &#39;W&#39;:
+        flag_wide++;
+        break;
+    case &#39;n&#39;:
+        flag_not |= FLAG_NUM;
+        break;
+    case &#39;!&#39;:
+        flag_not |= FLAG_NUM_HOST;
+        break;
+    case &#39;@&#39;:
+        flag_not |= FLAG_NUM_PORT;
+        break;
+    case &#39;#&#39;:
+        flag_not |= FLAG_NUM_USER;
+        break;
+    case &#39;N&#39;:
+        flag_not |= FLAG_SYM;
+        break;
+    case &#39;C&#39;:
+        flag_cf |= FLAG_CACHE;
+        break;
+    case &#39;F&#39;:
+        flag_cf |= FLAG_FIB;
+        break;
+    case &#39;o&#39;:
+        flag_opt++;
+        break;
+    case &#39;6&#39;:
+        if (aftrans_opt(&quot;inet6&quot;))
+        exit(1);
+        break;
+    case &#39;4&#39;:
+        if (aftrans_opt(&quot;inet&quot;))
+        exit(1);
+        break;
+    case &#39;V&#39;:
+        version();
+        /*NOTREACHED */
+    case &#39;v&#39;:
+        flag_ver |= FLAG_VERBOSE;
+        break;
+    case &#39;r&#39;:
+        flag_rou++;
+        break;
+    case &#39;t&#39;:
+        flag_tcp++;
+        break;
+    case &#39;S&#39;:
+        flag_sctp++;
+        break;
+    case &#39;u&#39;:
+        flag_udp++;
+        break;
+        case &#39;U&#39;:
+        flag_udplite++;
+        break;
+    case &#39;w&#39;:
+        flag_raw++;
+        break;
+        case &#39;2&#39;:
+        flag_l2cap++;
+        break;
+        case &#39;f&#39;:
+        flag_rfcomm++;
+        break;
+    case &#39;x&#39;:
+        if (aftrans_opt(&quot;unix&quot;))
+        exit(1);
+        break;
+    case &#39;Z&#39;:
+#if HAVE_SELINUX
+        if (is_selinux_enabled() &lt;= 0) {
+        fprintf(stderr, _(&quot;SELinux is not enabled on this machine.\n&quot;));
+        exit(1);
+        }
+        flag_prg++;
+        flag_selinux++;</code></pre><p>具体参数对应含义：</p>
+<pre><code>static void usage(int rc)
+{
+    FILE *fp = rc ? stderr : stdout;
+    fprintf(fp, _(&quot;usage: netstat [-vWeenNcCF] [&lt;Af&gt;] -r         netstat {-V|--version|-h|--help}\n&quot;));
+    fprintf(fp, _(&quot;       netstat [-vWnNcaeol] [&lt;Socket&gt; ...]\n&quot;));
+    fprintf(fp, _(&quot;       netstat { [-vWeenNac] -i | [-cnNe] -M | -s [-6tuw] }\n\n&quot;));
 
-<p><strong>else</strong></p>
+    fprintf(fp, _(&quot;        -r, --route              display routing table\n&quot;));
+    fprintf(fp, _(&quot;        -i, --interfaces         display interface table\n&quot;));
+    fprintf(fp, _(&quot;        -g, --groups             display multicast group memberships\n&quot;));
+    fprintf(fp, _(&quot;        -s, --statistics         display networking statistics (like SNMP)\n&quot;));
+#if HAVE_FW_MASQUERADE
+    fprintf(fp, _(&quot;        -M, --masquerade         display masqueraded connections\n\n&quot;));
+#endif
+
+    fprintf(fp, _(&quot;        -v, --verbose            be verbose\n&quot;));
+    fprintf(fp, _(&quot;        -W, --wide               don&#39;t truncate IP addresses\n&quot;));
+    fprintf(fp, _(&quot;        -n, --numeric            don&#39;t resolve names\n&quot;));
+    fprintf(fp, _(&quot;        --numeric-hosts          don&#39;t resolve host names\n&quot;));
+    fprintf(fp, _(&quot;        --numeric-ports          don&#39;t resolve port names\n&quot;));
+    fprintf(fp, _(&quot;        --numeric-users          don&#39;t resolve user names\n&quot;));
+    fprintf(fp, _(&quot;        -N, --symbolic           resolve hardware names\n&quot;));
+    fprintf(fp, _(&quot;        -e, --extend             display other/more information\n&quot;));
+    fprintf(fp, _(&quot;        -p, --programs           display PID/Program name for sockets\n&quot;));
+    fprintf(fp, _(&quot;        -o, --timers             display timers\n&quot;));
+    fprintf(fp, _(&quot;        -c, --continuous         continuous listing\n\n&quot;));
+    fprintf(fp, _(&quot;        -l, --listening          display listening server sockets\n&quot;));
+    fprintf(fp, _(&quot;        -a, --all                display all sockets (default: connected)\n&quot;));
+    fprintf(fp, _(&quot;        -F, --fib                display Forwarding Information Base (default)\n&quot;));
+    fprintf(fp, _(&quot;        -C, --cache              display routing cache instead of FIB\n&quot;));
+#if HAVE_SELINUX
+    fprintf(fp, _(&quot;        -Z, --context            display SELinux security context for sockets\n&quot;));
+#endif
+
+    fprintf(fp, _(&quot;\n  &lt;Socket&gt;={-t|--tcp} {-u|--udp} {-U|--udplite} {-S|--sctp} {-w|--raw}\n&quot;));
+    fprintf(fp, _(&quot;           {-x|--unix} --ax25 --ipx --netrom\n&quot;));
+    fprintf(fp, _(&quot;  &lt;AF&gt;=Use &#39;-6|-4&#39; or &#39;-A &lt;af&gt;&#39; or &#39;--&lt;af&gt;&#39;; default: %s\n&quot;), DFLT_AF);
+    fprintf(fp, _(&quot;  List of possible address families (which support routing):\n&quot;));
+    print_aflist(1); /* 1 = routeable */
+    exit(rc);
+}</code></pre><p><strong>else</strong></p>
 <p>剩下的就是af_inet协议族下其它类型的socket解析及输出以及其它协议族的解析输出，类似tcp_info，尾部使用prg_cache_clear清理缓存链表，不再赘述。</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>​    代码逻辑是非常清晰的，但是调试过程中发现mac下的ide的debug功能实在不是太友好，无法查看/修改整块的内存，数据的显示也和其本身格式不一致，以及单步过程中遇到了可视化界面中的光标位置和真实elf执行流程不匹配的问题，总体下来，感觉不是很灵活的样子，不止是vscode，clion也有这种问题；</p>
 <p>​    正如spoock师傅所说的，netstat工具在网络进程频繁开关socket通道的环境中性能压力是很大的，联想到之前写的网络日志采集demo中有模块是复用了部分netstat源码，但是总体效果不是非常好，原因无他，遍历proc这块的io性能压力比较大，若放到实际业务环境中，如openstack这种大流量和进程频繁操作的云环境，业务影响之大可想而知；</p>
@@ -493,6 +1266,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

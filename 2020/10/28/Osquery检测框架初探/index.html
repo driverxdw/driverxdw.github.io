@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="一、起源大四第一次实习期间曾在公司项目中接触过这个东西，当时还不太了解应用场景，只当成是一个查询主机信息（query os）的普通跨平台开源项目，觉得它用sql进行查询的设计方式很奇怪；第三次实习期间实验室老大手把手教着写安全模型，其中模型计算所用的数据就是osquery在vpc里采集来的，那时才对osquery这类主机数据采集的应用场景有了些了解；后来真正投身主机安全领域才慢慢了解到osquer">
@@ -98,7 +98,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -330,21 +330,49 @@
 <p>之所以写这篇文章是因为考虑一两年两三年后可能也会去甲方也做类似的主机安全建设，所以先提前记录一波，顺带着思考一下应用场景、需求、能力、价值、架构设计等等（可能以上列举的跟真实的甲方安全需求并不完全一致，期待后续能真正参与到像<a href="https://tech.meituan.com/2019/01/17/distributed-hids-cluster-architecture-design.html" target="_blank" rel="noopener">美团</a>那样量级的hids安全建设中学习一下）</p>
 <h2 id="二、基本使用"><a href="#二、基本使用" class="headerlink" title="二、基本使用"></a>二、基本使用</h2><h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><p>osquery是facebook开源的一款基于sql引擎的跨平台主机信息查询和监控框架；osquery的设计思想比较奇特，其将主机比作一个数据库，将主机产生的日志信息当成库表，支持使用sql语法对表中存储的主机日志信息进行查询；osquery支持查询的信息几乎涵盖主机产生的所有类型的日志数据，查询方式支持实时和调度，非常灵活</p>
 <h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>osquery项目<a href="https://osquery.io/downloads" target="_blank" rel="noopener">主页</a>上可以进行下载，支持源码安装和安装包安装，这边在ubuntu16.04下进行源码安装：</p>
-<figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">export OSQUERY_KEY=1484120AC4E9F8A1A577AEEE97A80C63C9D8B80B</span><br><span class="line">sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys $OSQUERY_KEY</span><br><span class="line">sudo<span class="built_in"> add-apt-repository </span>'deb [arch=amd64] https://pkg.osquery.io/deb deb main'</span><br><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install osquery</span><br></pre></td></tr></table></figure>
-
-<p>可以通过运行osqueryi查看是否安装成功</p>
+<pre><code>export OSQUERY_KEY=1484120AC4E9F8A1A577AEEE97A80C63C9D8B80B
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys $OSQUERY_KEY
+sudo add-apt-repository &#39;deb [arch=amd64] https://pkg.osquery.io/deb deb main&#39;
+sudo apt-get update
+sudo apt-get install osquery</code></pre><p>可以通过运行osqueryi查看是否安装成功</p>
 <h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><h4 id="osqueryi"><a href="#osqueryi" class="headerlink" title="osqueryi"></a>osqueryi</h4><p><strong>内置命令</strong></p>
 <p>osqueryi和osqueryd是两个完全分离的程序，osqueryi支持用户终端界面基于sql做交互查询，osqueryd是osquery守护进程，运行后会在后台静默部署以服务形式基于配置文件采集数据，一般如果是测试可以用osqueryi，实际环境下都是用osqueryd；运行osqueryi，进入交互模式后可以先看下内置命令，这边注释都很清晰：</p>
-<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">➜  ~ osqueryi</span><br><span class="line">Using a virtual database. Need <span class="keyword">help</span>, <span class="keyword">type</span> '.<span class="keyword">help</span>'</span><br><span class="line">osquery&gt; .<span class="keyword">help</span></span><br><span class="line">Welcome to the osquery <span class="keyword">shell</span>. Please explore your OS!</span><br><span class="line">You are connected to a transient '<span class="keyword">in</span>-<span class="keyword">memory</span>' virtual database.</span><br><span class="line"></span><br><span class="line">.all [<span class="keyword">TABLE</span>]     Select all from a <span class="keyword">table</span></span><br><span class="line">.bail <span class="keyword">ON</span>|OFF     Stop after hitting <span class="keyword">an</span> <span class="keyword">error</span></span><br><span class="line">.echo <span class="keyword">ON</span>|OFF     Turn command echo <span class="keyword">on</span> or off</span><br><span class="line">.<span class="keyword">exit</span>            <span class="keyword">Exit</span> this <span class="keyword">program</span></span><br><span class="line">.features        <span class="keyword">List</span> osquery's features and their statuses</span><br><span class="line">.headers <span class="keyword">ON</span>|OFF  Turn <span class="keyword">display</span> of headers <span class="keyword">on</span> or off</span><br><span class="line">.<span class="keyword">help</span>            Show this message</span><br><span class="line">.mode MODE       <span class="keyword">Set</span> output mode where MODE is <span class="keyword">one</span> of:</span><br><span class="line">                   csv      Comma-separated values</span><br><span class="line">                   column   Left-aligned columns see .width</span><br><span class="line">                   <span class="keyword">line</span>     <span class="keyword">One</span> value per <span class="keyword">line</span></span><br><span class="line">                   <span class="keyword">list</span>     Values delimited <span class="keyword">by</span> .separator string</span><br><span class="line">                   pretty   Pretty printed SQL results (default)</span><br><span class="line">.nullvalue STR   <span class="keyword">Use</span> STRING <span class="keyword">in</span> place of NULL values</span><br><span class="line">.<span class="keyword">print</span> STR...    <span class="keyword">Print</span> literal STRING</span><br><span class="line">.quit            <span class="keyword">Exit</span> this <span class="keyword">program</span></span><br><span class="line">.schema [<span class="keyword">TABLE</span>]  Show the CREATE statements</span><br><span class="line">.separator STR   Change separator used <span class="keyword">by</span> output mode</span><br><span class="line">.socket          Show the osquery extensions socket path</span><br><span class="line">.show            Show the current values <span class="keyword">for</span> various settings</span><br><span class="line">.summary         Alias <span class="keyword">for</span> the show <span class="keyword">meta</span> command</span><br><span class="line">.tables [<span class="keyword">TABLE</span>]  <span class="keyword">List</span> names of tables</span><br><span class="line">.types [SQL]     Show result of getQueryColumns <span class="keyword">for</span> the given <span class="keyword">query</span></span><br><span class="line">.width [NUM1]+   <span class="keyword">Set</span> column widths <span class="keyword">for</span> <span class="string">"column"</span> mode</span><br><span class="line">.<span class="keyword">timer</span> <span class="keyword">ON</span>|OFF      Turn the CPU <span class="keyword">timer</span> measurement <span class="keyword">on</span> or off</span><br></pre></td></tr></table></figure>
+<pre><code>➜  ~ osqueryi
+Using a virtual database. Need help, type &#39;.help&#39;
+osquery&gt; .help
+Welcome to the osquery shell. Please explore your OS!
+You are connected to a transient &#39;in-memory&#39; virtual database.
 
-<p>比较常用的几个如下：</p>
-<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">.mode: sql查询结果的显示模式</span></span><br><span class="line"><span class="title">.schema: 后面跟表名输出表结构</span></span><br><span class="line"><span class="title">.show: 输出osqueryi当前的配置</span></span><br><span class="line"><span class="title">.features: 列出osquery的功能和开启状态</span></span><br><span class="line"><span class="title">.tables: 列出当前osquery支持的所有表名</span></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<p><strong>sql语法</strong></p>
+.all [TABLE]     Select all from a table
+.bail ON|OFF     Stop after hitting an error
+.echo ON|OFF     Turn command echo on or off
+.exit            Exit this program
+.features        List osquery&#39;s features and their statuses
+.headers ON|OFF  Turn display of headers on or off
+.help            Show this message
+.mode MODE       Set output mode where MODE is one of:
+                   csv      Comma-separated values
+                   column   Left-aligned columns see .width
+                   line     One value per line
+                   list     Values delimited by .separator string
+                   pretty   Pretty printed SQL results (default)
+.nullvalue STR   Use STRING in place of NULL values
+.print STR...    Print literal STRING
+.quit            Exit this program
+.schema [TABLE]  Show the CREATE statements
+.separator STR   Change separator used by output mode
+.socket          Show the osquery extensions socket path
+.show            Show the current values for various settings
+.summary         Alias for the show meta command
+.tables [TABLE]  List names of tables
+.types [SQL]     Show result of getQueryColumns for the given query
+.width [NUM1]+   Set column widths for &quot;column&quot; mode
+.timer ON|OFF      Turn the CPU timer measurement on or off</code></pre><p>比较常用的几个如下：</p>
+<pre><code>.mode: sql查询结果的显示模式
+.schema: 后面跟表名输出表结构
+.show: 输出osqueryi当前的配置
+.features: 列出osquery的功能和开启状态
+.tables: 列出当前osquery支持的所有表名</code></pre><p><strong>sql语法</strong></p>
 <p>官方文档里说明了osqueryi修改自sqlite shell，所以其支持原生sqlite的sql查询语法：</p>
 <blockquote>
 <p>osqueryi is a modified version of the SQLite shell. It accepts several meta-commands, prefixed with a ‘.’:</p>
@@ -354,26 +382,178 @@
 <p><img src="./image-20201029111821393.png" alt="image-20201029111821393"></p>
 <h4 id="osqueryd"><a href="#osqueryd" class="headerlink" title="osqueryd"></a>osqueryd</h4><p><strong>启动</strong></p>
 <p>安装后自动注册systemctl：</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">➜  ~ systemctl status osqueryd.service</span><br><span class="line">● osqueryd.service - The osquery Daemon</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/osqueryd.service; disabled; vendor preset: enabled)</span><br><span class="line">   Active: inactive (dead)</span><br><span class="line">➜  ~ systemctl restart osqueryd.service</span><br><span class="line">==== AUTHENTICATING FOR org.freedesktop.systemd1.manage-units ===</span><br><span class="line">Authentication <span class="keyword">is</span> required to restart <span class="string">'osqueryd.service'</span>.</span><br><span class="line">Authenticating as: xdw,,, (xdw)</span><br><span class="line">Password:</span><br><span class="line">==== AUTHENTICATION COMPLETE ===</span><br><span class="line">➜  ~ systemctl status osqueryd.service</span><br><span class="line">● osqueryd.service - The osquery Daemon</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/osqueryd.service; disabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Thu <span class="number">2020</span><span class="number">-10</span><span class="number">-29</span> <span class="number">11</span>:<span class="number">30</span>:<span class="number">49</span> CST; <span class="number">2</span>s ago</span><br><span class="line">  Process: <span class="number">20897</span> ExecStartPre=/bin/sh -c <span class="keyword">if</span> [ -f $LOCAL_PIDFILE ]; then mv $LOCAL_PIDFILE $PIDFILE; fi (code=e</span><br><span class="line">  Process: <span class="number">20881</span> ExecStartPre=/bin/sh -c <span class="keyword">if</span> [ ! -f $FLAG_FILE ]; then touch $FLAG_FILE; fi (code=exited, statu</span><br><span class="line"> Main PID: <span class="number">20900</span> (osqueryd)</span><br><span class="line">    Tasks: <span class="number">13</span></span><br><span class="line">   Memory: <span class="number">7.4</span>M</span><br><span class="line">      CPU: <span class="number">37</span>ms</span><br><span class="line">   CGroup: /system.slice/osqueryd.service</span><br><span class="line">           ├─<span class="number">20900</span> /usr/bin/osqueryd --flagfile /etc/osquery/osquery.flags --config_path /etc/osquery/osquery.</span><br><span class="line">           └─<span class="number">20917</span> /usr/bin/osqueryd</span><br><span class="line"></span><br><span class="line">Oct <span class="number">29</span> <span class="number">11</span>:<span class="number">30</span>:<span class="number">49</span> ubuntu systemd[<span class="number">1</span>]: Stopped The osquery Daemon.</span><br><span class="line">Oct <span class="number">29</span> <span class="number">11</span>:<span class="number">30</span>:<span class="number">49</span> ubuntu systemd[<span class="number">1</span>]: Starting The osquery Daemon...</span><br><span class="line">Oct <span class="number">29</span> <span class="number">11</span>:<span class="number">30</span>:<span class="number">49</span> ubuntu systemd[<span class="number">1</span>]: Started The osquery Daemon.</span><br><span class="line">Oct <span class="number">29</span> <span class="number">11</span>:<span class="number">30</span>:<span class="number">49</span> ubuntu osqueryd[<span class="number">20900</span>]: osqueryd started [version=<span class="number">4.5</span><span class="number">.1</span>]</span><br><span class="line">Oct <span class="number">29</span> <span class="number">11</span>:<span class="number">30</span>:<span class="number">49</span> ubuntu osqueryd[<span class="number">20900</span>]: W1029 <span class="number">11</span>:<span class="number">30</span>:<span class="number">49.270629</span> <span class="number">20917</span> init.cpp:<span class="number">587</span>] Error reading config: config</span><br><span class="line">Oct <span class="number">29</span> <span class="number">11</span>:<span class="number">30</span>:<span class="number">49</span> ubuntu osqueryd[<span class="number">20900</span>]: I1029 <span class="number">11</span>:<span class="number">30</span>:<span class="number">49.270979</span> <span class="number">20917</span> events.cpp:<span class="number">867</span>] Event publisher <span class="keyword">not</span> enable</span><br><span class="line">Oct <span class="number">29</span> <span class="number">11</span>:<span class="number">30</span>:<span class="number">49</span> ubuntu osqueryd[<span class="number">20900</span>]: I1029 <span class="number">11</span>:<span class="number">30</span>:<span class="number">49.271317</span> <span class="number">20917</span> events.cpp:<span class="number">867</span>] Event publisher <span class="keyword">not</span> enable</span><br><span class="line">➜  ~</span><br></pre></td></tr></table></figure>
+<pre><code>➜  ~ systemctl status osqueryd.service
+● osqueryd.service - The osquery Daemon
+   Loaded: loaded (/usr/lib/systemd/system/osqueryd.service; disabled; vendor preset: enabled)
+   Active: inactive (dead)
+➜  ~ systemctl restart osqueryd.service
+==== AUTHENTICATING FOR org.freedesktop.systemd1.manage-units ===
+Authentication is required to restart &#39;osqueryd.service&#39;.
+Authenticating as: xdw,,, (xdw)
+Password:
+==== AUTHENTICATION COMPLETE ===
+➜  ~ systemctl status osqueryd.service
+● osqueryd.service - The osquery Daemon
+   Loaded: loaded (/usr/lib/systemd/system/osqueryd.service; disabled; vendor preset: enabled)
+   Active: active (running) since Thu 2020-10-29 11:30:49 CST; 2s ago
+  Process: 20897 ExecStartPre=/bin/sh -c if [ -f $LOCAL_PIDFILE ]; then mv $LOCAL_PIDFILE $PIDFILE; fi (code=e
+  Process: 20881 ExecStartPre=/bin/sh -c if [ ! -f $FLAG_FILE ]; then touch $FLAG_FILE; fi (code=exited, statu
+ Main PID: 20900 (osqueryd)
+    Tasks: 13
+   Memory: 7.4M
+      CPU: 37ms
+   CGroup: /system.slice/osqueryd.service
+           ├─20900 /usr/bin/osqueryd --flagfile /etc/osquery/osquery.flags --config_path /etc/osquery/osquery.
+           └─20917 /usr/bin/osqueryd
 
-
-
-
-
-<p><strong>配置</strong></p>
+Oct 29 11:30:49 ubuntu systemd[1]: Stopped The osquery Daemon.
+Oct 29 11:30:49 ubuntu systemd[1]: Starting The osquery Daemon...
+Oct 29 11:30:49 ubuntu systemd[1]: Started The osquery Daemon.
+Oct 29 11:30:49 ubuntu osqueryd[20900]: osqueryd started [version=4.5.1]
+Oct 29 11:30:49 ubuntu osqueryd[20900]: W1029 11:30:49.270629 20917 init.cpp:587] Error reading config: config
+Oct 29 11:30:49 ubuntu osqueryd[20900]: I1029 11:30:49.270979 20917 events.cpp:867] Event publisher not enable
+Oct 29 11:30:49 ubuntu osqueryd[20900]: I1029 11:30:49.271317 20917 events.cpp:867] Event publisher not enable
+➜  ~</code></pre><p><strong>配置</strong></p>
 <p>osqueryd两个配置文件路径默认都在/etc/osquery/目录下，分别为osquery.conf,osquery.flags，前者存储osqueryd运行后的一些配置，后者则为标志位存储文件，即用标志位表示程序启动时的功能启停设置，具体标志位详情见<a href="https://osquery.readthedocs.io/en/stable/installation/cli-flags/" target="_blank" rel="noopener">Command Line Flags</a>；另外之前试过把osquery.flags中的内容放到osquery.conf中，效果和分开存储是一样的，就跟spoock师傅说的一样，其实osquery.conf可以说是osquery.flags的一个超集；</p>
 <p><strong>osquery.conf</strong></p>
 <p>osquery项目提供了一份配置样例：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="comment">// Configure the daemon below:</span></span><br><span class="line">  <span class="attr">"options"</span>: &#123;</span><br><span class="line">    <span class="comment">// Select the osquery config plugin.</span></span><br><span class="line">    <span class="attr">"config_plugin"</span>: <span class="string">"filesystem"</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Select the osquery logging plugin.</span></span><br><span class="line">    <span class="attr">"logger_plugin"</span>: <span class="string">"filesystem"</span>,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// The log directory stores info, warning, and errors.</span></span><br><span class="line">    <span class="comment">// If the daemon uses the 'filesystem' logging retriever then the log_dir</span></span><br><span class="line">    <span class="comment">// will also contain the query results.</span></span><br><span class="line">    <span class="comment">//"logger_path": "/var/log/osquery",</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set 'disable_logging' to true to prevent writing any info, warning, error</span></span><br><span class="line">    <span class="comment">// logs. If a logging plugin is selected it will still write query results.</span></span><br><span class="line">    <span class="comment">//"disable_logging": "false",</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Splay the scheduled interval for queries.</span></span><br><span class="line">    <span class="comment">// This is very helpful to prevent system performance impact when scheduling</span></span><br><span class="line">    <span class="comment">// large numbers of queries that run a smaller or similar intervals.</span></span><br><span class="line">    <span class="comment">//"schedule_splay_percent": "10",</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// A filesystem path for disk-based backing storage used for events and</span></span><br><span class="line">    <span class="comment">// query results differentials. See also 'use_in_memory_database'.</span></span><br><span class="line">    <span class="comment">//"database_path": "/var/osquery/osquery.db",</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Comma-delimited list of table names to be disabled.</span></span><br><span class="line">    <span class="comment">// This allows osquery to be launched without certain tables.</span></span><br><span class="line">    <span class="comment">//"disable_tables": "foo_bar,time",</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Comma-delimited list of table names to be enabled.</span></span><br><span class="line">    <span class="comment">// This allows osquery to be launched with certain tables only.</span></span><br><span class="line">    <span class="comment">//"enable_tables": "foo_bar,time",</span></span><br><span class="line"></span><br><span class="line">    <span class="attr">"utc"</span>: <span class="string">"true"</span></span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Define a schedule of queries:</span></span><br><span class="line">  <span class="attr">"schedule"</span>: &#123;</span><br><span class="line">    <span class="comment">// This is a simple example query that outputs basic system information.</span></span><br><span class="line">    <span class="attr">"system_info"</span>: &#123;</span><br><span class="line">      <span class="comment">// The exact query to run.</span></span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"SELECT hostname, cpu_brand, physical_memory FROM system_info;"</span>,</span><br><span class="line">      <span class="comment">// The interval in seconds to run this query, not an exact interval.</span></span><br><span class="line">      <span class="attr">"interval"</span>: <span class="number">3600</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Decorators are normal queries that append data to every query.</span></span><br><span class="line">  <span class="attr">"decorators"</span>: &#123;</span><br><span class="line">    <span class="attr">"load"</span>: [</span><br><span class="line">      <span class="string">"SELECT uuid AS host_uuid FROM system_info;"</span>,</span><br><span class="line">      <span class="string">"SELECT user AS username FROM logged_in_users ORDER BY time DESC LIMIT 1;"</span></span><br><span class="line">    ]</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Add default osquery packs or install your own.</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// There are several 'default' packs installed with 'make install' or via</span></span><br><span class="line">  <span class="comment">// packages and/or Homebrew.</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// Linux:        /usr/share/osquery/packs</span></span><br><span class="line">  <span class="comment">// OS X:         /var/osquery/packs</span></span><br><span class="line">  <span class="comment">// Homebrew:     /usr/local/share/osquery/packs</span></span><br><span class="line">  <span class="comment">// make install: &#123;PREFIX&#125;/share/osquery/packs</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="attr">"packs"</span>: &#123;</span><br><span class="line">    <span class="comment">// "osquery-monitoring": "/usr/share/osquery/packs/osquery-monitoring.conf",</span></span><br><span class="line">    <span class="comment">// "incident-response": "/usr/share/osquery/packs/incident-response.conf",</span></span><br><span class="line">    <span class="comment">// "it-compliance": "/usr/share/osquery/packs/it-compliance.conf",</span></span><br><span class="line">    <span class="comment">// "osx-attacks": "/usr/share/osquery/packs/osx-attacks.conf",</span></span><br><span class="line">    <span class="comment">// "vuln-management": "/usr/share/osquery/packs/vuln-management.conf",</span></span><br><span class="line">    <span class="comment">// "hardware-monitoring": "/usr/share/osquery/packs/hardware-monitoring.conf",</span></span><br><span class="line">    <span class="comment">// "ossec-rootkit": "/usr/share/osquery/packs/ossec-rootkit.conf",</span></span><br><span class="line">    <span class="comment">// "windows-hardening": "C:\\Program Files\\osquery\\packs\\windows-hardening.conf",</span></span><br><span class="line">    <span class="comment">// "windows-attacks": "C:\\Program Files\\osquery\\packs\\windows-attacks.conf"</span></span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Provides feature vectors for osquery to leverage in simple statistical </span></span><br><span class="line">  <span class="comment">// analysis of results data. </span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// Currently this configuration is only used by Windows in the Powershell</span></span><br><span class="line">  <span class="comment">// Events table, wherein character_frequencies is a list of doubles </span></span><br><span class="line">  <span class="comment">// representing the aggregate occurrence of character values in Powershell </span></span><br><span class="line">  <span class="comment">// Scripts. A default configuration is provided which was adapated from </span></span><br><span class="line">  <span class="comment">// Lee Holmes cobbr project: </span></span><br><span class="line">  <span class="comment">// https://gist.github.com/cobbr/acbe5cc7a186726d4e309070187beee6</span></span><br><span class="line">  <span class="comment">// </span></span><br><span class="line">  <span class="attr">"feature_vectors"</span>: &#123;</span><br><span class="line">    <span class="attr">"character_frequencies"</span>: [</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.00045</span>,  <span class="number">0.01798</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.03111</span>,  <span class="number">0.00063</span>,  <span class="number">0.00027</span>,   <span class="number">0.0</span>,      <span class="number">0.01336</span>,  <span class="number">0.0133</span>,</span><br><span class="line">      <span class="number">0.00128</span>,  <span class="number">0.0027</span>,   <span class="number">0.00655</span>,  <span class="number">0.01932</span>,   <span class="number">0.01917</span>,  <span class="number">0.00432</span>,  <span class="number">0.0045</span>,</span><br><span class="line">      <span class="number">0.00316</span>,  <span class="number">0.00245</span>,  <span class="number">0.00133</span>,  <span class="number">0.001029</span>,  <span class="number">0.00114</span>,  <span class="number">0.000869</span>, <span class="number">0.00067</span>,</span><br><span class="line">      <span class="number">0.000759</span>, <span class="number">0.00061</span>,  <span class="number">0.00483</span>,  <span class="number">0.0023</span>,    <span class="number">0.00185</span>,  <span class="number">0.01342</span>,  <span class="number">0.00196</span>,</span><br><span class="line">      <span class="number">0.00035</span>,  <span class="number">0.00092</span>,  <span class="number">0.027875</span>, <span class="number">0.007465</span>,  <span class="number">0.016265</span>, <span class="number">0.013995</span>, <span class="number">0.0490895</span>,</span><br><span class="line">      <span class="number">0.00848</span>,  <span class="number">0.00771</span>,  <span class="number">0.00737</span>,  <span class="number">0.025615</span>,  <span class="number">0.001725</span>, <span class="number">0.002265</span>, <span class="number">0.017875</span>,</span><br><span class="line">      <span class="number">0.016005</span>, <span class="number">0.02533</span>,  <span class="number">0.025295</span>, <span class="number">0.014375</span>,  <span class="number">0.00109</span>,  <span class="number">0.02732</span>,  <span class="number">0.02658</span>,</span><br><span class="line">      <span class="number">0.037355</span>, <span class="number">0.011575</span>, <span class="number">0.00451</span>,  <span class="number">0.005865</span>,  <span class="number">0.003255</span>, <span class="number">0.005965</span>, <span class="number">0.00077</span>,</span><br><span class="line">      <span class="number">0.00621</span>,  <span class="number">0.00222</span>,  <span class="number">0.0062</span>,   <span class="number">0.0</span>,       <span class="number">0.00538</span>,  <span class="number">0.00122</span>,  <span class="number">0.027875</span>,</span><br><span class="line">      <span class="number">0.007465</span>, <span class="number">0.016265</span>, <span class="number">0.013995</span>, <span class="number">0.0490895</span>, <span class="number">0.00848</span>,  <span class="number">0.00771</span>,  <span class="number">0.00737</span>,</span><br><span class="line">      <span class="number">0.025615</span>, <span class="number">0.001725</span>, <span class="number">0.002265</span>, <span class="number">0.017875</span>,  <span class="number">0.016005</span>, <span class="number">0.02533</span>,  <span class="number">0.025295</span>,</span><br><span class="line">      <span class="number">0.014375</span>, <span class="number">0.00109</span>,  <span class="number">0.02732</span>,  <span class="number">0.02658</span>,   <span class="number">0.037355</span>, <span class="number">0.011575</span>, <span class="number">0.00451</span>,</span><br><span class="line">      <span class="number">0.005865</span>, <span class="number">0.003255</span>, <span class="number">0.005965</span>, <span class="number">0.00077</span>,   <span class="number">0.00771</span>,  <span class="number">0.002379</span>, <span class="number">0.00766</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,       <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span>,</span><br><span class="line">      <span class="number">0.0</span>,      <span class="number">0.0</span>,      <span class="number">0.0</span></span><br><span class="line">    ]</span><br><span class="line">  &#125;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>{
+  // Configure the daemon below:
+  &quot;options&quot;: {
+    // Select the osquery config plugin.
+    &quot;config_plugin&quot;: &quot;filesystem&quot;,
 
-<p>其中主要包含如下几个字段：</p>
-<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute"><span class="nomarkup">options</span></span></span><br><span class="line"><span class="attribute">config_plugin</span></span><br><span class="line"><span class="attribute">logger_plugin</span></span><br><span class="line"><span class="attribute">schedule</span></span><br><span class="line"><span class="attribute">decorators</span></span><br><span class="line"><span class="attribute">packs</span></span><br></pre></td></tr></table></figure>
+    // Select the osquery logging plugin.
+    &quot;logger_plugin&quot;: &quot;filesystem&quot;,
 
+    // The log directory stores info, warning, and errors.
+    // If the daemon uses the &#39;filesystem&#39; logging retriever then the log_dir
+    // will also contain the query results.
+    //&quot;logger_path&quot;: &quot;/var/log/osquery&quot;,
 
+    // Set &#39;disable_logging&#39; to true to prevent writing any info, warning, error
+    // logs. If a logging plugin is selected it will still write query results.
+    //&quot;disable_logging&quot;: &quot;false&quot;,
 
+    // Splay the scheduled interval for queries.
+    // This is very helpful to prevent system performance impact when scheduling
+    // large numbers of queries that run a smaller or similar intervals.
+    //&quot;schedule_splay_percent&quot;: &quot;10&quot;,
 
+    // A filesystem path for disk-based backing storage used for events and
+    // query results differentials. See also &#39;use_in_memory_database&#39;.
+    //&quot;database_path&quot;: &quot;/var/osquery/osquery.db&quot;,
 
-<p><strong>options</strong></p>
+    // Comma-delimited list of table names to be disabled.
+    // This allows osquery to be launched without certain tables.
+    //&quot;disable_tables&quot;: &quot;foo_bar,time&quot;,
+
+    // Comma-delimited list of table names to be enabled.
+    // This allows osquery to be launched with certain tables only.
+    //&quot;enable_tables&quot;: &quot;foo_bar,time&quot;,
+
+    &quot;utc&quot;: &quot;true&quot;
+  },
+
+  // Define a schedule of queries:
+  &quot;schedule&quot;: {
+    // This is a simple example query that outputs basic system information.
+    &quot;system_info&quot;: {
+      // The exact query to run.
+      &quot;query&quot;: &quot;SELECT hostname, cpu_brand, physical_memory FROM system_info;&quot;,
+      // The interval in seconds to run this query, not an exact interval.
+      &quot;interval&quot;: 3600
+    }
+  },
+
+  // Decorators are normal queries that append data to every query.
+  &quot;decorators&quot;: {
+    &quot;load&quot;: [
+      &quot;SELECT uuid AS host_uuid FROM system_info;&quot;,
+      &quot;SELECT user AS username FROM logged_in_users ORDER BY time DESC LIMIT 1;&quot;
+    ]
+  },
+
+  // Add default osquery packs or install your own.
+  //
+  // There are several &#39;default&#39; packs installed with &#39;make install&#39; or via
+  // packages and/or Homebrew.
+  //
+  // Linux:        /usr/share/osquery/packs
+  // OS X:         /var/osquery/packs
+  // Homebrew:     /usr/local/share/osquery/packs
+  // make install: {PREFIX}/share/osquery/packs
+  //
+  &quot;packs&quot;: {
+    // &quot;osquery-monitoring&quot;: &quot;/usr/share/osquery/packs/osquery-monitoring.conf&quot;,
+    // &quot;incident-response&quot;: &quot;/usr/share/osquery/packs/incident-response.conf&quot;,
+    // &quot;it-compliance&quot;: &quot;/usr/share/osquery/packs/it-compliance.conf&quot;,
+    // &quot;osx-attacks&quot;: &quot;/usr/share/osquery/packs/osx-attacks.conf&quot;,
+    // &quot;vuln-management&quot;: &quot;/usr/share/osquery/packs/vuln-management.conf&quot;,
+    // &quot;hardware-monitoring&quot;: &quot;/usr/share/osquery/packs/hardware-monitoring.conf&quot;,
+    // &quot;ossec-rootkit&quot;: &quot;/usr/share/osquery/packs/ossec-rootkit.conf&quot;,
+    // &quot;windows-hardening&quot;: &quot;C:\\Program Files\\osquery\\packs\\windows-hardening.conf&quot;,
+    // &quot;windows-attacks&quot;: &quot;C:\\Program Files\\osquery\\packs\\windows-attacks.conf&quot;
+  },
+
+  // Provides feature vectors for osquery to leverage in simple statistical 
+  // analysis of results data. 
+  //
+  // Currently this configuration is only used by Windows in the Powershell
+  // Events table, wherein character_frequencies is a list of doubles 
+  // representing the aggregate occurrence of character values in Powershell 
+  // Scripts. A default configuration is provided which was adapated from 
+  // Lee Holmes cobbr project: 
+  // https://gist.github.com/cobbr/acbe5cc7a186726d4e309070187beee6
+  // 
+  &quot;feature_vectors&quot;: {
+    &quot;character_frequencies&quot;: [
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.00045,  0.01798,
+      0.0,      0.03111,  0.00063,  0.00027,   0.0,      0.01336,  0.0133,
+      0.00128,  0.0027,   0.00655,  0.01932,   0.01917,  0.00432,  0.0045,
+      0.00316,  0.00245,  0.00133,  0.001029,  0.00114,  0.000869, 0.00067,
+      0.000759, 0.00061,  0.00483,  0.0023,    0.00185,  0.01342,  0.00196,
+      0.00035,  0.00092,  0.027875, 0.007465,  0.016265, 0.013995, 0.0490895,
+      0.00848,  0.00771,  0.00737,  0.025615,  0.001725, 0.002265, 0.017875,
+      0.016005, 0.02533,  0.025295, 0.014375,  0.00109,  0.02732,  0.02658,
+      0.037355, 0.011575, 0.00451,  0.005865,  0.003255, 0.005965, 0.00077,
+      0.00621,  0.00222,  0.0062,   0.0,       0.00538,  0.00122,  0.027875,
+      0.007465, 0.016265, 0.013995, 0.0490895, 0.00848,  0.00771,  0.00737,
+      0.025615, 0.001725, 0.002265, 0.017875,  0.016005, 0.02533,  0.025295,
+      0.014375, 0.00109,  0.02732,  0.02658,   0.037355, 0.011575, 0.00451,
+      0.005865, 0.003255, 0.005965, 0.00077,   0.00771,  0.002379, 0.00766,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0,      0.0,       0.0,      0.0,      0.0,
+      0.0,      0.0,      0.0
+    ]
+  }    
+}</code></pre><p>其中主要包含如下几个字段：</p>
+<pre><code>options
+config_plugin
+logger_plugin
+schedule
+decorators
+packs</code></pre><p><strong>options</strong></p>
 <p>官方文档给出的描述如下，那些不是用来控制启动配置的flags被归类为options内：</p>
 <blockquote>
 <p>Flags that do not control startup settings may be included as “options” within configuration. Essentially, any flag needed to help osquery determine and discover a configuration must be supplied via command-line arguments. Google Flags enhances this to allow flags to be set within environment variables or via a “master” flag file.</p>
@@ -399,47 +579,165 @@
 </blockquote>
 <p><strong>日志入kafka</strong></p>
 <p>配置如下，具体见<a href="https://osquery.readthedocs.io/en/stable/deployment/logging/" target="_blank" rel="noopener">文档</a></p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">ubuntu<span class="meta">@VM</span><span class="number">-0</span><span class="number">-17</span>-<span class="string">ubuntu:</span>~$ cat <span class="regexp">/etc/</span>osquery/osquery.conf</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"options"</span>: &#123;</span><br><span class="line">    <span class="string">"config_plugin"</span>: <span class="string">"filesystem"</span>,</span><br><span class="line">    <span class="string">"logger_plugin"</span>: <span class="string">"kafka_producer"</span>,</span><br><span class="line">    <span class="string">"logger_path"</span>: <span class="string">"/var/log/osquery"</span>,</span><br><span class="line">    <span class="string">"disable_logging"</span>: <span class="string">"false"</span>,</span><br><span class="line">    <span class="string">"log_result_events"</span>: <span class="string">"true"</span>,</span><br><span class="line">    <span class="string">"schedule_splay_percent"</span>: <span class="string">"10"</span>,</span><br><span class="line">    <span class="string">"pidfile"</span>: <span class="string">"/var/osquery/osquery.pidfile"</span>,</span><br><span class="line">    <span class="string">"events_expiry"</span>: <span class="string">"3600"</span>,</span><br><span class="line">    <span class="string">"database_path"</span>: <span class="string">"/var/osquery/osquery.db"</span>,</span><br><span class="line">    <span class="string">"verbose"</span>: <span class="string">"false"</span>,</span><br><span class="line">    <span class="string">"worker_threads"</span>: <span class="string">"6"</span>,</span><br><span class="line">    <span class="string">"enable_monitor"</span>: <span class="string">"true"</span>,</span><br><span class="line">    <span class="string">"disable_events"</span>: <span class="string">"false"</span>,</span><br><span class="line">    <span class="string">"disable_audit"</span>: <span class="string">"false"</span>,</span><br><span class="line">    <span class="string">"audit_allow_config"</span>: <span class="string">"true"</span>,</span><br><span class="line">    <span class="string">"host_identifier"</span>: <span class="string">"hostname"</span>,</span><br><span class="line">    <span class="string">"enable_syslog"</span>: <span class="string">"true"</span>,</span><br><span class="line">    <span class="string">"audit_allow_sockets"</span>: <span class="string">"true"</span>,</span><br><span class="line">    <span class="string">"schedule_default_interval"</span>: <span class="string">"3600"</span>,</span><br><span class="line">    <span class="string">"logger_kafka_brokers"</span>: <span class="string">"127.0.0.1:9092"</span>,</span><br><span class="line">    <span class="string">"logger_kafka_topic"</span>: <span class="string">"process-port"</span>,</span><br><span class="line">    <span class="string">"logger_kafka_acks"</span>: <span class="string">"1"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">"schedule"</span>: &#123;</span><br><span class="line">    <span class="string">"process"</span>: &#123;</span><br><span class="line">      <span class="string">"query"</span>: <span class="string">"SELECT * FROM process_events;"</span>,</span><br><span class="line">      <span class="string">"interval"</span>: <span class="number">3600</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">"decorators"</span>: &#123;</span><br><span class="line">    <span class="string">"load"</span>: [</span><br><span class="line">      <span class="string">"SELECT uuid AS host_uuid FROM system_info;"</span>,</span><br><span class="line">      <span class="string">"SELECT user AS username FROM logged_in_users ORDER BY time DESC LIMIT 1;"</span></span><br><span class="line">    ]</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">"packs"</span>: &#123;</span><br><span class="line">     <span class="string">"osquery-monitoring"</span>: <span class="string">"/usr/share/osquery/packs/osquery-monitoring.conf"</span>,</span><br><span class="line">     <span class="string">"incident-response"</span>: <span class="string">"/usr/share/osquery/packs/incident-response.conf"</span>,</span><br><span class="line">     <span class="string">"it-compliance"</span>: <span class="string">"/usr/share/osquery/packs/it-compliance.conf"</span>,</span><br><span class="line">     <span class="string">"vuln-management"</span>: <span class="string">"/usr/share/osquery/packs/vuln-management.conf"</span>,</span><br><span class="line">     <span class="string">"system-snapshot"</span>: &#123;</span><br><span class="line">	<span class="string">"queries"</span>: &#123;</span><br><span class="line">        <span class="string">"processes_by_port"</span>: &#123;</span><br><span class="line">          <span class="string">"query"</span>: <span class="string">"select * from process_events"</span>,</span><br><span class="line">          <span class="string">"interval"</span>: <span class="number">3600</span>,</span><br><span class="line">          <span class="string">"snapshot"</span>: <span class="literal">false</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">"kafka_topics"</span>: &#123;</span><br><span class="line">    <span class="string">"process-port"</span>: [</span><br><span class="line">      <span class="string">"pack_system-snapshot_processes_by_port"</span></span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="./image-20201029152149095.png" alt="image-20201029152149095"></p>
+<pre><code>ubuntu@VM-0-17-ubuntu:~$ cat /etc/osquery/osquery.conf
+{
+  &quot;options&quot;: {
+    &quot;config_plugin&quot;: &quot;filesystem&quot;,
+    &quot;logger_plugin&quot;: &quot;kafka_producer&quot;,
+    &quot;logger_path&quot;: &quot;/var/log/osquery&quot;,
+    &quot;disable_logging&quot;: &quot;false&quot;,
+    &quot;log_result_events&quot;: &quot;true&quot;,
+    &quot;schedule_splay_percent&quot;: &quot;10&quot;,
+    &quot;pidfile&quot;: &quot;/var/osquery/osquery.pidfile&quot;,
+    &quot;events_expiry&quot;: &quot;3600&quot;,
+    &quot;database_path&quot;: &quot;/var/osquery/osquery.db&quot;,
+    &quot;verbose&quot;: &quot;false&quot;,
+    &quot;worker_threads&quot;: &quot;6&quot;,
+    &quot;enable_monitor&quot;: &quot;true&quot;,
+    &quot;disable_events&quot;: &quot;false&quot;,
+    &quot;disable_audit&quot;: &quot;false&quot;,
+    &quot;audit_allow_config&quot;: &quot;true&quot;,
+    &quot;host_identifier&quot;: &quot;hostname&quot;,
+    &quot;enable_syslog&quot;: &quot;true&quot;,
+    &quot;audit_allow_sockets&quot;: &quot;true&quot;,
+    &quot;schedule_default_interval&quot;: &quot;3600&quot;,
+    &quot;logger_kafka_brokers&quot;: &quot;127.0.0.1:9092&quot;,
+    &quot;logger_kafka_topic&quot;: &quot;process-port&quot;,
+    &quot;logger_kafka_acks&quot;: &quot;1&quot;
+  },
+  &quot;schedule&quot;: {
+    &quot;process&quot;: {
+      &quot;query&quot;: &quot;SELECT * FROM process_events;&quot;,
+      &quot;interval&quot;: 3600
+    }
+  },
+  &quot;decorators&quot;: {
+    &quot;load&quot;: [
+      &quot;SELECT uuid AS host_uuid FROM system_info;&quot;,
+      &quot;SELECT user AS username FROM logged_in_users ORDER BY time DESC LIMIT 1;&quot;
+    ]
+  },
+  &quot;packs&quot;: {
+     &quot;osquery-monitoring&quot;: &quot;/usr/share/osquery/packs/osquery-monitoring.conf&quot;,
+     &quot;incident-response&quot;: &quot;/usr/share/osquery/packs/incident-response.conf&quot;,
+     &quot;it-compliance&quot;: &quot;/usr/share/osquery/packs/it-compliance.conf&quot;,
+     &quot;vuln-management&quot;: &quot;/usr/share/osquery/packs/vuln-management.conf&quot;,
+     &quot;system-snapshot&quot;: {
+    &quot;queries&quot;: {
+        &quot;processes_by_port&quot;: {
+          &quot;query&quot;: &quot;select * from process_events&quot;,
+          &quot;interval&quot;: 3600,
+          &quot;snapshot&quot;: false
+        }
+      }
+    }
+  },
+  &quot;kafka_topics&quot;: {
+    &quot;process-port&quot;: [
+      &quot;pack_system-snapshot_processes_by_port&quot;
+    ]
+  }
+}</code></pre><p><img src="./image-20201029152149095.png" alt="image-20201029152149095"></p>
 <p><strong>schedule</strong></p>
 <p>osquery调度相关，query里是查询语句，interval代表调度周期，其它一些比较重要的可选字段如removed，snapshot等都在<a href="https://osquery.readthedocs.io/en/stable/deployment/configuration/#schedule" target="_blank" rel="noopener">文档</a>中有解释；其中snapshot这个字段比较重要，它表示查询结果是增量模式还是快照模式，若为快照模式，则输出当时查询的全量结果，若为增量模式，则每次查询只输出与上次查询有差异的部分（增量），这个要注意一下：</p>
-<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"schedule"</span>: &#123;</span><br><span class="line">  <span class="comment">// This is a simple example query that outputs basic system information.</span></span><br><span class="line">  <span class="string">"system_info"</span>: &#123;</span><br><span class="line">    <span class="comment">// The exact query to run.</span></span><br><span class="line">    <span class="string">"query"</span>: <span class="string">"SELECT hostname, cpu_brand, physical_memory FROM system_info;"</span>,</span><br><span class="line">    <span class="comment">// The interval in seconds to run this query, not an exact interval.</span></span><br><span class="line">    <span class="string">"interval"</span>: <span class="number">3600</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<pre><code>  &quot;schedule&quot;: {
+    // This is a simple example query that outputs basic system information.
+    &quot;system_info&quot;: {
+      // The exact query to run.
+      &quot;query&quot;: &quot;SELECT hostname, cpu_brand, physical_memory FROM system_info;&quot;,
+      // The interval in seconds to run this query, not an exact interval.
+      &quot;interval&quot;: 3600
+    }
+  },</code></pre><pre><code>The basic scheduled query specification includes:
 
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">The basic scheduled query specification includes:</span><br><span class="line"></span><br><span class="line">query: the SQL query <span class="keyword">to</span> run</span><br><span class="line">interval: an interval <span class="keyword">in</span> seconds <span class="keyword">to</span> <span class="builtin-name">run</span> the query (subject <span class="keyword">to</span> splay/smoothing)</span><br><span class="line">removed: a boolean <span class="keyword">to</span> determine <span class="keyword">if</span> <span class="string">"removed"</span> actions should be logged,<span class="built_in"> default </span><span class="literal">true</span></span><br><span class="line">snapshot: a boolean <span class="keyword">to</span> <span class="builtin-name">set</span> <span class="string">'snapshot'</span> mode,<span class="built_in"> default </span><span class="literal">false</span></span><br><span class="line">platform: restrict this query <span class="keyword">to</span> a given platform,<span class="built_in"> default </span>is <span class="string">'all'</span> platforms; you may use commas <span class="keyword">to</span> <span class="builtin-name">set</span> multiple platforms</span><br><span class="line">version: only <span class="builtin-name">run</span> on osquery versions greater than <span class="keyword">or</span> equal-to this version string</span><br><span class="line">shard: restrict this query <span class="keyword">to</span> a percentage (1-100) of target hosts</span><br><span class="line">denylist: a boolean <span class="keyword">to</span> determine <span class="keyword">if</span> this query may be denylisted (when stopped <span class="keyword">for</span> excessive<span class="built_in"> resource </span>consumption),<span class="built_in"> default </span><span class="literal">true</span></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<p><strong>decorators</strong></p>
+query: the SQL query to run
+interval: an interval in seconds to run the query (subject to splay/smoothing)
+removed: a boolean to determine if &quot;removed&quot; actions should be logged, default true
+snapshot: a boolean to set &#39;snapshot&#39; mode, default false
+platform: restrict this query to a given platform, default is &#39;all&#39; platforms; you may use commas to set multiple platforms
+version: only run on osquery versions greater than or equal-to this version string
+shard: restrict this query to a percentage (1-100) of target hosts
+denylist: a boolean to determine if this query may be denylisted (when stopped for excessive resource consumption), default true</code></pre><p><strong>decorators</strong></p>
 <p>decorators，为osquery查询结果增加额外的装饰器，大意就是配置装饰器将在查询前后执行装饰器内部定义的查询语句并将结果添加到osquery日志结果中去；装饰器支持几种模式，load是在每次配置加载时启动装饰器，always在schedule中的每条语句执行前运行装饰器，interval则是以调度模式启动装饰器：</p>
-<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">Decorator queries exist <span class="keyword">in</span> osquery versions <span class="number">1.7</span><span class="number">.3</span>+ <span class="keyword">and</span> are used <span class="keyword">to</span> add additional <span class="string">"decorations"</span> <span class="keyword">to</span> results <span class="keyword">and</span> snapshot logs. There are three types <span class="keyword">of</span> decorator queries based <span class="keyword">on</span> when <span class="keyword">and</span> how you want <span class="keyword">the</span> decoration data.</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"decorators"</span>: &#123;</span><br><span class="line">    <span class="string">"load"</span>: [</span><br><span class="line">      <span class="string">"SELECT version FROM osquery_info;"</span>,</span><br><span class="line">      <span class="string">"SELECT uuid AS host_uuid FROM system_info;"</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="string">"always"</span>: [</span><br><span class="line">      <span class="string">"SELECT user AS username FROM logged_in_users WHERE user &lt;&gt; '' ORDER BY time LIMIT 1;"</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="string">"interval"</span>: &#123;</span><br><span class="line">      <span class="string">"3600"</span>: [</span><br><span class="line">        <span class="string">"SELECT total_seconds AS uptime FROM uptime;"</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">The types <span class="keyword">of</span> decorators are:</span><br><span class="line"></span><br><span class="line">load: <span class="built_in">run</span> these decorators when <span class="keyword">the</span> configuration loads (<span class="keyword">or</span> <span class="keyword">is</span> reloaded)</span><br><span class="line">always: <span class="built_in">run</span> these decorators <span class="keyword">before</span> each query <span class="keyword">in</span> <span class="keyword">the</span> schedule</span><br><span class="line">interval: a special key <span class="keyword">that</span> defines a map <span class="keyword">of</span> interval <span class="keyword">times</span>, see <span class="keyword">below</span></span><br><span class="line"></span><br><span class="line">Each decorator query should <span class="literal">return</span> <span class="keyword">at</span> most <span class="number">1</span> row. A warning will be generated <span class="keyword">if</span> more than <span class="number">1</span> row <span class="keyword">is</span> returned <span class="keyword">as</span> they will be forcefully ignored <span class="keyword">and</span> constitute undefined behavior. Each decorator query should be careful <span class="keyword">not</span> <span class="keyword">to</span> emit column collisions, this <span class="keyword">is</span> also undefined behavior.</span><br><span class="line"></span><br><span class="line">The columns, <span class="keyword">and</span> their values, will be appended <span class="keyword">to</span> each <span class="built_in">log</span> line <span class="keyword">as</span> follows. Assuming <span class="keyword">the</span> <span class="keyword">above</span> <span class="keyword">set</span> <span class="keyword">of</span> decorators <span class="keyword">is</span> used, <span class="keyword">and</span> <span class="keyword">the</span> schedule <span class="keyword">is</span> execution <span class="keyword">for</span> <span class="keyword">over</span> an hour (<span class="number">3600</span> seconds):</span><br></pre></td></tr></table></figure>
+<pre><code>Decorator queries exist in osquery versions 1.7.3+ and are used to add additional &quot;decorations&quot; to results and snapshot logs. There are three types of decorator queries based on when and how you want the decoration data.
 
-<p>目前只试过load：</p>
-<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">"decorators": &#123;</span><br><span class="line">  "load": [</span><br><span class="line">    "<span class="keyword">SELECT</span> <span class="built_in">uuid</span> <span class="keyword">AS</span> host_uuid <span class="keyword">FROM</span> system_info;",</span><br><span class="line">    "<span class="keyword">SELECT</span> <span class="keyword">user</span> <span class="keyword">AS</span> username <span class="keyword">FROM</span> logged_in_users <span class="keyword">ORDER</span> <span class="keyword">BY</span> time <span class="keyword">DESC</span> <span class="keyword">LIMIT</span> <span class="number">1</span>;"</span><br><span class="line">  ]</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+{
+  &quot;decorators&quot;: {
+    &quot;load&quot;: [
+      &quot;SELECT version FROM osquery_info;&quot;,
+      &quot;SELECT uuid AS host_uuid FROM system_info;&quot;
+    ],
+    &quot;always&quot;: [
+      &quot;SELECT user AS username FROM logged_in_users WHERE user &lt;&gt; &#39;&#39; ORDER BY time LIMIT 1;&quot;
+    ],
+    &quot;interval&quot;: {
+      &quot;3600&quot;: [
+        &quot;SELECT total_seconds AS uptime FROM uptime;&quot;
+      ]
+    }
+  }
+}
+The types of decorators are:
 
-<p><img src="./image-20201029144955777.png" alt="image-20201029144955777"></p>
+load: run these decorators when the configuration loads (or is reloaded)
+always: run these decorators before each query in the schedule
+interval: a special key that defines a map of interval times, see below
+
+Each decorator query should return at most 1 row. A warning will be generated if more than 1 row is returned as they will be forcefully ignored and constitute undefined behavior. Each decorator query should be careful not to emit column collisions, this is also undefined behavior.
+
+The columns, and their values, will be appended to each log line as follows. Assuming the above set of decorators is used, and the schedule is execution for over an hour (3600 seconds):</code></pre><p>目前只试过load：</p>
+<pre><code>  &quot;decorators&quot;: {
+    &quot;load&quot;: [
+      &quot;SELECT uuid AS host_uuid FROM system_info;&quot;,
+      &quot;SELECT user AS username FROM logged_in_users ORDER BY time DESC LIMIT 1;&quot;
+    ]
+  },</code></pre><p><img src="./image-20201029144955777.png" alt="image-20201029144955777"></p>
 <p><strong>packs</strong></p>
 <p>打包好的sechdule查询语句，可以将同一类型的查询语句打包放在一个packs中，osquery项目自带了一些默认的packs集合：</p>
 <blockquote>
 <p>The above section on packs almost covers all you need to know about query packs. The specification contains a few caveats since packs are designed for distribution. Packs use the packs key, a map where the key is a pack name and the value can be either a string or a dictionary (object). When a string is used the value is passed back into the config plugin and acts as a “resource” request.</p>
 </blockquote>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">"packs": &#123;</span><br><span class="line">  <span class="comment">// "osquery-monitoring": "/usr/share/osquery/packs/osquery-monitoring.conf",</span></span><br><span class="line">  <span class="comment">// "incident-response": "/usr/share/osquery/packs/incident-response.conf",</span></span><br><span class="line">  <span class="comment">// "it-compliance": "/usr/share/osquery/packs/it-compliance.conf",</span></span><br><span class="line">  <span class="comment">// "osx-attacks": "/usr/share/osquery/packs/osx-attacks.conf",</span></span><br><span class="line">  <span class="comment">// "vuln-management": "/usr/share/osquery/packs/vuln-management.conf",</span></span><br><span class="line">  <span class="comment">// "hardware-monitoring": "/usr/share/osquery/packs/hardware-monitoring.conf",</span></span><br><span class="line">  <span class="comment">// "ossec-rootkit": "/usr/share/osquery/packs/ossec-rootkit.conf",</span></span><br><span class="line">  <span class="comment">// "windows-hardening": "C:\\Program Files\\osquery\\packs\\windows-hardening.conf",</span></span><br><span class="line">  <span class="comment">// "windows-attacks": "C:\\Program Files\\osquery\\packs\\windows-attacks.conf"</span></span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
-
-
-
-
-
+<pre class=" language-json"><code class="language-json">  <span class="token property">"packs"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    // <span class="token property">"osquery-monitoring"</span><span class="token operator">:</span> <span class="token string">"/usr/share/osquery/packs/osquery-monitoring.conf"</span><span class="token punctuation">,</span>
+    // <span class="token property">"incident-response"</span><span class="token operator">:</span> <span class="token string">"/usr/share/osquery/packs/incident-response.conf"</span><span class="token punctuation">,</span>
+    // <span class="token property">"it-compliance"</span><span class="token operator">:</span> <span class="token string">"/usr/share/osquery/packs/it-compliance.conf"</span><span class="token punctuation">,</span>
+    // <span class="token property">"osx-attacks"</span><span class="token operator">:</span> <span class="token string">"/usr/share/osquery/packs/osx-attacks.conf"</span><span class="token punctuation">,</span>
+    // <span class="token property">"vuln-management"</span><span class="token operator">:</span> <span class="token string">"/usr/share/osquery/packs/vuln-management.conf"</span><span class="token punctuation">,</span>
+    // <span class="token property">"hardware-monitoring"</span><span class="token operator">:</span> <span class="token string">"/usr/share/osquery/packs/hardware-monitoring.conf"</span><span class="token punctuation">,</span>
+    // <span class="token property">"ossec-rootkit"</span><span class="token operator">:</span> <span class="token string">"/usr/share/osquery/packs/ossec-rootkit.conf"</span><span class="token punctuation">,</span>
+    // <span class="token property">"windows-hardening"</span><span class="token operator">:</span> <span class="token string">"C:\\Program Files\\osquery\\packs\\windows-hardening.conf"</span><span class="token punctuation">,</span>
+    // <span class="token property">"windows-attacks"</span><span class="token operator">:</span> <span class="token string">"C:\\Program Files\\osquery\\packs\\windows-attacks.conf"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span></code></pre>
 <p><strong>/usr/share/osquery/packs/osquery-monitoring.conf</strong></p>
 <p>osquery自带的状态监控pack：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"queries"</span>: &#123;</span><br><span class="line">    <span class="attr">"schedule"</span>: &#123;</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"select name, interval, executions, output_size, wall_time, (user_time/executions) as avg_user_time, (system_time/executions) as avg_system_time, average_memory, last_executed from osquery_schedule;"</span>,</span><br><span class="line">      <span class="attr">"interval"</span>: <span class="number">7200</span>,</span><br><span class="line">      <span class="attr">"removed"</span>: <span class="literal">false</span>,</span><br><span class="line">      <span class="attr">"blacklist"</span>: <span class="literal">false</span>,</span><br><span class="line">      <span class="attr">"version"</span>: <span class="string">"1.6.0"</span>,</span><br><span class="line">      <span class="attr">"description"</span>: <span class="string">"Report performance for every query within packs and the general schedule."</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"events"</span>: &#123;</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"select name, publisher, type, subscriptions, events, active from osquery_events;"</span>,</span><br><span class="line">      <span class="attr">"interval"</span>: <span class="number">86400</span>,</span><br><span class="line">      <span class="attr">"removed"</span>: <span class="literal">false</span>,</span><br><span class="line">      <span class="attr">"blacklist"</span>: <span class="literal">false</span>,</span><br><span class="line">      <span class="attr">"version"</span>: <span class="string">"1.5.3"</span>,</span><br><span class="line">      <span class="attr">"description"</span>: <span class="string">"Report event publisher health and track event counters."</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"osquery_info"</span>: &#123;</span><br><span class="line">      <span class="attr">"query"</span>: <span class="string">"select i.*, p.resident_size, p.user_time, p.system_time, time.minutes as counter from osquery_info i, processes p, time where p.pid = i.pid;"</span>,</span><br><span class="line">      <span class="attr">"interval"</span>: <span class="number">600</span>,</span><br><span class="line">      <span class="attr">"removed"</span>: <span class="literal">false</span>,</span><br><span class="line">      <span class="attr">"blacklist"</span>: <span class="literal">false</span>,</span><br><span class="line">      <span class="attr">"version"</span>: <span class="string">"1.2.2"</span>,</span><br><span class="line">      <span class="attr">"description"</span>: <span class="string">"A heartbeat counter that reports general performance (CPU, memory) and version."</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<p><strong>osquery.flags</strong></p>
+<pre><code>{
+  &quot;queries&quot;: {
+    &quot;schedule&quot;: {
+      &quot;query&quot;: &quot;select name, interval, executions, output_size, wall_time, (user_time/executions) as avg_user_time, (system_time/executions) as avg_system_time, average_memory, last_executed from osquery_schedule;&quot;,
+      &quot;interval&quot;: 7200,
+      &quot;removed&quot;: false,
+      &quot;blacklist&quot;: false,
+      &quot;version&quot;: &quot;1.6.0&quot;,
+      &quot;description&quot;: &quot;Report performance for every query within packs and the general schedule.&quot;
+    },
+    &quot;events&quot;: {
+      &quot;query&quot;: &quot;select name, publisher, type, subscriptions, events, active from osquery_events;&quot;,
+      &quot;interval&quot;: 86400,
+      &quot;removed&quot;: false,
+      &quot;blacklist&quot;: false,
+      &quot;version&quot;: &quot;1.5.3&quot;,
+      &quot;description&quot;: &quot;Report event publisher health and track event counters.&quot;
+    },
+    &quot;osquery_info&quot;: {
+      &quot;query&quot;: &quot;select i.*, p.resident_size, p.user_time, p.system_time, time.minutes as counter from osquery_info i, processes p, time where p.pid = i.pid;&quot;,
+      &quot;interval&quot;: 600,
+      &quot;removed&quot;: false,
+      &quot;blacklist&quot;: false,
+      &quot;version&quot;: &quot;1.2.2&quot;,
+      &quot;description&quot;: &quot;A heartbeat counter that reports general performance (CPU, memory) and version.&quot;
+    }
+  }
+}</code></pre><p><strong>osquery.flags</strong></p>
 <p>基本都在<a href="https://osquery.readthedocs.io/en/stable/installation/cli-flags/" target="_blank" rel="noopener">CommandLineFlags</a>中，不再详述</p>
 <p><strong>log</strong></p>
 <p>本地日志存储在/var/log/osquery/目录下，几个软链接指向的都是当前最新修改的日志文件；其中osqueryi.xxxxx和osqueryd.xxxxxx分别存储osqueryi和osqueryd的相关日志输出，前面也说过二者是分离的；error存储osquery运行过程中的一些报错日志，warn存储告警日志，info存储运行日志，results.log存储增量日志，snapshot存储快照日志，具体放在哪个文件里由前面的配置决定：</p>
@@ -568,6 +866,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

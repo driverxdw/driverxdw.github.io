@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="作为新手被师傅们派来打世安杯，以下是部分题目的wp">
@@ -31,10 +31,6 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://driverxdw.github.io/2017/10/09/%E4%B8%96%E5%AE%89%E6%9D%AF%E9%80%86%E5%90%91wp/1.png">
 <meta property="og:image" content="https://driverxdw.github.io/2017/10/09/%E4%B8%96%E5%AE%89%E6%9D%AF%E9%80%86%E5%90%91wp/2.png">
-<meta property="og:image" content="https://driverxdw.github.io/2017/10/09/%E4%B8%96%E5%AE%89%E6%9D%AF%E9%80%86%E5%90%91wp/3.png">
-<meta property="og:image" content="https://driverxdw.github.io/2017/10/09/%E4%B8%96%E5%AE%89%E6%9D%AF%E9%80%86%E5%90%91wp/4.png">
-<meta property="og:image" content="https://driverxdw.github.io/2017/10/09/%E4%B8%96%E5%AE%89%E6%9D%AF%E9%80%86%E5%90%91wp/5.png">
-<meta property="og:image" content="https://driverxdw.github.io/2017/10/09/%E4%B8%96%E5%AE%89%E6%9D%AF%E9%80%86%E5%90%91wp/6.png">
 <meta property="article:published_time" content="2017-10-08T16:54:06.000Z">
 <meta property="article:modified_time" content="2020-09-11T15:49:28.627Z">
 <meta property="article:author" content="XDW">
@@ -100,7 +96,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -325,24 +321,53 @@
 <a id="more"></a>
 
 <p>1.console:下载下来直接扔进ida发现看不懂程序逻辑而且无法反编译，联想到可能是.net文件，扔进die文件识别工具发现果然是.net框架，于是找了一个.net的反编译工具LSPY，反编译后的图片如下：<br><img src="./1.png" alt="logo"><br><img src="./2.png" alt="logo"><br>反编译后来的结果有些函数名没有显示出来，猜想可能是编码的原因。分析了一波代码得到逻辑如下:<br>先字符串“CreateByTenshine”进行循环取值，每个字符循环14次不断与程序给的那个很长的字符串进行循环亦或操作，之后赋回原值，之后把操作后得到的字符串进行md5加密，然后与输入的字符串进行对比。md5操作后的结果有16为和32位的，还有大写和小写，于是在本地都试了一下，最终发现当32位大写时getflag<br>脚本如下:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for i in range(len(a)):</span><br><span class="line">        for j in range(1,15):</span><br><span class="line">               a[i]&#x3D;chr(ord(a[i])^int(s[j]))</span><br><span class="line">        print a[i],</span><br></pre></td></tr></table></figure>
-<p>结果md5加密后取md5大写32位加上flag就ok了</p>
-<p>2.get_flag:<br>这道题直接扔到ida中发现连main函数都没有，于是通过查找字符串的交叉引用找到了主函数但发现好复杂(dalao勿喷)，于是扔到od<br>中打算动态调试一波，逻辑就很明确了，由于逻辑较为简单，这里直接写下:<br>输入乘以2再减去6之后与输入本身进行亦或操作之后减去(下标乘以2),之后把它和位于0x1115018位置的数据进行对比<br>写出脚本如下:<br>​<code>s=&#39;B9 3A A9 D8 15 8A E7 42 69 90 CA A3 4D D8 D9 C9&#39;.split(&#39; &#39;)
+<pre class=" language-a=&#39;2"><code class="language-a=&#39;2">for i in range(len(a)):
+        for j in range(1,15):
+               a[i]=chr(ord(a[i])^int(s[j]))
+        print a[i],```
+结果md5加密后取md5大写32位加上flag就ok了
+
+
+2.get_flag:
+这道题直接扔到ida中发现连main函数都没有，于是通过查找字符串的交叉引用找到了主函数但发现好复杂(dalao勿喷)，于是扔到od
+中打算动态调试一波，逻辑就很明确了，由于逻辑较为简单，这里直接写下:
+输入乘以2再减去6之后与输入本身进行亦或操作之后减去(下标乘以2),之后把它和位于0x1115018位置的数据进行对比
+写出脚本如下:
+​```s='B9 3A A9 D8 15 8A E7 42 69 90 CA A3 4D D8 D9 C9'.split(' ')
 for i in range(len(s)):
             for  j in range(32,128):
                 if int(s[i],16)==((j*2-6)^j)-(2*i):
-            print chr(j),</code><br>flag有点怪</p>
-<p>3.hackme:<br>那道题一看发现是elf文件，扔进ida看一波发现没有找到main函数，linux下用file看了一波发现符号表果然被裁掉了，找到不到main没关系啊，查看字符串的交叉引用:<br><img src="./3.png" alt="logo"><br>找到主函数分析了下发现主要操作是对输入和根据输入衍生出来的v9进行亦或，然后和v6数组进行比较，可是让我疑惑的是只进行了10次循环，而且v7 = (signed int)sub_406D90() % 22;这句没有看懂，但猜测这句的操作就是获取输入；于是打算先试一下用10次循环做，结果发现跑出了flag头，确定猜测是正确的，于是把循环次数改为22次跑出flag，脚本如下:</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>,<span class="number">22</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">32</span>,<span class="number">128</span>):</span><br><span class="line">            v9=<span class="number">0</span></span><br><span class="line">            v8=<span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span>(v8&lt;i+<span class="number">1</span>):</span><br><span class="line">            v9=<span class="number">1828812941</span>*v9+<span class="number">12345</span></span><br><span class="line">            v8+=<span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> (v9^<span class="built_in">int</span>(j))%<span class="number">128</span>==<span class="built_in">int</span>(s[i],<span class="number">16</span>)%<span class="number">128</span>:</span><br><span class="line">           print chr(j),</span><br></pre></td></tr></table></figure>
+            print chr(j),```
+flag有点怪
 
-<p>4.re.bin:<br>ida反编译:<br><img src="./4.png" alt="logo"><br><img src="./5.png" alt="logo"><br>这道题逻辑也很简单，但这道题给了我很大的启示就是在ida中分析一定要注意区分地址和地址中存放的数值之间的区别，可能是太粗心了，分析了好久，直到最后才发现原来一个是*v5,一个是v5,嗨呀好气，不过最终还是做出来了，其实也是挺简单,就是手动分配16个字节大小的内存空间，头1个字节放下标，后三个字节放601080的地址，最后放字符?(猜的);比较的算法就是把m字符之后的10个字符组成一个列表，然后遍历输入，找到列表中相同字符所对应的下标与5,2,7,2,5,6逐一进行比较，如果一致，则输入就是正确的flag,这题不需要写脚本，直接就可以得到flag:</p>
-<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">l=[<span class="string">'n'</span>, <span class="string">'o'</span>, <span class="string">'p'</span>, <span class="string">'q'</span>, <span class="string">'r'</span>, <span class="string">'s'</span>, <span class="string">'t'</span>, <span class="string">'u'</span>, <span class="string">'v'</span>, <span class="string">'w'</span>]</span><br><span class="line">l[<span class="number">5</span>],l[<span class="number">2</span>],l[<span class="number">7</span>],l[<span class="number">2</span>],l[<span class="number">5</span>],l[<span class="number">6</span>],</span><br></pre></td></tr></table></figure>
-<p>flag是rotors，就这么简单,哎呦好气.</p>
-<p>5.baopo:<br>这道题我拿到了之后先看一下伪源码，发现哎呦看不懂，然后linux下gdb动态调试，发现了<br><code>FYM-OI{olte_zi_wdqedd_djrzuj_shgmEDFqo{</code>这串类似flag的东西，然后调试了几个函数，猜测是对输入进行加密，之后与这串<br>类似flag的东西进行对比，跟踪了一波发现是对输入进行一波加加减减操作，但又不完全是，于是想先根据<code>FYM-OI}
-olte_zi_wdqedd_djrzuj_shgmEDFqo{</code>这串字符把基本的flag跑出来（能跑一些出来），跑不出来的进行爆破.本着这个猜想下了几<br>个断点然后不断比对输入和加密后的结果，首先跑出了CTF头，确定猜测是正确的，于是修改输入继续跑，最终得到<code>flag:CTF-BR{riot_in_public_square_vgzdLIEjd}</code><br><img src="./6.png" alt="logo"></p>
-<p>总结：最后一题是道apk，分析了下so库找到了get_flag和parase函数，但是也还是没有分析出来，等着以后来填坑吧23333(捂脸捂脸);<br>学长说这次比赛很水，嗨呀我还要继续努力.</p>
-<p>```</p>
+3.hackme:
+那道题一看发现是elf文件，扔进ida看一波发现没有找到main函数，linux下用file看了一波发现符号表果然被裁掉了，找到不到main没关系啊，查看字符串的交叉引用:
+![logo](./3.png)
+找到主函数分析了下发现主要操作是对输入和根据输入衍生出来的v9进行亦或，然后和v6数组进行比较，可是让我疑惑的是只进行了10次循环，而且v7 = (signed int)sub_406D90() % 22;这句没有看懂，但猜测这句的操作就是获取输入；于是打算先试一下用10次循环做，结果发现跑出了flag头，确定猜测是正确的，于是把循环次数改为22次跑出flag，脚本如下:</code></pre>
+<p>for i in range(0,22):<br>    for j in range(32,128):<br>            v9=0<br>            v8=0<br>    while(v8&lt;i+1):<br>            v9=1828812941*v9+12345<br>            v8+=1<br>    if (v9^int(j))%128==int(s[i],16)%128:<br>           print chr(j),           </p>
+<pre><code>
+4.re.bin:
+ida反编译:
+![logo](./4.png)
+![logo](./5.png)
+这道题逻辑也很简单，但这道题给了我很大的启示就是在ida中分析一定要注意区分地址和地址中存放的数值之间的区别，可能是太粗心了，分析了好久，直到最后才发现原来一个是*v5,一个是v5,嗨呀好气，不过最终还是做出来了，其实也是挺简单,就是手动分配16个字节大小的内存空间，头1个字节放下标，后三个字节放601080的地址，最后放字符?(猜的);比较的算法就是把m字符之后的10个字符组成一个列表，然后遍历输入，找到列表中相同字符所对应的下标与5,2,7,2,5,6逐一进行比较，如果一致，则输入就是正确的flag,这题不需要写脚本，直接就可以得到flag:</code></pre><p>  l=[‘n’, ‘o’, ‘p’, ‘q’, ‘r’, ‘s’, ‘t’, ‘u’, ‘v’, ‘w’]<br>  l[5],l[2],l[7],l[2],l[5],l[6],</p>
+<pre><code>flag是rotors，就这么简单,哎呦好气.
 
+5.baopo:
+这道题我拿到了之后先看一下伪源码，发现哎呦看不懂，然后linux下gdb动态调试，发现了
+`FYM-OI{olte_zi_wdqedd_djrzuj_shgmEDFqo{`这串类似flag的东西，然后调试了几个函数，猜测是对输入进行加密，之后与这串
+类似flag的东西进行对比，跟踪了一波发现是对输入进行一波加加减减操作，但又不完全是，于是想先根据`FYM-OI}
+olte_zi_wdqedd_djrzuj_shgmEDFqo{`这串字符把基本的flag跑出来（能跑一些出来），跑不出来的进行爆破.本着这个猜想下了几
+个断点然后不断比对输入和加密后的结果，首先跑出了CTF头，确定猜测是正确的，于是修改输入继续跑，最终得到`flag:CTF-BR{riot_in_public_square_vgzdLIEjd}`
+![logo](./6.png)
+
+总结：最后一题是道apk，分析了下so库找到了get_flag和parase函数，但是也还是没有分析出来，等着以后来填坑吧23333(捂脸捂脸);
+学长说这次比赛很水，嗨呀我还要继续努力.
+
+
+
+
+</code></pre>
     </div>
 
     
@@ -447,6 +472,8 @@ olte_zi_wdqedd_djrzuj_shgmEDFqo{</code>这串字符把基本的flag跑出来（�
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

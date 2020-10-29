@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x01 LLVM简介 The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.    LLVM是模块化、可重用的编译器以及工具链的集合，有些人把LLVM当成是一个低层的虚拟机(low level virtual machine)，但官方给出的解释是这样的:    Th">
@@ -105,7 +105,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -367,9 +367,13 @@
 <p>g++: internal compiler error: Killed (program cc1plus)</p>
 </blockquote>
 <p>查了下资料发现还是内存不足。。。。(我都给了四个G了) 解决方法是加一个临时的交换分区  </p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo dd <span class="attribute">if</span>=/dev/zero <span class="attribute">of</span>=/swapfile <span class="attribute">bs</span>=64M <span class="attribute">count</span>=16  </span><br><span class="line">sudo mkswap /swapfile  </span><br><span class="line">sudo swapon /swapfile  </span><br><span class="line">After compiling, you may wish toCode:  </span><br><span class="line">sudo swapoff /swapfile  </span><br><span class="line">sudo rm /swapfile</span><br></pre></td></tr></table></figure>
-
-<p>最后不容易终于编译成功了，build/bin目录下生成了编译前端  </p>
+<pre><code>sudo dd if=/dev/zero of=/swapfile bs=64M count=16  
+sudo mkswap /swapfile  
+sudo swapon /swapfile  
+After compiling, you may wish toCode:  
+sudo swapoff /swapfile  
+sudo rm /swapfile
+</code></pre><p>最后不容易终于编译成功了，build/bin目录下生成了编译前端  </p>
 <p><img src="./%E7%BC%96%E8%AF%91%E6%88%90%E5%8A%9F.png" alt="image">  </p>
 <h3 id="2、混淆参数"><a href="#2、混淆参数" class="headerlink" title="2、混淆参数"></a>2、混淆参数</h3><p>OLLVM有一些混淆参数，类似的有字符串加密、控制流扁平化、指令替换、控制流伪造等等  </p>
 <p>1、控制流扁平化  </p>
@@ -500,6 +504,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

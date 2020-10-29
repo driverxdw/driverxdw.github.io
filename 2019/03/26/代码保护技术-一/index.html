@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x00 代码虚拟化简介代码虚拟化通过对原生的native指令集代码进行自定义字节码替换，在执行的时候由虚拟机中的解释器来执行，由于是用户自定义的字节码，基于本地native指令集的反汇编器无法进行识别，所以虚拟机保护下的代码相对来说更能延缓攻击者的分析与破解。目前虚拟机技术常用于代码虚拟化、加密壳、沙盒、解释器如JVM等等。 0x01 代码代码虚拟化的混淆代码虚拟化也可以算作是混淆的一种，能够有">
@@ -95,7 +95,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -320,15 +320,266 @@
         <h2 id="0x00-代码虚拟化简介"><a href="#0x00-代码虚拟化简介" class="headerlink" title="0x00 代码虚拟化简介"></a>0x00 代码虚拟化简介</h2><p>代码虚拟化通过对原生的native指令集代码进行自定义字节码替换，在执行的时候由虚拟机中的解释器来执行，由于是用户自定义的字节码，基于本地native指令集的反汇编器无法进行识别，所以虚拟机保护下的代码相对来说更能延缓攻击者的分析与破解。目前虚拟机技术常用于代码虚拟化、加密壳、沙盒、解释器如JVM等等。</p>
 <h2 id="0x01-代码代码虚拟化的混淆"><a href="#0x01-代码代码虚拟化的混淆" class="headerlink" title="0x01 代码代码虚拟化的混淆"></a>0x01 代码代码虚拟化的混淆</h2><p>代码虚拟化也可以算作是混淆的一种，能够有效延缓攻击者的分析时间，但是由于解释器是基于native指令，所以通过动态调试可以得到native指令和字节码之间的映射关系，所以说到底代码虚拟化的混淆并不是无解的，常见的代码虚拟化保护有两种，一种是通过给壳进行虚拟化，让程序的解密过程变得复杂，从而让攻击者分析起来有难度，但是这种保护方式对动态调试来说效果不大，因为程序脱下解密壳以后能被dump下来，程序的逻辑也就一清二楚了；第二种是将程序的源代码转化为字节码通过解释器解释，这种保护无论静态还是动态都是有效的。</p>
 <h2 id="0x02-如何实现"><a href="#0x02-如何实现" class="headerlink" title="0x02 如何实现"></a>0x02 如何实现</h2><p>虚拟机主要有三个部分，字节码、CPU、解析器。<br>1、首先需要实现一套字节码<a id="more"></a></p>
-<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">OPCODES</span></span></span><br><span class="line">&#123;</span><br><span class="line">	MOV = <span class="number">0</span>XA0,</span><br><span class="line">	XOR = <span class="number">0</span>XA1,</span><br><span class="line">	CMP = <span class="number">0</span>XA2,</span><br><span class="line">	RET = <span class="number">0</span>XA3,</span><br><span class="line">	SYS_READ = <span class="number">0</span>XA4,</span><br><span class="line">	SYS_WRITE = <span class="number">0</span>XA5,</span><br><span class="line">	JNZ = <span class="number">0</span>XA6</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">REGISTERS</span> :<span class="title">unsigned</span> <span class="title">char</span></span></span><br><span class="line">&#123;</span><br><span class="line">	R1 = <span class="number">0</span>X10,</span><br><span class="line">	R2 = <span class="number">0</span>X11,</span><br><span class="line">	R3 = <span class="number">0</span>X12,</span><br><span class="line">	R4 = <span class="number">0</span>X13,</span><br><span class="line">	EIP = <span class="number">0</span>X14,</span><br><span class="line">	FLAG = <span class="number">0</span>X15</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>这边由于只是加深理解所以只是定义了几个简单的字节码指令。<br>2、其次需要一个CPU，负责指令的执行</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//单个字节码结构体，包含字节码内容和与native指令的映射关系</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">opcode_t</span> //包含字节码和<span class="title">native</span>处理函数</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">char</span> opcode;</span><br><span class="line">	<span class="keyword">void</span>(*func)(<span class="keyword">void</span> *); <span class="comment">//函数指针</span></span><br><span class="line">&#125;vm_opcode;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">VIRTUAL PROCESSOR</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">process_t</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">int</span> r1; <span class="comment">//虚拟寄存器r1</span></span><br><span class="line">	<span class="keyword">int</span> r2; <span class="comment">//虚拟寄存器r2</span></span><br><span class="line">	<span class="keyword">int</span> r3; <span class="comment">//虚拟寄存器r3</span></span><br><span class="line">	<span class="keyword">int</span> r4; <span class="comment">//虚拟寄存器r4</span></span><br><span class="line">	<span class="keyword">int</span> flag; <span class="comment">//虚拟机flag寄存器，类似于主机eflags标志位寄存器</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">char</span> *eip; <span class="comment">//虚拟机的eip寄存器，指向正在执行的指令地址</span></span><br><span class="line">	vm_opcode op_table[OPCODE_NUM];<span class="comment">//定义了所有，注意是所有虚拟机字节码和主机native指令的对应关系，一个字节码对应一个函数，一个函数中可能包含多个操作</span></span><br><span class="line">&#125;vm_processor;</span><br></pre></td></tr></table></figure>
-<p>这边定义了一个CPU处理器的结构体，结构体中包含四个自定义寄存器、一个标志寄存器、一个指令指针寄存器、一个handler数组，handler数组中包含了所有虚拟机字节码和主机native指令之间的映射关系，这些handler是对字节码进行native解释的关键。<br>3、最后需要定义一个解析器，负责对字节码进行解析并交给CPU进行处理，起一个调度作用，这边的解析器比较简单，比较复杂的有AST抽象语法树解析，这边比较简单，只是起一个调度作用。</p>
-<figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">void exec_opcode(vm_processor *<span class="keyword">proc</span>)</span><br><span class="line">&#123;</span><br><span class="line">	int flag = <span class="number">0</span>;</span><br><span class="line">	int i = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span> (!flag&amp;&amp;i &lt; OPCODE_NUM)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (*<span class="keyword">proc</span>-&gt;eip ==<span class="title"> proc-&gt;op_table[i].opcode)</span></span><br><span class="line"><span class="title"></span>		&#123;</span><br><span class="line">			flag = <span class="number">1</span>;</span><br><span class="line">			<span class="keyword">proc</span>-&gt;op_table[i].func(<span class="keyword">proc</span>);</span><br><span class="line">		&#125;</span><br><span class="line"><span class="title">		else</span></span><br><span class="line"><span class="title"></span>		&#123;</span><br><span class="line">			i++;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line">void vm_interp(vm_processor *<span class="keyword">proc</span>)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">proc</span>-&gt;eip =<span class="title"> target_func;</span></span><br><span class="line"><span class="title"></span>	while (*<span class="keyword">proc</span>-&gt;eip !=<span class="title"> RET)</span></span><br><span class="line"><span class="title"></span>	&#123;</span><br><span class="line">		exec_opcode(<span class="keyword">proc</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>以上三个部分结合起来就是一个简单的虚拟机了。  </p>
-<h2 id="0x04-完整代码"><a href="#0x04-完整代码" class="headerlink" title="0x04 完整代码"></a>0x04 完整代码</h2><h4 id="xvm-h"><a href="#xvm-h" class="headerlink" title="xvm.h"></a>xvm.h</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> once</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> OPCODE_NUM 7</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HEAP_SIZE_MAX 1024</span></span><br><span class="line"><span class="keyword">char</span> *heap_buf;<span class="comment">//vm_heap</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">opcode enum</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">enum</span> OPCODES</span><br><span class="line">&#123;</span><br><span class="line">	MOV = <span class="number">0XA0</span>,</span><br><span class="line">	XOR = <span class="number">0XA1</span>,</span><br><span class="line">	CMP = <span class="number">0XA2</span>,</span><br><span class="line">	RET = <span class="number">0XA3</span>,</span><br><span class="line">	SYS_READ = <span class="number">0XA4</span>,</span><br><span class="line">	SYS_WRITE = <span class="number">0XA5</span>,</span><br><span class="line">	JNZ = <span class="number">0XA6</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">enum</span> REGISTERS :<span class="keyword">unsigned</span> <span class="keyword">char</span></span><br><span class="line">&#123;</span><br><span class="line">	R1 = <span class="number">0X10</span>,</span><br><span class="line">	R2 = <span class="number">0X11</span>,</span><br><span class="line">	R3 = <span class="number">0X12</span>,</span><br><span class="line">	R4 = <span class="number">0X13</span>,</span><br><span class="line">	EIP = <span class="number">0X14</span>,</span><br><span class="line">	FLAG = <span class="number">0X15</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//单个字节码结构体，包含字节码内容和与native指令的映射关系</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">opcode_t</span> //包含字节码和<span class="title">native</span>处理函数</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">char</span> opcode;</span><br><span class="line">	<span class="keyword">void</span>(*func)(<span class="keyword">void</span> *); <span class="comment">//函数指针</span></span><br><span class="line">&#125;vm_opcode;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">VIRTUAL PROCESSOR</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">process_t</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">int</span> r1; <span class="comment">//虚拟寄存器r1</span></span><br><span class="line">	<span class="keyword">int</span> r2; <span class="comment">//虚拟寄存器r2</span></span><br><span class="line">	<span class="keyword">int</span> r3; <span class="comment">//虚拟寄存器r3</span></span><br><span class="line">	<span class="keyword">int</span> r4; <span class="comment">//虚拟寄存器r4</span></span><br><span class="line">	<span class="keyword">int</span> flag; <span class="comment">//虚拟机flag寄存器，类似于主机eflags标志位寄存器</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">char</span> *eip; <span class="comment">//虚拟机的eip寄存器，指向正在执行的指令地址</span></span><br><span class="line">	vm_opcode op_table[OPCODE_NUM];<span class="comment">//定义了所有，注意是所有虚拟机字节码和主机native指令的对应关系，一个字节码对应一个函数，一个函数中可能包含多个操作</span></span><br><span class="line">&#125;vm_processor;</span><br></pre></td></tr></table></figure>
-<h4 id="VM-Easy-cpp"><a href="#VM-Easy-cpp" class="headerlink" title="VM_Easy.cpp"></a>VM_Easy.cpp</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#include "pch.h"</span></span><br><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"><span class="comment">#include "xvm.h"</span></span><br><span class="line"><span class="comment">#include &lt;stdlib.h&gt;</span></span><br><span class="line"><span class="comment">#include &lt;string.h&gt;</span></span><br><span class="line"><span class="string">using</span> <span class="string">namespace</span> <span class="string">std;</span></span><br><span class="line"><span class="string">unsigned</span> <span class="string">char</span> <span class="string">target_func[]</span> <span class="string">=</span> </span><br><span class="line"><span class="string">&#123;0xa0,0x10,0x00,0x00,0x00,0x00,0xa0,0x11,0x12,0x00,0x00,0x00,0xa4,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x14</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> </span><br><span class="line"><span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x11</span><span class="string">,</span> <span class="number">0x29</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,0x00,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa1</span><span class="string">,</span> <span class="number">0xa2</span><span class="string">,</span> <span class="number">0x20</span><span class="string">,</span> <span class="number">0xa6</span><span class="string">,</span> <span class="number">0x5d</span><span class="string">,</span> <span class="number">0xa0</span><span class="string">,</span> </span><br><span class="line"><span class="number">0x14</span><span class="string">,</span> <span class="number">0x01</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa1</span><span class="string">,0xa2,</span> <span class="number">0x21</span><span class="string">,</span> <span class="number">0xa6</span><span class="string">,</span> <span class="number">0x50</span><span class="string">,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x14</span><span class="string">,</span> <span class="number">0x02</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> </span><br><span class="line"><span class="number">0x00</span><span class="string">,</span> <span class="number">0xa1</span><span class="string">,</span> <span class="number">0xa2</span><span class="string">,</span> <span class="number">0x22</span><span class="string">,</span> <span class="number">0xa6</span><span class="string">,0x47,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x14</span><span class="string">,</span> <span class="number">0x03</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa1</span><span class="string">,</span> <span class="number">0xa2</span><span class="string">,</span> <span class="number">0x23</span><span class="string">,</span></span><br><span class="line"><span class="number">0xa6</span><span class="string">,</span> <span class="number">0x3a</span><span class="string">,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x14</span><span class="string">,0x04,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa1</span><span class="string">,</span> <span class="number">0xa2</span><span class="string">,</span> <span class="number">0x24</span><span class="string">,</span> <span class="number">0xa6</span><span class="string">,</span> <span class="number">0x31</span><span class="string">,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x14</span><span class="string">,</span> </span><br><span class="line"><span class="number">0x05</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,0x00,</span> <span class="number">0xa1</span><span class="string">,</span> <span class="number">0xa2</span><span class="string">,</span> <span class="number">0x25</span><span class="string">,</span> <span class="number">0xa6</span><span class="string">,</span> <span class="number">0x26</span><span class="string">,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x14</span><span class="string">,</span> <span class="number">0x06</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span></span><br><span class="line"><span class="number">0xa1</span><span class="string">,</span> <span class="number">0xa2</span><span class="string">,0x26,</span> <span class="number">0xa6</span><span class="string">,</span> <span class="number">0x1b</span><span class="string">,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x14</span><span class="string">,</span> <span class="number">0x07</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa1</span><span class="string">,</span> <span class="number">0xa2</span><span class="string">,</span> <span class="number">0x27</span><span class="string">,</span> <span class="number">0xa6</span><span class="string">,</span></span><br><span class="line"><span class="number">0x10</span><span class="string">,0xa0,</span> <span class="number">0x10</span><span class="string">,</span> <span class="number">0x30</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x11</span><span class="string">,</span> <span class="number">0x09</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa5</span><span class="string">,</span> <span class="number">0xa3</span><span class="string">,</span></span><br><span class="line"><span class="number">0xa0</span><span class="string">,</span> <span class="number">0x10</span><span class="string">,</span> <span class="number">0x40</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa0</span><span class="string">,</span> <span class="number">0x11</span><span class="string">,</span> <span class="number">0x07</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0x00</span><span class="string">,</span> <span class="number">0xa5</span><span class="string">,</span> <span class="number">0xa3</span> <span class="string">&#125;;</span></span><br><span class="line"><span class="string">void</span> <span class="string">vm_xor(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">int</span> <span class="string">arg1</span> <span class="string">=</span> <span class="string">proc-&gt;r1;</span></span><br><span class="line">	<span class="string">int</span> <span class="string">arg2</span> <span class="string">=</span> <span class="string">proc-&gt;r2;</span></span><br><span class="line">	<span class="string">proc-&gt;r1</span> <span class="string">=</span> <span class="string">arg1</span> <span class="string">^</span> <span class="string">arg2;</span></span><br><span class="line">	<span class="string">proc-&gt;eip</span> <span class="string">+=</span> <span class="number">1</span><span class="string">;//xor只占一个字节</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">void</span> <span class="string">vm_cmp(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">int</span> <span class="string">arg1</span> <span class="string">=</span> <span class="string">proc-&gt;r1;</span></span><br><span class="line">	<span class="string">char</span> <span class="string">*arg2</span> <span class="string">=</span> <span class="string">*(proc-&gt;eip</span> <span class="string">+</span> <span class="number">1</span><span class="string">)</span> <span class="string">+</span> <span class="string">heap_buf;</span></span><br><span class="line">	<span class="string">if</span> <span class="string">(arg1</span> <span class="string">==</span> <span class="string">*arg2)</span></span><br><span class="line">	<span class="string">&#123;</span></span><br><span class="line">		<span class="string">proc-&gt;flag</span> <span class="string">=</span> <span class="number">1</span><span class="string">;</span></span><br><span class="line">	<span class="string">&#125;</span></span><br><span class="line">	<span class="string">else</span></span><br><span class="line">	<span class="string">&#123;</span></span><br><span class="line">		<span class="string">proc-&gt;flag</span> <span class="string">=</span> <span class="number">0</span><span class="string">;</span></span><br><span class="line">	<span class="string">&#125;</span></span><br><span class="line">	<span class="string">proc-&gt;eip</span> <span class="string">+=</span> <span class="number">2</span><span class="string">;//cmp占两个字节</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">void</span> <span class="string">vm_jnz(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">char</span> <span class="string">arg1</span> <span class="string">=</span> <span class="string">*(proc-&gt;eip</span> <span class="string">+</span> <span class="number">1</span><span class="string">);</span></span><br><span class="line">	<span class="string">if</span> <span class="string">(proc-&gt;flag</span> <span class="string">==</span> <span class="number">0</span><span class="string">)</span></span><br><span class="line">	<span class="string">&#123;</span></span><br><span class="line">		<span class="string">proc-&gt;eip</span> <span class="string">+=</span> <span class="string">arg1;</span></span><br><span class="line">	<span class="string">&#125;</span></span><br><span class="line">	<span class="string">else</span></span><br><span class="line">		<span class="string">proc-&gt;eip</span> <span class="string">+=</span> <span class="number">2</span><span class="string">;//jnz占两个字节</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">void</span> <span class="string">vm_ret(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">std::cout</span> <span class="string">&lt;&lt;</span> <span class="string">"Finish"</span><span class="string">;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">void</span> <span class="string">vm_read(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">char</span> <span class="string">*arg1</span> <span class="string">=</span> <span class="string">heap_buf</span> <span class="string">+</span> <span class="string">proc-&gt;r1;</span></span><br><span class="line">	<span class="string">int</span> <span class="string">arg2</span> <span class="string">=</span> <span class="string">proc-&gt;r2;</span></span><br><span class="line">	<span class="string">cin.read(arg1,</span> <span class="string">arg2);</span></span><br><span class="line">	<span class="string">proc-&gt;eip</span> <span class="string">+=</span> <span class="number">1</span><span class="string">;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">void</span> <span class="string">vm_write(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">char</span> <span class="string">*arg1</span> <span class="string">=</span> <span class="string">heap_buf</span> <span class="string">+</span> <span class="string">proc-&gt;r1;</span></span><br><span class="line">	<span class="string">int</span> <span class="string">arg2</span> <span class="string">=</span> <span class="string">proc-&gt;r2;</span></span><br><span class="line">	<span class="string">cout.write(arg1,</span> <span class="string">arg2);</span></span><br><span class="line">	<span class="string">proc-&gt;eip</span> <span class="string">+=</span> <span class="number">1</span><span class="string">;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">void</span> <span class="string">vm_mov(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">unsigned</span> <span class="string">char</span> <span class="string">*dest</span> <span class="string">=</span> <span class="string">proc-&gt;eip</span> <span class="string">+</span> <span class="number">1</span><span class="string">;</span></span><br><span class="line">	<span class="string">int</span> <span class="string">*src</span> <span class="string">=</span> <span class="string">(int*)(proc-&gt;eip</span> <span class="string">+</span> <span class="number">2</span><span class="string">);</span></span><br><span class="line">	<span class="string">switch</span> <span class="string">(*dest)</span></span><br><span class="line">	<span class="string">&#123;</span></span><br><span class="line">	<span class="attr">case 0x10:</span></span><br><span class="line">		<span class="string">proc-&gt;r1</span> <span class="string">=</span> <span class="string">*src;</span></span><br><span class="line">		<span class="string">break;</span></span><br><span class="line">	<span class="attr">case 0x11:</span></span><br><span class="line">		<span class="string">proc-&gt;r2</span> <span class="string">=</span> <span class="string">*src;</span></span><br><span class="line">		<span class="string">break;</span></span><br><span class="line">	<span class="attr">case 0x12:</span></span><br><span class="line">		<span class="string">proc-&gt;r3</span> <span class="string">=</span> <span class="string">*src;</span></span><br><span class="line">		<span class="string">break;</span></span><br><span class="line">	<span class="attr">case 0x13:</span></span><br><span class="line">		<span class="string">proc-&gt;r4</span> <span class="string">=</span> <span class="string">*src;</span></span><br><span class="line">		<span class="string">break;</span></span><br><span class="line">	<span class="attr">case 0x14:</span></span><br><span class="line">		<span class="string">proc-&gt;r1</span> <span class="string">=</span> <span class="string">*(heap_buf</span> <span class="string">+</span> <span class="string">*src);</span></span><br><span class="line">	<span class="attr">default:</span></span><br><span class="line">		<span class="string">break;</span></span><br><span class="line">	<span class="string">&#125;</span></span><br><span class="line">	<span class="string">proc-&gt;eip</span> <span class="string">+=</span> <span class="number">6</span><span class="string">;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">void</span> <span class="string">exec_opcode(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">int</span> <span class="string">flag</span> <span class="string">=</span> <span class="number">0</span><span class="string">;</span></span><br><span class="line">	<span class="string">int</span> <span class="string">i</span> <span class="string">=</span> <span class="number">0</span><span class="string">;</span></span><br><span class="line">	<span class="string">while</span> <span class="string">(!flag&amp;&amp;i</span> <span class="string">&lt;</span> <span class="string">OPCODE_NUM)</span></span><br><span class="line">	<span class="string">&#123;</span></span><br><span class="line">		<span class="string">if</span> <span class="string">(*proc-&gt;eip</span> <span class="string">==</span> <span class="string">proc-&gt;op_table[i].opcode)</span></span><br><span class="line">		<span class="string">&#123;</span></span><br><span class="line">			<span class="string">flag</span> <span class="string">=</span> <span class="number">1</span><span class="string">;</span></span><br><span class="line">			<span class="string">proc-&gt;op_table[i].func(proc);</span></span><br><span class="line">		<span class="string">&#125;</span></span><br><span class="line">		<span class="string">else</span></span><br><span class="line">		<span class="string">&#123;</span></span><br><span class="line">			<span class="string">i++;</span></span><br><span class="line">		<span class="string">&#125;</span></span><br><span class="line">	<span class="string">&#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">void</span> <span class="string">vm_interp(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">proc-&gt;eip</span> <span class="string">=</span> <span class="string">target_func;</span></span><br><span class="line">	<span class="string">while</span> <span class="string">(*proc-&gt;eip</span> <span class="string">!=</span> <span class="string">RET)</span></span><br><span class="line">	<span class="string">&#123;</span></span><br><span class="line">		<span class="string">exec_opcode(proc);</span></span><br><span class="line">	<span class="string">&#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">//初始化处理器</span></span><br><span class="line"><span class="string">void</span> <span class="string">init_vm_processor(vm_processor</span> <span class="string">*proc)</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">proc-&gt;r1</span> <span class="string">=</span> <span class="number">0</span><span class="string">;</span></span><br><span class="line">	<span class="string">proc-&gt;r2</span> <span class="string">=</span> <span class="number">0</span><span class="string">;</span></span><br><span class="line">	<span class="string">proc-&gt;r3</span> <span class="string">=</span> <span class="number">0</span><span class="string">;</span></span><br><span class="line">	<span class="string">proc-&gt;r4</span> <span class="string">=</span> <span class="number">0</span><span class="string">;</span></span><br><span class="line">	<span class="string">proc-&gt;flag</span> <span class="string">=</span> <span class="number">0</span><span class="string">;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[0].opcode</span> <span class="string">=</span> <span class="string">MOV;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[1].opcode</span> <span class="string">=</span> <span class="string">XOR;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[2].opcode</span> <span class="string">=</span> <span class="string">CMP;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[3].opcode</span> <span class="string">=</span> <span class="string">RET;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[4].opcode</span> <span class="string">=</span> <span class="string">SYS_READ;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[5].opcode</span> <span class="string">=</span> <span class="string">SYS_WRITE;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[6].opcode</span> <span class="string">=</span> <span class="string">JNZ;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[0].func</span> <span class="string">=</span> <span class="string">(void(*)(void</span> <span class="string">*))vm_mov;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[1].func</span> <span class="string">=</span> <span class="string">(void(*)(void</span> <span class="string">*))vm_xor;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[2].func</span> <span class="string">=</span> <span class="string">(void(*)(void</span> <span class="string">*))vm_cmp;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[3].func</span> <span class="string">=</span> <span class="string">(void(*)(void</span> <span class="string">*))vm_ret;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[4].func</span> <span class="string">=</span> <span class="string">(void(*)(void</span> <span class="string">*))vm_read;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[5].func</span> <span class="string">=</span> <span class="string">(void(*)(void</span> <span class="string">*))vm_write;</span></span><br><span class="line">	<span class="string">proc-&gt;op_table[6].func</span> <span class="string">=</span> <span class="string">(void(*)(void</span> <span class="string">*))vm_jnz;</span></span><br><span class="line">	<span class="string">heap_buf</span> <span class="string">=</span> <span class="string">(char*)malloc(HEAP_SIZE_MAX);</span></span><br><span class="line">	<span class="string">memcpy(heap_buf</span> <span class="string">+</span> <span class="number">0x20</span><span class="string">,</span> <span class="string">"syclover"</span><span class="string">,</span> <span class="number">8</span><span class="string">);</span></span><br><span class="line">	<span class="string">memcpy(heap_buf</span> <span class="string">+</span> <span class="number">0x30</span><span class="string">,</span> <span class="string">"success!\n"</span><span class="string">,</span> <span class="number">9</span><span class="string">);</span></span><br><span class="line">	<span class="string">memcpy(heap_buf</span> <span class="string">+</span> <span class="number">0x40</span><span class="string">,</span> <span class="string">"error!\n"</span><span class="string">,</span> <span class="number">7</span><span class="string">);</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">int</span> <span class="string">main()</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">	<span class="string">vm_processor</span> <span class="string">proc</span> <span class="string">=</span> <span class="string">&#123;</span> <span class="number">0</span> <span class="string">&#125;;</span></span><br><span class="line">	<span class="string">//init</span> <span class="string">vm</span> <span class="string">processor</span></span><br><span class="line">	<span class="string">init_vm_processor(&amp;proc);</span></span><br><span class="line">	<span class="string">vm_interp(&amp;proc);</span></span><br><span class="line">	<span class="string">return</span> <span class="number">0</span><span class="string">;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
-<p>主要就是CPU和字节码结构体的定义、Handler函数的处理以及Eip的调度，其余的还是相对简单的。  </p>
+<pre><code>enum OPCODES
+{
+    MOV = 0XA0,
+    XOR = 0XA1,
+    CMP = 0XA2,
+    RET = 0XA3,
+    SYS_READ = 0XA4,
+    SYS_WRITE = 0XA5,
+    JNZ = 0XA6
+};
+enum REGISTERS :unsigned char
+{
+    R1 = 0X10,
+    R2 = 0X11,
+    R3 = 0X12,
+    R4 = 0X13,
+    EIP = 0X14,
+    FLAG = 0X15
+};</code></pre><p>这边由于只是加深理解所以只是定义了几个简单的字节码指令。<br>2、其次需要一个CPU，负责指令的执行</p>
+<pre><code>//单个字节码结构体，包含字节码内容和与native指令的映射关系
+typedef struct opcode_t //包含字节码和native处理函数
+{
+    unsigned char opcode;
+    void(*func)(void *); //函数指针
+}vm_opcode;
+/*
+
+VIRTUAL PROCESSOR
+*/
+typedef struct process_t
+{
+    int r1; //虚拟寄存器r1
+    int r2; //虚拟寄存器r2
+    int r3; //虚拟寄存器r3
+    int r4; //虚拟寄存器r4
+    int flag; //虚拟机flag寄存器，类似于主机eflags标志位寄存器
+    unsigned char *eip; //虚拟机的eip寄存器，指向正在执行的指令地址
+    vm_opcode op_table[OPCODE_NUM];//定义了所有，注意是所有虚拟机字节码和主机native指令的对应关系，一个字节码对应一个函数，一个函数中可能包含多个操作
+}vm_processor;</code></pre><p>这边定义了一个CPU处理器的结构体，结构体中包含四个自定义寄存器、一个标志寄存器、一个指令指针寄存器、一个handler数组，handler数组中包含了所有虚拟机字节码和主机native指令之间的映射关系，这些handler是对字节码进行native解释的关键。<br>3、最后需要定义一个解析器，负责对字节码进行解析并交给CPU进行处理，起一个调度作用，这边的解析器比较简单，比较复杂的有AST抽象语法树解析，这边比较简单，只是起一个调度作用。</p>
+<pre><code>void exec_opcode(vm_processor *proc)
+{
+    int flag = 0;
+    int i = 0;
+    while (!flag&amp;&amp;i &lt; OPCODE_NUM)
+    {
+        if (*proc-&gt;eip == proc-&gt;op_table[i].opcode)
+        {
+            flag = 1;
+            proc-&gt;op_table[i].func(proc);
+        }
+        else
+        {
+            i++;
+        }
+    }
+}
+void vm_interp(vm_processor *proc)
+{
+    proc-&gt;eip = target_func;
+    while (*proc-&gt;eip != RET)
+    {
+        exec_opcode(proc);
+    }
+}</code></pre><p>以上三个部分结合起来就是一个简单的虚拟机了。  </p>
+<h2 id="0x04-完整代码"><a href="#0x04-完整代码" class="headerlink" title="0x04 完整代码"></a>0x04 完整代码</h2><h4 id="xvm-h"><a href="#xvm-h" class="headerlink" title="xvm.h"></a>xvm.h</h4><pre><code>#pragma once
+#define OPCODE_NUM 7
+#define HEAP_SIZE_MAX 1024
+char *heap_buf;//vm_heap
+/*
+opcode enum
+*/
+enum OPCODES
+{
+    MOV = 0XA0,
+    XOR = 0XA1,
+    CMP = 0XA2,
+    RET = 0XA3,
+    SYS_READ = 0XA4,
+    SYS_WRITE = 0XA5,
+    JNZ = 0XA6
+};
+enum REGISTERS :unsigned char
+{
+    R1 = 0X10,
+    R2 = 0X11,
+    R3 = 0X12,
+    R4 = 0X13,
+    EIP = 0X14,
+    FLAG = 0X15
+};
+//单个字节码结构体，包含字节码内容和与native指令的映射关系
+typedef struct opcode_t //包含字节码和native处理函数
+{
+    unsigned char opcode;
+    void(*func)(void *); //函数指针
+}vm_opcode;
+/*
+
+VIRTUAL PROCESSOR
+*/
+typedef struct process_t
+{
+    int r1; //虚拟寄存器r1
+    int r2; //虚拟寄存器r2
+    int r3; //虚拟寄存器r3
+    int r4; //虚拟寄存器r4
+    int flag; //虚拟机flag寄存器，类似于主机eflags标志位寄存器
+    unsigned char *eip; //虚拟机的eip寄存器，指向正在执行的指令地址
+    vm_opcode op_table[OPCODE_NUM];//定义了所有，注意是所有虚拟机字节码和主机native指令的对应关系，一个字节码对应一个函数，一个函数中可能包含多个操作
+}vm_processor;
+</code></pre><h4 id="VM-Easy-cpp"><a href="#VM-Easy-cpp" class="headerlink" title="VM_Easy.cpp"></a>VM_Easy.cpp</h4><pre><code>#include &quot;pch.h&quot;
+#include &lt;iostream&gt;
+#include &quot;xvm.h&quot;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+using namespace std;
+unsigned char target_func[] = 
+{0xa0,0x10,0x00,0x00,0x00,0x00,0xa0,0x11,0x12,0x00,0x00,0x00,0xa4, 0xa0, 0x14, 0x00, 
+0x00, 0x00, 0x00, 0xa0, 0x11, 0x29, 0x00,0x00, 0x00, 0xa1, 0xa2, 0x20, 0xa6, 0x5d, 0xa0, 
+0x14, 0x01, 0x00, 0x00, 0x00, 0xa1,0xa2, 0x21, 0xa6, 0x50, 0xa0, 0x14, 0x02, 0x00, 0x00, 
+0x00, 0xa1, 0xa2, 0x22, 0xa6,0x47, 0xa0, 0x14, 0x03, 0x00, 0x00, 0x00, 0xa1, 0xa2, 0x23,
+0xa6, 0x3a, 0xa0, 0x14,0x04, 0x00, 0x00, 0x00, 0xa1, 0xa2, 0x24, 0xa6, 0x31, 0xa0, 0x14, 
+0x05, 0x00, 0x00,0x00, 0xa1, 0xa2, 0x25, 0xa6, 0x26, 0xa0, 0x14, 0x06, 0x00, 0x00, 0x00,
+0xa1, 0xa2,0x26, 0xa6, 0x1b, 0xa0, 0x14, 0x07, 0x00, 0x00, 0x00, 0xa1, 0xa2, 0x27, 0xa6,
+0x10,0xa0, 0x10, 0x30, 0x00, 0x00, 0x00, 0xa0, 0x11, 0x09, 0x00, 0x00, 0x00, 0xa5, 0xa3,
+0xa0, 0x10, 0x40, 0x00, 0x00, 0x00, 0xa0, 0x11, 0x07, 0x00, 0x00, 0x00, 0xa5, 0xa3 };
+void vm_xor(vm_processor *proc)
+{
+    int arg1 = proc-&gt;r1;
+    int arg2 = proc-&gt;r2;
+    proc-&gt;r1 = arg1 ^ arg2;
+    proc-&gt;eip += 1;//xor只占一个字节
+}
+void vm_cmp(vm_processor *proc)
+{
+    int arg1 = proc-&gt;r1;
+    char *arg2 = *(proc-&gt;eip + 1) + heap_buf;
+    if (arg1 == *arg2)
+    {
+        proc-&gt;flag = 1;
+    }
+    else
+    {
+        proc-&gt;flag = 0;
+    }
+    proc-&gt;eip += 2;//cmp占两个字节
+}
+void vm_jnz(vm_processor *proc)
+{
+    char arg1 = *(proc-&gt;eip + 1);
+    if (proc-&gt;flag == 0)
+    {
+        proc-&gt;eip += arg1;
+    }
+    else
+        proc-&gt;eip += 2;//jnz占两个字节
+}
+void vm_ret(vm_processor *proc)
+{
+    std::cout &lt;&lt; &quot;Finish&quot;;
+}
+void vm_read(vm_processor *proc)
+{
+    char *arg1 = heap_buf + proc-&gt;r1;
+    int arg2 = proc-&gt;r2;
+    cin.read(arg1, arg2);
+    proc-&gt;eip += 1;
+}
+void vm_write(vm_processor *proc)
+{
+    char *arg1 = heap_buf + proc-&gt;r1;
+    int arg2 = proc-&gt;r2;
+    cout.write(arg1, arg2);
+    proc-&gt;eip += 1;
+}
+void vm_mov(vm_processor *proc)
+{
+    unsigned char *dest = proc-&gt;eip + 1;
+    int *src = (int*)(proc-&gt;eip + 2);
+    switch (*dest)
+    {
+    case 0x10:
+        proc-&gt;r1 = *src;
+        break;
+    case 0x11:
+        proc-&gt;r2 = *src;
+        break;
+    case 0x12:
+        proc-&gt;r3 = *src;
+        break;
+    case 0x13:
+        proc-&gt;r4 = *src;
+        break;
+    case 0x14:
+        proc-&gt;r1 = *(heap_buf + *src);
+    default:
+        break;
+    }
+    proc-&gt;eip += 6;
+}
+void exec_opcode(vm_processor *proc)
+{
+    int flag = 0;
+    int i = 0;
+    while (!flag&amp;&amp;i &lt; OPCODE_NUM)
+    {
+        if (*proc-&gt;eip == proc-&gt;op_table[i].opcode)
+        {
+            flag = 1;
+            proc-&gt;op_table[i].func(proc);
+        }
+        else
+        {
+            i++;
+        }
+    }
+}
+void vm_interp(vm_processor *proc)
+{
+    proc-&gt;eip = target_func;
+    while (*proc-&gt;eip != RET)
+    {
+        exec_opcode(proc);
+    }
+}
+//初始化处理器
+void init_vm_processor(vm_processor *proc)
+{
+    proc-&gt;r1 = 0;
+    proc-&gt;r2 = 0;
+    proc-&gt;r3 = 0;
+    proc-&gt;r4 = 0;
+    proc-&gt;flag = 0;
+    proc-&gt;op_table[0].opcode = MOV;
+    proc-&gt;op_table[1].opcode = XOR;
+    proc-&gt;op_table[2].opcode = CMP;
+    proc-&gt;op_table[3].opcode = RET;
+    proc-&gt;op_table[4].opcode = SYS_READ;
+    proc-&gt;op_table[5].opcode = SYS_WRITE;
+    proc-&gt;op_table[6].opcode = JNZ;
+    proc-&gt;op_table[0].func = (void(*)(void *))vm_mov;
+    proc-&gt;op_table[1].func = (void(*)(void *))vm_xor;
+    proc-&gt;op_table[2].func = (void(*)(void *))vm_cmp;
+    proc-&gt;op_table[3].func = (void(*)(void *))vm_ret;
+    proc-&gt;op_table[4].func = (void(*)(void *))vm_read;
+    proc-&gt;op_table[5].func = (void(*)(void *))vm_write;
+    proc-&gt;op_table[6].func = (void(*)(void *))vm_jnz;
+    heap_buf = (char*)malloc(HEAP_SIZE_MAX);
+    memcpy(heap_buf + 0x20, &quot;syclover&quot;, 8);
+    memcpy(heap_buf + 0x30, &quot;success!\n&quot;, 9);
+    memcpy(heap_buf + 0x40, &quot;error!\n&quot;, 7);
+}
+int main()
+{
+    vm_processor proc = { 0 };
+    //init vm processor
+    init_vm_processor(&amp;proc);
+    vm_interp(&amp;proc);
+    return 0;
+}</code></pre><p>主要就是CPU和字节码结构体的定义、Handler函数的处理以及Eip的调度，其余的还是相对简单的。  </p>
 <h2 id="0x05-保护效果"><a href="#0x05-保护效果" class="headerlink" title="0x05 保护效果"></a>0x05 保护效果</h2><p>ida中的反汇编显示：<br><img src="./1.png" alt="image"><br>可以看到程序执行流那里的字节码ida并没有识别，但是解释器的逻辑是可以看到的，但是多个handler在一起代码量相对较大，分析起来并不方便。  </p>
 <h2 id="0x06-对抗"><a href="#0x06-对抗" class="headerlink" title="0x06 对抗"></a>0x06 对抗</h2><p>CTF和现实中都有一些基于代码虚拟化的程序，该如何对抗进行逆向分析呢，这边推荐两种方式  </p>
 <ul>
@@ -441,6 +692,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

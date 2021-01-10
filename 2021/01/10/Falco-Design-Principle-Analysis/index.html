@@ -22,19 +22,25 @@
     var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="一、缘起云原生大大改变了原有的软件部署结构，容器、容器云平台、服务网格、DevOps等技术的发展加快了企业拥抱云原生的步伐。云原生其独有的特点也给传统的基于边界检测及纯主机EDR检测的方式带来了极大的挑战，安全行业迎来了一场革新。以Falco为代表的一系列云原生容器运行时安全检测项目应运而生，本篇博客记录下此项目的学习过程。">
+  <meta name="description" content="一、缘起云原生大大改变了原有的软件部署结构，容器、容器云平台、服务网格、DevOps等技术的发展加快了企业拥抱云原生的步伐。云原生其独有的特点也给传统的基于边界检测及纯主机EDR检测的方式带来了极大的挑战，安全行业迎来了一场革新。以Falco为代表的一系列云原生容器运行时安全检测项目应运而生，本篇博客记录下此项目的学习过程。 Falco最初是由Sysdig公司构建的开源运行时安全工具项目，在云原生">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Falco Design Principle Analysis">
 <meta property="og:url" content="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/index.html">
 <meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
-<meta property="og:description" content="一、缘起云原生大大改变了原有的软件部署结构，容器、容器云平台、服务网格、DevOps等技术的发展加快了企业拥抱云原生的步伐。云原生其独有的特点也给传统的基于边界检测及纯主机EDR检测的方式带来了极大的挑战，安全行业迎来了一场革新。以Falco为代表的一系列云原生容器运行时安全检测项目应运而生，本篇博客记录下此项目的学习过程。">
+<meta property="og:description" content="一、缘起云原生大大改变了原有的软件部署结构，容器、容器云平台、服务网格、DevOps等技术的发展加快了企业拥抱云原生的步伐。云原生其独有的特点也给传统的基于边界检测及纯主机EDR检测的方式带来了极大的挑战，安全行业迎来了一场革新。以Falco为代表的一系列云原生容器运行时安全检测项目应运而生，本篇博客记录下此项目的学习过程。 Falco最初是由Sysdig公司构建的开源运行时安全工具项目，在云原生">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/Falco-Design-Principle-Analysis/006tNbRwly1fxmx633ymqj31dp0u0kjn.jpg">
+<meta property="og:image" content="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/image-20210110213130222.png">
+<meta property="og:image" content="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/image-20210110220232167.png">
+<meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/Falco-Design-Principle-Analysis/image-20210110222145031.png">
+<meta property="og:image" content="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/image-20210110222837820.png">
 <meta property="article:published_time" content="2021-01-10T03:36:38.000Z">
-<meta property="article:modified_time" content="2021-01-10T08:09:51.247Z">
+<meta property="article:modified_time" content="2021-01-10T15:27:40.861Z">
 <meta property="article:author" content="XDW">
 <meta property="article:tag" content="容器运行时安全">
 <meta property="article:tag" content="k8s">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/Falco-Design-Principle-Analysis/006tNbRwly1fxmx633ymqj31dp0u0kjn.jpg">
 
 
 <link rel="canonical" href="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/">
@@ -178,7 +184,7 @@
 
       <!--noindex-->
       <section class="post-toc-wrap sidebar-panel">
-          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、缘起"><span class="nav-number">1.</span> <span class="nav-text">一、缘起</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、功能"><span class="nav-number">2.</span> <span class="nav-text">二、功能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、架构"><span class="nav-number">3.</span> <span class="nav-text">三、架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#四、使用"><span class="nav-number">4.</span> <span class="nav-text">四、使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#五、实现"><span class="nav-number">5.</span> <span class="nav-text">五、实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#六、总结"><span class="nav-number">6.</span> <span class="nav-text">六、总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#七、参考链接"><span class="nav-number">7.</span> <span class="nav-text">七、参考链接</span></a></li></ol></div>
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、缘起"><span class="nav-number">1.</span> <span class="nav-text">一、缘起</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、功能"><span class="nav-number">2.</span> <span class="nav-text">二、功能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、架构"><span class="nav-number">3.</span> <span class="nav-text">三、架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#内核驱动"><span class="nav-number">3.1.</span> <span class="nav-text">内核驱动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引擎"><span class="nav-number">3.2.</span> <span class="nav-text">引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#规则库"><span class="nav-number">3.3.</span> <span class="nav-text">规则库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其它"><span class="nav-number">3.4.</span> <span class="nav-text">其它</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#四、使用"><span class="nav-number">4.</span> <span class="nav-text">四、使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#五、实现"><span class="nav-number">5.</span> <span class="nav-text">五、实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#六、总结"><span class="nav-number">6.</span> <span class="nav-text">六、总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#七、参考链接"><span class="nav-number">7.</span> <span class="nav-text">七、参考链接</span></a></li></ol></div>
       </section>
       <!--/noindex-->
 
@@ -280,7 +286,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2021-01-10 11:36:38 / 修改时间：16:09:51" itemprop="dateCreated datePublished" datetime="2021-01-10T11:36:38+08:00">2021-01-10</time>
+      <time title="创建时间：2021-01-10 11:36:38 / 修改时间：23:27:40" itemprop="dateCreated datePublished" datetime="2021-01-10T11:36:38+08:00">2021-01-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -310,9 +316,41 @@
     
     <div class="post-body" itemprop="articleBody">
         <h1 id="一、缘起"><a href="#一、缘起" class="headerlink" title="一、缘起"></a>一、缘起</h1><p>云原生大大改变了原有的软件部署结构，容器、容器云平台、服务网格、DevOps等技术的发展加快了企业拥抱云原生的步伐。云原生其独有的特点也给传统的基于边界检测及纯主机EDR检测的方式带来了极大的挑战，安全行业迎来了一场革新。以Falco为代表的一系列云原生容器运行时安全检测项目应运而生，本篇博客记录下此项目的学习过程。</p>
+<p>Falco最初是由Sysdig公司构建的开源运行时安全工具项目，在云原生火后下载量飙升，作为唯一的容器运行时安全项目被批准加入了CNCF（云原生计算基金会）下的项目孵化器，同时，Falco也作为顶级的云安全子项目出现在了CNCF云原生全景图中。</p>
 <a id="more"></a>
 
-<h1 id="二、功能"><a href="#二、功能" class="headerlink" title="二、功能"></a>二、功能</h1><h1 id="三、架构"><a href="#三、架构" class="headerlink" title="三、架构"></a>三、架构</h1><h1 id="四、使用"><a href="#四、使用" class="headerlink" title="四、使用"></a>四、使用</h1><h1 id="五、实现"><a href="#五、实现" class="headerlink" title="五、实现"></a>五、实现</h1><h1 id="六、总结"><a href="#六、总结" class="headerlink" title="六、总结"></a>六、总结</h1><h1 id="七、参考链接"><a href="#七、参考链接" class="headerlink" title="七、参考链接"></a>七、参考链接</h1><p><a href="https://falco.org/docs/" target="_blank" rel="noopener">https://falco.org/docs/</a></p>
+<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/Falco-Design-Principle-Analysis/006tNbRwly1fxmx633ymqj31dp0u0kjn.jpg" alt="006tNbRwly1fxmx633ymqj31dp0u0kjn"></p>
+<h1 id="二、功能"><a href="#二、功能" class="headerlink" title="二、功能"></a>二、功能</h1><p>Falco项目的功能主要是对容器运行时做异常行为检测，它依赖于sysdig自研的sysdig驱动从内核获取系统调用事件，由falco规则引擎和项目集成的默认安全规则对系统调用事件做解析和告警；像它官方文档上所描述的那样，falco支持一系列的异常行为检测，包括：</p>
+<ul>
+<li>使用特权容器做权限提升</li>
+<li>使用setns工具变更namespace</li>
+<li>敏感目录（/etc、/usr/bin、/usr/sbin）等读写</li>
+<li>创建符号链接</li>
+<li>文件属主和模式变更</li>
+<li>网络和socket连接</li>
+<li>使用execve执行的子进程</li>
+<li>etc.</li>
+</ul>
+<p>需要注意的是，falco并不是只能做容器内的异常检测，falco的agent是基于内核的，所以它同样也可以对宿主机做运行时的异常检测（falco也的确内置了一些检测宿主机异常的规则）</p>
+<h1 id="三、架构"><a href="#三、架构" class="headerlink" title="三、架构"></a>三、架构</h1><p>Falco的整体架构如下所示：</p>
+<p><img src="./image-20210110213130222.png" alt="image-20210110213130222"></p>
+<p>架构还是非常简单的，和常见主机安全类产品/项目非常相似；主要架构可以分为三层，分别为探针、解析引擎、规则库，其工作流程大致是这样的：</p>
+<h2 id="内核驱动"><a href="#内核驱动" class="headerlink" title="内核驱动"></a>内核驱动</h2><p>内核层探针默认是sysdig-probe，通过注册tracepoints回调处理系统调用事件，sysdig-probe作为内核驱动包含在sysdig的独立开源项目<a href="https://github.com/draios/sysdig中，但需要注意的是sysdig工具并不只包含内核驱动，它还有类似CLI、事件解析引擎（sinsp、scap）之类的各种组件" target="_blank" rel="noopener">https://github.com/draios/sysdig中，但需要注意的是sysdig工具并不只包含内核驱动，它还有类似CLI、事件解析引擎（sinsp、scap）之类的各种组件</a></p>
+<p><img src="./image-20210110220232167.png" alt="image-20210110220232167"></p>
+<p>除了动态内核模块，falco驱动还支持ebpf和用户态检测，之所以加入另外的这两种日志获取方式首先是考虑到动态内核模块的不稳定性，虽然sysdig项目在wiki中声明的已支持Linux内核版本适配已经做的比较全了，但不排除用户机器内核就是在覆盖版本之外的情况，且毕竟是内核，是内核就有崩溃的风险；其次某些云平台会出于安全考虑不允许加载内核模块，这样falco的部署条件就受到了限制</p>
+<p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/Falco-Design-Principle-Analysis/image-20210110222145031.png" alt="image-20210110222145031"></p>
+<p>而如果使用ebpf，则以上两个问题可以同时解决，甚至于在某些高版本内核中（linux kernel version &gt;=5.8）可以直接在容器中使用ebpf而不开启特权模式，更有效的降低安全风险：</p>
+<p><img src="./image-20210110222837820.png" alt="image-20210110222837820"></p>
+<p>但是有利则有弊，ebpf对内核版本存在限制，sysdig官方项目里就明确要求linux kernel version &gt;=4.14的才能稳定支持（<a href="https://github.com/draios/sysdig/wiki/eBPF）ebpf探针正常运行，更不用说linux" target="_blank" rel="noopener">https://github.com/draios/sysdig/wiki/eBPF）ebpf探针正常运行，更不用说linux</a> kernel 5.8了，实际应用场景非常有限</p>
+<p>在ebpf跟踪程序和内核模块都无法成功安装的场景下，falco还提供了一种基于ptrace和sysdig库的用户态检测工具<a href="https://github.com/falcosecurity/pdig，但根据文档描述，此项目目前还在孵化中（不包含在发布过程中），不建议生产环境使用，且基于ptrace的事件捕获应该会非常慢，相比内核层的探针，这种模式显示可能存在性能问题；当然这块还没认真去看，后续有需要的话可以详细分析一波pdig项目的代码" target="_blank" rel="noopener">https://github.com/falcosecurity/pdig，但根据文档描述，此项目目前还在孵化中（不包含在发布过程中），不建议生产环境使用，且基于ptrace的事件捕获应该会非常慢，相比内核层的探针，这种模式显示可能存在性能问题；当然这块还没认真去看，后续有需要的话可以详细分析一波pdig项目的代码</a></p>
+<h2 id="引擎"><a href="#引擎" class="headerlink" title="引擎"></a>引擎</h2><p>引擎部分个人觉得可以分为解析引擎与规则引擎，解析引擎负责解析出映射到用户态内存的系统调用事件，规则引擎与规则对接进行更上层的事件处理；解析引擎由sysdig的libsinsp及libscap构成，分别用于状态跟踪、事件过滤、编码、解码等功能（<a href="https://github.com/falcosecurity/libsinsp、https://github.com/falcosecurity/libscap）；" target="_blank" rel="noopener">https://github.com/falcosecurity/libsinsp、https://github.com/falcosecurity/libscap）；</a></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">libsinsp</span><br><span class="line">Glossary</span><br><span class="line">✖ This is not a spec.</span><br><span class="line"></span><br><span class="line">✖ This is not a binary program you execute.</span><br><span class="line"></span><br><span class="line">✔ This <span class="keyword">is</span> a <span class="keyword">library</span> written <span class="keyword">in</span> C++.</span><br><span class="line"></span><br><span class="line">✔ This allows <span class="keyword">to</span> capture <span class="keyword">events</span> <span class="keyword">from</span> a live Operating <span class="keyword">System</span></span><br><span class="line"></span><br><span class="line">What it <span class="keyword">is</span></span><br><span class="line">libsinsp <span class="keyword">is</span> a <span class="keyword">system</span> inspection <span class="keyword">library</span> that implements <span class="keyword">high</span> <span class="keyword">level</span> functionality <span class="keyword">like</span>:</span><br><span class="line"></span><br><span class="line">live capture control (<span class="keyword">start</span>/<span class="keyword">stop</span>/pause...)</span><br><span class="line"><span class="keyword">event</span> capture <span class="keyword">from</span> <span class="keyword">file</span> <span class="keyword">or</span> the live OS</span><br><span class="line">OS state reconstruction. <span class="keyword">By</span> parsing /proc <span class="keyword">and</span> inspecting the live <span class="keyword">event</span> stream, libsinsp <span class="keyword">is</span> capable <span class="keyword">of</span> mirroring the OS process state <span class="keyword">and</span> putting <span class="keyword">context</span> around <span class="keyword">key</span> OS primitives <span class="keyword">like</span> process IDs <span class="keyword">and</span> <span class="keyword">file</span> descriptors. That way, these primitives can be treated <span class="keyword">like</span> programs, files, connections <span class="keyword">and</span> users.</span><br><span class="line">parsing <span class="keyword">of</span> OS <span class="keyword">events</span> <span class="keyword">and</span> conversion <span class="keyword">of</span> <span class="keyword">events</span> <span class="keyword">into</span> human-readable strings</span><br><span class="line"><span class="keyword">event</span> filtering</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">libscap</span><br><span class="line">libscap is a low-level component that exports the following functionality:</span><br><span class="line"></span><br><span class="line">live capture control (start/stop/pause<span class="built_in">..</span>.)</span><br><span class="line">trace file management</span><br><span class="line">event retrieval</span><br><span class="line">extraction of<span class="built_in"> system </span>state <span class="keyword">from</span> /proc</span><br></pre></td></tr></table></figure>
+
+<p>规则引擎则定义了一整套规则及解析标准，具体字段及含义目前不赘述（待填坑）</p>
+<h2 id="规则库"><a href="#规则库" class="headerlink" title="规则库"></a>规则库</h2><p>falco支持以yaml模版编写规则，falco项目内集成了一套基础规则库，保存在/etc/falco/falco_rules.yaml目录下，同时用户也可以自定义本地异常行为检测规则，规则文件为/etc/falco/falco_rules.local.yaml</p>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><h1 id="四、使用"><a href="#四、使用" class="headerlink" title="四、使用"></a>四、使用</h1><h1 id="五、实现"><a href="#五、实现" class="headerlink" title="五、实现"></a>五、实现</h1><h1 id="六、总结"><a href="#六、总结" class="headerlink" title="六、总结"></a>六、总结</h1><h1 id="七、参考链接"><a href="#七、参考链接" class="headerlink" title="七、参考链接"></a>七、参考链接</h1><p><a href="https://falco.org/docs/" target="_blank" rel="noopener">https://falco.org/docs/</a></p>
 <p><a href="https://github.com/draios/sysdig/wiki/How-to-Install-Sysdig-for-Linux" target="_blank" rel="noopener">https://github.com/draios/sysdig/wiki/How-to-Install-Sysdig-for-Linux</a></p>
 <p><a href="https://github.com/falcosecurity/falco" target="_blank" rel="noopener">https://github.com/falcosecurity/falco</a></p>
 <p><a href="https://docs.sysdig.com/en/agent-installation.html" target="_blank" rel="noopener">https://docs.sysdig.com/en/agent-installation.html</a></p>
@@ -321,6 +359,7 @@
 <p><a href="https://zhuanlan.zhihu.com/p/112548807" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/112548807</a></p>
 <p><a href="https://cloud.tencent.com/developer/article/1557477" target="_blank" rel="noopener">https://cloud.tencent.com/developer/article/1557477</a> #漏洞挖掘</p>
 <p><a href="https://falco.org/docs/rules/supported-fields/" target="_blank" rel="noopener">https://falco.org/docs/rules/supported-fields/</a> #falco字段</p>
+<p><a href="https://www.jianshu.com/p/7cc5a2f6eae0" target="_blank" rel="noopener">https://www.jianshu.com/p/7cc5a2f6eae0</a></p>
 
     </div>
 

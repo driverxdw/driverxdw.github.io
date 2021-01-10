@@ -22,15 +22,15 @@
     var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="一、起源二、功能三、架构四、使用五、实现六、参考链接https:&#x2F;&#x2F;falco.org&#x2F;docs&#x2F; https:&#x2F;&#x2F;github.com&#x2F;draios&#x2F;sysdig&#x2F;wiki&#x2F;How-to-Install-Sysdig-for-Linux https:&#x2F;&#x2F;github.com&#x2F;falcosecurity&#x2F;falco https:&#x2F;&#x2F;docs.sysdig.com&#x2F;en&#x2F;agent-installa">
+  <meta name="description" content="一、缘起云原生大大改变了原有的软件部署结构，容器、容器云平台、服务网格、DevOps等技术的发展加快了企业拥抱云原生的步伐。云原生其独有的特点也给传统的基于边界检测及纯主机EDR检测的方式带来了极大的挑战，安全行业迎来了一场革新。以Falco为代表的一系列云原生容器运行时安全检测项目应运而生，本篇博客记录下此项目的学习过程。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Falco Design Principle Analysis">
 <meta property="og:url" content="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/index.html">
 <meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
-<meta property="og:description" content="一、起源二、功能三、架构四、使用五、实现六、参考链接https:&#x2F;&#x2F;falco.org&#x2F;docs&#x2F; https:&#x2F;&#x2F;github.com&#x2F;draios&#x2F;sysdig&#x2F;wiki&#x2F;How-to-Install-Sysdig-for-Linux https:&#x2F;&#x2F;github.com&#x2F;falcosecurity&#x2F;falco https:&#x2F;&#x2F;docs.sysdig.com&#x2F;en&#x2F;agent-installa">
+<meta property="og:description" content="一、缘起云原生大大改变了原有的软件部署结构，容器、容器云平台、服务网格、DevOps等技术的发展加快了企业拥抱云原生的步伐。云原生其独有的特点也给传统的基于边界检测及纯主机EDR检测的方式带来了极大的挑战，安全行业迎来了一场革新。以Falco为代表的一系列云原生容器运行时安全检测项目应运而生，本篇博客记录下此项目的学习过程。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-01-10T03:36:38.000Z">
-<meta property="article:modified_time" content="2021-01-10T06:53:17.611Z">
+<meta property="article:modified_time" content="2021-01-10T08:09:51.247Z">
 <meta property="article:author" content="XDW">
 <meta property="article:tag" content="容器运行时安全">
 <meta property="article:tag" content="k8s">
@@ -178,7 +178,7 @@
 
       <!--noindex-->
       <section class="post-toc-wrap sidebar-panel">
-          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、起源"><span class="nav-number">1.</span> <span class="nav-text">一、起源</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、功能"><span class="nav-number">2.</span> <span class="nav-text">二、功能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、架构"><span class="nav-number">3.</span> <span class="nav-text">三、架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#四、使用"><span class="nav-number">4.</span> <span class="nav-text">四、使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#五、实现"><span class="nav-number">5.</span> <span class="nav-text">五、实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#六、参考链接"><span class="nav-number">6.</span> <span class="nav-text">六、参考链接</span></a></li></ol></div>
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、缘起"><span class="nav-number">1.</span> <span class="nav-text">一、缘起</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、功能"><span class="nav-number">2.</span> <span class="nav-text">二、功能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、架构"><span class="nav-number">3.</span> <span class="nav-text">三、架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#四、使用"><span class="nav-number">4.</span> <span class="nav-text">四、使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#五、实现"><span class="nav-number">5.</span> <span class="nav-text">五、实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#六、总结"><span class="nav-number">6.</span> <span class="nav-text">六、总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#七、参考链接"><span class="nav-number">7.</span> <span class="nav-text">七、参考链接</span></a></li></ol></div>
       </section>
       <!--/noindex-->
 
@@ -280,7 +280,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2021-01-10 11:36:38 / 修改时间：14:53:17" itemprop="dateCreated datePublished" datetime="2021-01-10T11:36:38+08:00">2021-01-10</time>
+      <time title="创建时间：2021-01-10 11:36:38 / 修改时间：16:09:51" itemprop="dateCreated datePublished" datetime="2021-01-10T11:36:38+08:00">2021-01-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -309,7 +309,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="一、起源"><a href="#一、起源" class="headerlink" title="一、起源"></a>一、起源</h1><h1 id="二、功能"><a href="#二、功能" class="headerlink" title="二、功能"></a>二、功能</h1><h1 id="三、架构"><a href="#三、架构" class="headerlink" title="三、架构"></a>三、架构</h1><h1 id="四、使用"><a href="#四、使用" class="headerlink" title="四、使用"></a>四、使用</h1><h1 id="五、实现"><a href="#五、实现" class="headerlink" title="五、实现"></a>五、实现</h1><h1 id="六、参考链接"><a href="#六、参考链接" class="headerlink" title="六、参考链接"></a>六、参考链接</h1><p><a href="https://falco.org/docs/" target="_blank" rel="noopener">https://falco.org/docs/</a></p>
+        <h1 id="一、缘起"><a href="#一、缘起" class="headerlink" title="一、缘起"></a>一、缘起</h1><p>云原生大大改变了原有的软件部署结构，容器、容器云平台、服务网格、DevOps等技术的发展加快了企业拥抱云原生的步伐。云原生其独有的特点也给传统的基于边界检测及纯主机EDR检测的方式带来了极大的挑战，安全行业迎来了一场革新。以Falco为代表的一系列云原生容器运行时安全检测项目应运而生，本篇博客记录下此项目的学习过程。</p>
+<a id="more"></a>
+
+<h1 id="二、功能"><a href="#二、功能" class="headerlink" title="二、功能"></a>二、功能</h1><h1 id="三、架构"><a href="#三、架构" class="headerlink" title="三、架构"></a>三、架构</h1><h1 id="四、使用"><a href="#四、使用" class="headerlink" title="四、使用"></a>四、使用</h1><h1 id="五、实现"><a href="#五、实现" class="headerlink" title="五、实现"></a>五、实现</h1><h1 id="六、总结"><a href="#六、总结" class="headerlink" title="六、总结"></a>六、总结</h1><h1 id="七、参考链接"><a href="#七、参考链接" class="headerlink" title="七、参考链接"></a>七、参考链接</h1><p><a href="https://falco.org/docs/" target="_blank" rel="noopener">https://falco.org/docs/</a></p>
 <p><a href="https://github.com/draios/sysdig/wiki/How-to-Install-Sysdig-for-Linux" target="_blank" rel="noopener">https://github.com/draios/sysdig/wiki/How-to-Install-Sysdig-for-Linux</a></p>
 <p><a href="https://github.com/falcosecurity/falco" target="_blank" rel="noopener">https://github.com/falcosecurity/falco</a></p>
 <p><a href="https://docs.sysdig.com/en/agent-installation.html" target="_blank" rel="noopener">https://docs.sysdig.com/en/agent-installation.html</a></p>

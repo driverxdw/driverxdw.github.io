@@ -38,8 +38,9 @@
 <meta property="og:image" content="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/image-20210112093529224.png">
 <meta property="og:image" content="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/image-20210112094346911.png">
 <meta property="og:image" content="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/image-20210112094523900.png">
+<meta property="og:image" content="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/image-20210112235130831.png">
 <meta property="article:published_time" content="2021-01-10T03:36:38.000Z">
-<meta property="article:modified_time" content="2021-01-12T02:08:24.333Z">
+<meta property="article:modified_time" content="2021-01-12T16:01:39.392Z">
 <meta property="article:author" content="XDW">
 <meta property="article:tag" content="容器运行时安全">
 <meta property="article:tag" content="k8s">
@@ -296,7 +297,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2021-01-12 10:08:24" itemprop="dateModified" datetime="2021-01-12T10:08:24+08:00">2021-01-12</time>
+        <time title="修改时间：2021-01-13 00:01:39" itemprop="dateModified" datetime="2021-01-13T00:01:39+08:00">2021-01-13</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -345,7 +346,7 @@
 <h1 id="三、架构"><a href="#三、架构" class="headerlink" title="三、架构"></a>三、架构</h1><p>Falco的整体架构如下所示：</p>
 <p><img src="./image-20210110213130222.png" alt="image-20210110213130222"></p>
 <p>架构还是非常简单的，和常见主机安全类产品/项目非常相似；主要架构可以分为三层，分别为探针、解析引擎、规则库，其工作流程大致是这样的：</p>
-<h2 id="内核驱动"><a href="#内核驱动" class="headerlink" title="内核驱动"></a>内核驱动</h2><p>内核层探针默认是sysdig-probe，通过注册tracepoints回调处理系统调用事件，sysdig-probe作为内核驱动包含在sysdig的独立开源项目<a href="https://github.com/draios/sysdig中，但需要注意的是sysdig工具并不只包含内核驱动，它还有类似CLI、事件解析引擎（sinsp、scap）之类的各种组件" target="_blank" rel="noopener">https://github.com/draios/sysdig中，但需要注意的是sysdig工具并不只包含内核驱动，它还有类似CLI、事件解析引擎（sinsp、scap）之类的各种组件</a></p>
+<h2 id="内核驱动"><a href="#内核驱动" class="headerlink" title="内核驱动"></a>内核驱动</h2><p>内核层探针默认是sysdig-probe，通过tracepoints点监控系统调用事件，sysdig-probe作为内核驱动包含在sysdig的独立开源项目<a href="https://github.com/draios/sysdig中，但需要注意的是sysdig工具并不只包含内核驱动，它还有类似CLI、事件解析引擎（sinsp、scap）之类的各种组件" target="_blank" rel="noopener">https://github.com/draios/sysdig中，但需要注意的是sysdig工具并不只包含内核驱动，它还有类似CLI、事件解析引擎（sinsp、scap）之类的各种组件</a></p>
 <p><img src="./image-20210110220232167.png" alt="image-20210110220232167"></p>
 <p>除了动态内核模块，falco驱动还支持ebpf和用户态检测，之所以加入另外的这两种日志获取方式首先是考虑到动态内核模块的不稳定性，虽然sysdig项目在wiki中声明的已支持Linux内核版本适配已经做的比较全了，但不排除用户机器内核就是在覆盖版本之外的情况，且毕竟是内核，是内核就有崩溃的风险；其次某些云平台会出于安全考虑不允许加载内核模块，这样falco的部署条件就受到了限制</p>
 <p><img src="./image-20210110222145031.png" alt="image-20210110222145031"></p>
@@ -367,8 +368,15 @@
 <p><img src="./image-20210112094346911.png" alt="image-20210112094346911"></p>
 <p>最后是lists，顾名思义就是规则中的一系列常量列表，可以被rules、macro甚至list本身引用</p>
 <p><img src="./image-20210112094523900.png" alt="image-20210112094523900"></p>
-<h2 id="规则库"><a href="#规则库" class="headerlink" title="规则库"></a>规则库</h2><p>falco支持以yaml模版编写规则，falco项目内集成了一套基础规则库，保存在/etc/falco/falco_rules.yaml目录下，同时用户也可以自定义本地异常行为检测规则，规则文件为/etc/falco/falco_rules.local.yaml</p>
-<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><h1 id="四、使用"><a href="#四、使用" class="headerlink" title="四、使用"></a>四、使用</h1><h1 id="五、实现"><a href="#五、实现" class="headerlink" title="五、实现"></a>五、实现</h1><h1 id="六、总结"><a href="#六、总结" class="headerlink" title="六、总结"></a>六、总结</h1><h1 id="七、参考链接"><a href="#七、参考链接" class="headerlink" title="七、参考链接"></a>七、参考链接</h1><p><a href="https://falco.org/docs/" target="_blank" rel="noopener">https://falco.org/docs/</a></p>
+<h2 id="规则库"><a href="#规则库" class="headerlink" title="规则库"></a>规则库</h2><p>falco支持以yaml模版编写规则，falco项目内集成了一套基础规则库，保存在/etc/falco/falco_rules.yaml目录下，同时用户也可以自定义本地异常行为检测规则，规则文件为/etc/falco/falco_rules.local.yaml；另外falco还有来自k8s的日志事件源，可以支持用户编写规则对k8s日志事件进行审计，规则文件保存在/etc/falco/k8s_audit_rules.yaml中，规则语法已在前部分的规则引擎中叙述，此处不再赘述</p>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><p>其它需要补充的有：</p>
+<p>/etc/falco/falco.ymal：falco自身的配置文件，内部定义了规则文件路径、输出格式、输出目标、是否接受k8s审计日志之类的配置项（<a href="https://falco.org/docs/configuration/）" target="_blank" rel="noopener">https://falco.org/docs/configuration/）</a></p>
+<p>else. 待补充</p>
+<h1 id="四、使用"><a href="#四、使用" class="headerlink" title="四、使用"></a>四、使用</h1><p>falco支持在容器和主机运行，相对来说，在容器内部去起falco更优雅简洁，且契合云原生的业务需求（<a href="https://falco.org/docs/getting-started/running/）文档中记录了如何用docker去启动和管理falco容器；除了docker起容器部署，更常见的部署环境其实是在k8s集群中，而一台机器一台机器去用docker起容器指定是效率低下的，效率更高的方式是写daemonset" target="_blank" rel="noopener">https://falco.org/docs/getting-started/running/）文档中记录了如何用docker去启动和管理falco容器；除了docker起容器部署，更常见的部署环境其实是在k8s集群中，而一台机器一台机器去用docker起容器指定是效率低下的，效率更高的方式是写daemonset</a> yaml去批量在每台node上部署falco pod，这样集群内每台node的系统调用事件就都可以监控到了（<a href="https://falco.org/zh/docs/installation/）" target="_blank" rel="noopener">https://falco.org/zh/docs/installation/）</a></p>
+<p><img src="./image-20210112235130831.png" alt="image-20210112235130831"></p>
+<h1 id="五、实现"><a href="#五、实现" class="headerlink" title="五、实现"></a>五、实现</h1><p>后续单独总结，此处暂不涉及实现分析</p>
+<h1 id="六、总结"><a href="#六、总结" class="headerlink" title="六、总结"></a>六、总结</h1><p>刚开始接触容器安全，简单分析了下falco的技术栈和功能架构，后面做云原生安全体系建设（基线安全、镜像安全、容器运行时安全、网络微隔离/访问控制/可视化等等）可以作为一个参考</p>
+<h1 id="七、参考链接"><a href="#七、参考链接" class="headerlink" title="七、参考链接"></a>七、参考链接</h1><p><a href="https://falco.org/docs/" target="_blank" rel="noopener">https://falco.org/docs/</a></p>
 <p><a href="https://github.com/draios/sysdig/wiki/How-to-Install-Sysdig-for-Linux" target="_blank" rel="noopener">https://github.com/draios/sysdig/wiki/How-to-Install-Sysdig-for-Linux</a></p>
 <p><a href="https://github.com/falcosecurity/falco" target="_blank" rel="noopener">https://github.com/falcosecurity/falco</a></p>
 <p><a href="https://docs.sysdig.com/en/agent-installation.html" target="_blank" rel="noopener">https://docs.sysdig.com/en/agent-installation.html</a></p>

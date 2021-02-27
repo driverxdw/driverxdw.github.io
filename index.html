@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">79</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">80</span></a>
 
   </li>
   </ul>
@@ -190,7 +190,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-count">80</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -202,7 +202,7 @@
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
-        <span class="site-state-item-count">48</span>
+        <span class="site-state-item-count">49</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -243,6 +243,88 @@
       
 
       
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2021/02/27/Kprobe-principle-analysis/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/02/27/Kprobe-principle-analysis/" class="post-title-link" itemprop="url">Kprobe principle analysis</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-02-27 12:00:00 / 修改时间：20:01:58" itemprop="dateCreated datePublished" datetime="2021-02-27T12:00:00+08:00">2021-02-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/HIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="kprobes简介"><a href="#kprobes简介" class="headerlink" title="kprobes简介"></a>kprobes简介</h1><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">KProbes is <span class="keyword">a</span> debugging mechanism <span class="keyword">for</span> <span class="keyword">the</span> Linux kernel which can also be used <span class="keyword">for</span> monitoring events inside <span class="keyword">a</span> production <span class="keyword">system</span>. You can use <span class="keyword">it</span> <span class="built_in">to</span> weed out performance bottlenecks, <span class="built_in">log</span> specific events, trace problems etc. KProbes was developed <span class="keyword">by</span> IBM <span class="keyword">as</span> <span class="keyword">an</span> underlying mechanism <span class="keyword">for</span> another higher level tracing tool called DProbes. DProbes adds <span class="keyword">a</span> <span class="built_in">number</span> <span class="keyword">of</span> features, including its own scripting language <span class="keyword">for</span> <span class="keyword">the</span> writing <span class="keyword">of</span> probe handlers. However, only KProbes has been merged <span class="keyword">into</span> <span class="keyword">the</span> standard kernel.</span><br><span class="line">...</span><br><span class="line">The figure <span class="built_in">to</span> <span class="keyword">the</span> <span class="literal">right</span> describes <span class="keyword">the</span> architecture <span class="keyword">of</span> KProbes. On <span class="keyword">the</span> x86, KProbes makes use <span class="keyword">of</span> <span class="keyword">the</span> exception handling mechanisms <span class="keyword">and</span> modifies <span class="keyword">the</span> standard <span class="built_in">breakpoint</span>, debug <span class="keyword">and</span> <span class="keyword">a</span> few other exception handlers <span class="keyword">for</span> its own purpose. Most <span class="keyword">of</span> <span class="keyword">the</span> handling <span class="keyword">of</span> <span class="keyword">the</span> probes is done <span class="keyword">in</span> <span class="keyword">the</span> context <span class="keyword">of</span> <span class="keyword">the</span> <span class="built_in">breakpoint</span> <span class="keyword">and</span> <span class="keyword">the</span> debug exception handlers which make up <span class="keyword">the</span> KProbes architecture dependent layer. The KProbes architecture independent layer is <span class="keyword">the</span> KProbes manager which is used <span class="built_in">to</span> register <span class="keyword">and</span> unregister probes. Users provide probe handlers <span class="keyword">in</span> kernel modules which register probes through <span class="keyword">the</span> KProbes manager.</span><br></pre></td></tr></table></figure>
+
+<p>Kprobes是Linux内核的一种调试机制，可以用来在生产环境中监控内核事件，其允许使用者在内核指定位置注册自定义的回调函数，捕捉内核事件、对内核信息进行过滤、分析，达到内核观测的效果。kprobes这种内核追踪机制常用于性能、安全监控领域，最常见的，比如用于hids/cwpp/edr的agent；本质上，他和替换系统调用表这种比较暴力的开膛破腹式的监控手段不同（典型的如yulong），内核机制的支持使其相对比较稳定和优雅（虽然不如ebpf），如果probe点合适（字段不经常变更），且兼容性足够好，那么将kprobes用在agent模块上则会使agent获得性能、安全（绕过相对用户态较难）的双重优势，典型如开源项目agent-smith，目前agent已在字节大量部署，据说部署规模有10w+；不再赘述，记录下核心知识点的学习过程。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/02/27/Kprobe-principle-analysis/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -824,97 +906,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/01/10/Kubernetes-Learning-Notes-Installation-Process-Record/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/12/14/Felicia-Hids-Demo-Design/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/12/14/Felicia-Hids-Demo-Design/" class="post-title-link" itemprop="url">Felicia Hids Demo Design</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2020-12-14 01:21:36" itemprop="dateCreated datePublished" datetime="2020-12-14T01:21:36+08:00">2020-12-14</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-12-18 01:04:42" itemprop="dateModified" datetime="2020-12-18T01:04:42+08:00">2020-12-18</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/HIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="一、起源"><a href="#一、起源" class="headerlink" title="一、起源"></a>一、起源</h1><p>当时想着写这个项目的原因主要有如下几点：</p>
-<p>1、自身代码化的能力较弱，想通过项目驱动提升自己的代码化能力与熟练度</p>
-<p>2、毕业前其实没有真正去写过一个完整的开源项目，一直挺遗憾的</p>
-<p>3、也可以算作入主机安全领域这段时间下来的一个小沉淀、小总结</p>
-<p>4、虽然非常简单，但包含着自己对主机安全这块的理解与思考，可以作为自己能力的一部分</p>
-<p>虽然事情很多，但最终还是决定去写这个项目，项目取名”Felicia”，源自小时候很喜欢的一款单机RPG游戏中的女二的名字（翻译过来应该是叫”菲利西亚”），从小喜欢到现在的女角色；给自己第一个项目取这个名字还是带着一点想法的，寓意是激励自己，希望对一切都能保持单纯与热情（就像对这个游戏一样），并在开源这条道路上坚定的走下去。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/12/14/Felicia-Hids-Demo-Design/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

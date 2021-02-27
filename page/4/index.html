@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">79</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">80</span></a>
 
   </li>
   </ul>
@@ -190,7 +190,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-count">80</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -202,7 +202,7 @@
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
-        <span class="site-state-item-count">48</span>
+        <span class="site-state-item-count">49</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -243,6 +243,98 @@
       
 
       
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/11/28/Docker-cp%E9%80%83%E9%80%B8%E6%BC%8F%E6%B4%9E-CVE-2019-14271-%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/11/28/Docker-cp%E9%80%83%E9%80%B8%E6%BC%8F%E6%B4%9E-CVE-2019-14271-%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">Docker cp逃逸漏洞(CVE-2019-14271)分析</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-11-28 11:34:56" itemprop="dateCreated datePublished" datetime="2019-11-28T11:34:56+08:00">2019-11-28</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-09-12 01:39:07" itemprop="dateModified" datetime="2020-09-12T01:39:07+08:00">2020-09-12</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>CVE-2019-14271是一个通过宿主机docker cp容器文件导致任意命令执行的漏洞，目前已知的影响版本只有docker 19.03.0(包含几个beta版)，19.03.1以上以及18.09以下都不收影响。漏洞起源于docker开源项目issue上docker19.03.0版本docker cp产生的报错:</p>
+<p><code>Error response from daemon: error processing tar file: docker-tar: relocation error: /lib/arm-linux-gnueabihf/[libnss_files.so](http://libnss_files.so/).2: symbol __libc_readline_unlocked, version GLIBC_PRIVATE not defined in file [libc.so](http://libc.so/).6 with link time reference : exit status 127</code></p>
+<p>这边给出docker源码issue链接地址：<a href="https://github.com/moby/moby/issues/39449" target="_blank" rel="noopener">https://github.com/moby/moby/issues/39449</a></p>
+<p>CVE官方也放出漏洞细节：<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14271" target="_blank" rel="noopener">https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-14271</a></p>
+<p>贴一下漏洞发现者的博客：<a href="https://unit42.paloaltonetworks.com/docker-patched-the-most-severe-copy-vulnerability-to-date-with-cve-2019-14271/" target="_blank" rel="noopener">https://unit42.paloaltonetworks.com/docker-patched-the-most-severe-copy-vulnerability-to-date-with-cve-2019-14271/</a></p>
+<p>目前国内对CVE-2019-14271漏洞所做的分析基本都是来自漏洞发现者博客的文章翻译，缺少具体复现细节。</p>
+<p>这边做一下漏洞分析和复现。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/11/28/Docker-cp%E9%80%83%E9%80%B8%E6%BC%8F%E6%B4%9E-CVE-2019-14271-%E5%88%86%E6%9E%90/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1010,92 +1102,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/04/29/TP-Link-SR20%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/04/27/Ntpdc-Fuzz/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/04/27/Ntpdc-Fuzz/" class="post-title-link" itemprop="url">Ntpdc Fuzz</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-04-27 00:18:51" itemprop="dateCreated datePublished" datetime="2019-04-27T00:18:51+08:00">2019-04-27</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-09-11 23:58:35" itemprop="dateModified" datetime="2020-09-11T23:58:35+08:00">2020-09-11</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><p>ntp是网络时间协议，用来同步网络中的各个计算机时间，之前偶然看到一篇国外dalao对ntp漏洞进行分析的文章，觉得挺有意思的。那个cve好像是2015年出的，是一个Buffer over flow，可以利用。时间相对来说还是有点早的，自己折腾环境测试了一下，发现居然洞没了，翻遍了<a href="http://www.ntp.org/" target="_blank" rel="noopener">官网</a>也没找到备份，orz。。。。。想着总不能一无所获吧，就用afl-fuzz给ntp的各个版本来了一发，还真跑出了几个异常，这边就来复盘下分析的过程。
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/04/27/Ntpdc-Fuzz/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">80</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">82</span></a>
 
   </li>
   </ul>
@@ -190,7 +190,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">80</span>
+          <span class="site-state-item-count">82</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -243,6 +243,178 @@
       
 
       
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/10/22/Yulong-Hids-Process-Monitor-Principle-Analysis/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/22/Yulong-Hids-Process-Monitor-Principle-Analysis/" class="post-title-link" itemprop="url">Yulong-Hids Process Monitor Principle Analysis</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-10-22 10:05:49" itemprop="dateCreated datePublished" datetime="2020-10-22T10:05:49+08:00">2020-10-22</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-10-25 00:27:20" itemprop="dateModified" datetime="2020-10-25T00:27:20+08:00">2020-10-25</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/HIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="一、起源"><a href="#一、起源" class="headerlink" title="一、起源"></a>一、起源</h2><p>之前针对yulong-hids的分析还剩下进程监控模块，因为此模块有点复杂且涉及内核，所以单独整一篇过来分析下</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/22/Yulong-Hids-Process-Monitor-Principle-Analysis/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/10/20/Yulong-Hids%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%8A%9F%E8%83%BD%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/10/20/Yulong-Hids%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%8A%9F%E8%83%BD%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">Yulong-Hids架构设计与功能原理分析</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-10-20 20:54:32" itemprop="dateCreated datePublished" datetime="2020-10-20T20:54:32+08:00">2020-10-20</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-10-22 14:28:12" itemprop="dateModified" datetime="2020-10-22T14:28:12+08:00">2020-10-22</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/HIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="一、起源"><a href="#一、起源" class="headerlink" title="一、起源"></a>一、起源</h2><p>yulong-hids可以说是国内第一个比较成熟的开源hids项目，虽说项目已经发布很久，但直到几个月前才想着去学习一下其技术原理，主要是之前这块的研究需求不是很高，而且环境搭建过程较为复杂，没有一键化的脚本，自己手搭受挫了几次随即没了兴致（捂脸），最近心血来潮又来玩了一遍终于搭成功了（捂脸），果然还是成长了吗（//雾）</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/20/Yulong-Hids%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%8A%9F%E8%83%BD%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -944,178 +1116,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/07/06/Clion%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/07/06/Clion%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">Clion源码调试问题记录</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2020-07-06 22:48:32" itemprop="dateCreated datePublished" datetime="2020-07-06T22:48:32+08:00">2020-07-06</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-07-07 00:17:54" itemprop="dateModified" datetime="2020-07-07T00:17:54+08:00">2020-07-07</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/HIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="一、make-amp-amp-Makefile"><a href="#一、make-amp-amp-Makefile" class="headerlink" title="一、make &amp;&amp; Makefile"></a>一、make &amp;&amp; Makefile</h1><p>在相对比较大的项目中，项目通常会被模块化，使用make和makefile有助于简明的记录各个模块之间的复杂引用关系；如此之多的源文件，如果每次编译都要去敲gcc指定源文件和头文件以及链接库进行编译的确是个灾难；针对上面的问题，make应运而生。make根据makefile中定义的编译方式进行自动化的、定制化的编译，且能灵活地只对makefile中上次修改的部分进行重编译。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/07/06/Clion%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/07/06/Linux-ptrace-so%E5%BA%93%E6%B3%A8%E5%85%A5%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/07/06/Linux-ptrace-so%E5%BA%93%E6%B3%A8%E5%85%A5%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">Linux ptrace so库注入分析</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2020-07-06 13:03:54 / 修改时间：13:19:50" itemprop="dateCreated datePublished" datetime="2020-07-06T13:03:54+08:00">2020-07-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/HIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>hw期间需要准备红队不同生命周期中使用的工具，作为一名二进制选手（伪），理所应当的承担起了主机层内网权限维持这块的工作输出，包括手法、自动化工具（开源、自写）、rootkit、多版本适配的魔改系统so等等。整理的过程也是学习的过程，这里打算分三部分进行记录，主要包括ptrace注入、预加载、rootkit三块。以下首先进行的是ptrace注入这块的分析，包括原理、源码、其它三个部分。</p>
-<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>在linux上，想要去做so库的动态注入无非这么几步：<br>1、注入器（injector）使用ptrace挂载目标进程<br>2、注入器注入加载器（loader）到目标进程<br>3、加载器被触发进行so库注入<br>4、目标进程初始状态还原和卸载ptrace</p>
-<p>下面简单展开一下：</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/07/06/Linux-ptrace-so%E5%BA%93%E6%B3%A8%E5%85%A5%E5%88%86%E6%9E%90/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 

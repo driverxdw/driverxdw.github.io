@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">82</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">83</span></a>
 
   </li>
   </ul>
@@ -190,7 +190,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">82</span>
+          <span class="site-state-item-count">83</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -395,6 +395,115 @@
             </div>
           <!--/noindex-->
         
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/12/27/Django%E9%87%8D%E7%BD%AE%E5%AF%86%E7%A0%81%E8%A1%A8%E5%8D%95%E8%B4%A6%E6%88%B7%E5%8A%AB%E6%8C%81-CVE-2019-19844-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/12/27/Django%E9%87%8D%E7%BD%AE%E5%AF%86%E7%A0%81%E8%A1%A8%E5%8D%95%E8%B4%A6%E6%88%B7%E5%8A%AB%E6%8C%81-CVE-2019-19844-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">Django重置密码表单账户劫持(CVE-2019-19844)漏洞分析</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-12-27 21:52:53" itemprop="dateCreated datePublished" datetime="2019-12-27T21:52:53+08:00">2019-12-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-03-15 21:57:27" itemprop="dateModified" datetime="2021-03-15T21:57:27+08:00">2021-03-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="一、漏洞介绍"><a href="#一、漏洞介绍" class="headerlink" title="一、漏洞介绍"></a>一、漏洞介绍</h1><p>Django的密码重设表单使用不区分大小写的查询来检索与请求密码重设的电子邮件地址匹配的帐户。因为这通常涉及显式或隐式大小写转换，所以知道与用户帐户关联的电子邮件地址的攻击者可以制作与该帐户关联但地址不同的电子邮件地址。攻击者可以输入精心构造的带Unicode字符的邮箱并让Django解析成受害者的关联邮箱地址，在这种情况下，攻击者可以收到受害者帐户的有效密码重置令牌进行恶意的用户密码重置。</p>
+<h1 id="二、功能分析"><a href="#二、功能分析" class="headerlink" title="二、功能分析"></a>二、功能分析</h1><p>Django框架有一个内置的email重置功能，用户编写代码时只需要调用django的内置api就可以进行重置，获取django根据特殊算法生成的重置邮箱密码的message(json)：</p>
+<p><img src="./image2019-12-27_16-35-3.png" alt="img"></p>
+<p>之后用户可以直接根据生成的message中的email(To)调用第三方api进行邮件发送。</p>
+<h1 id="三、漏洞复现"><a href="#三、漏洞复现" class="headerlink" title="三、漏洞复现"></a>三、漏洞复现</h1><p>根据CVe-2019-19844作者公布的poc显示，攻击者可以通过精心构造的带特殊字符邮箱输入来与数据库中存储的邮箱地址所在的用户进行强行关联，这边我们根据poc进行一下复现：</p>
+<p>1、创建用户</p>
+<p><img src="./image2019-12-27_16-45-24.png" alt="img"></p>
+<p>2、重置密码</p>
+<p><img src="./image2019-12-27_16-46-50.png" alt="img"></p>
+<p>可以看到django把带unicode编码的email地址”xdw123@ıı.com“和“<a href="mailto:xdw123@ii.com">xdw123@ii.com</a>”邮箱所在用户进行了强关联，并生成了XDw用户的专属重置链接，而且生成的message中的To字段被解析成了另一个email地址，一旦应用层的开发者代码是直接取出此字段发送邮件，则攻击者在知道用户绑定邮箱的情况下很有构造特殊输入给攻击者指定的邮箱发送重置链接，造成一个任意用户密码重置的危害。</p>
+<h1 id="四、漏洞分析"><a href="#四、漏洞分析" class="headerlink" title="四、漏洞分析"></a>四、漏洞分析</h1><p>漏洞的关键点主要在于一旦输入能与数据库中的用户进行关联，则把重置链接发送给用户输入的邮箱地址，而不是数据库中存储的用户地址。</p>
+<p>获取输入框邮箱地址：</p>
+<p><img src="./image2019-12-27_17-2-49.png" alt="img"></p>
+<p>从数据库中找出邮箱匹配的user:</p>
+<p><img src="./image2019-12-27_17-5-19.png" alt="img"></p>
+<p>发送message：</p>
+<p><img src="./image2019-12-27_17-3-49.png" alt="img"></p>
+<p>这边不得不吐槽一下django的功能，为什么要允许输入的邮箱地址是unicode，api内解析一下如果是unicode则drop掉可能就没有这个问题了。不过主要漏洞点也还是在于不使用数据库中获取的发送地址进行发送，就算”xdw123@ıı.com”匹配出了”<a href="mailto:xdw123@ii.com">xdw123@ii.com</a>“，但如果还是向”<a href="mailto:xdw123@ii.com">xdw123@ii.com</a>“发送邮件则没有什么问题。</p>
+<p>还有一个暂时未搞明白的地方是，为什么”xdw123@ıı.com”会被解析成”<a href="mailto:xdw123@xn--cfaa.com">xdw123@xn–cfaa.com</a>“。用户传入的带土耳其字符ı的邮箱地址(unicode)应该是会被解析成utf-8格式后再传回给用户的，这边也可以在源码中看到：</p>
+<p><img src="./image2019-12-27_17-14-6.png" alt="img"></p>
+<p><img src="./image2019-12-27_17-16-25.png" alt="img"></p>
+<p>这边手动hook过发现编码确实是utf8，但如何做具体转换的这边暂时还不清楚，一旦知道unicode解析原理，这边就能构造exploit</p>
+<h1 id="五、补丁修复"><a href="#五、补丁修复" class="headerlink" title="五、补丁修复"></a>五、补丁修复</h1><p>3.0.1对此漏洞进行了修复，主要包含两个patch：</p>
+<p>1、输入email匹配user的时候加了一个unicode文本标准化之后的比较，主要用来过滤带不完全相等的邮箱输入</p>
+<p><img src="./image2019-12-27_17-25-41.png" alt="img"></p>
+<p>2、message中的邮箱换成了数据库中的邮箱</p>
+<p><img src="./image2019-12-27_17-35-31.png" alt="img"></p>
+<p>漏洞版本检测：</p>
+<p><img src="./image2019-12-27_17-38-24.png" alt="img"></p>
+<p>开发者建议：</p>
+<p>调用框架接口也需要做好过滤，这边可以在邮箱输入框以及使用message ’To‘字段时进行比较和过滤。</p>
+
       
     </div>
 
@@ -1009,93 +1118,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/05/10/Z3%E5%88%9D%E6%8E%A2/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/05/05/CVE-2014-0160%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/05/05/CVE-2014-0160%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">CVE-2014-0160漏洞分析</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-05-05 00:18:51" itemprop="dateCreated datePublished" datetime="2019-05-05T00:18:51+08:00">2019-05-05</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-09-11 23:51:22" itemprop="dateModified" datetime="2020-09-11T23:51:22+08:00">2020-09-11</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="0x01-漏洞简介"><a href="#0x01-漏洞简介" class="headerlink" title="0x01 漏洞简介"></a>0x01 漏洞简介</h2><p>CVE-2014-0160被称为心脏滴血漏洞，影响版本为<code>OpenSSL1.0.1、1.0.1a、1.0.1b、1.0.1c、1.0.1d、1.0.1e、1.0.1f、Beta 1 of OpenSSL 1.0.2</code>等。该漏洞会导致内存越界，攻击者可以远程读取Openssl服务器内存中最多64k的数据。众所周知，https传输的重要信息是经过加密的，可能你获取到了也不能直接利用;但是在内存中，这些关键信息是明文保存的，所以Openssl的危害可想而知，据说利用该漏洞可以获得约30%的https开头网址的用户登陆的账户和密码。漏洞披露后反响巨大，Openssl”心脏滴血”事件因其破坏之大和影响之广，堪称网络安全事件的里程碑。  </p>
-<h2 id="0x02-Openssl简介"><a href="#0x02-Openssl简介" class="headerlink" title="0x02 Openssl简介"></a>0x02 Openssl简介</h2><p>人们为了通信安全，使用安全协议进行通信加密，SSL(secure socket layer)就是一种安全协议，后来这款开源软件被广泛使用，常见的https网址以及那把小锁的标志，就代表网站经过ssl证书加密。
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/05/05/CVE-2014-0160%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

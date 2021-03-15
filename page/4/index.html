@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">83</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">84</span></a>
 
   </li>
   </ul>
@@ -190,7 +190,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">83</span>
+          <span class="site-state-item-count">84</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -395,6 +395,130 @@
             </div>
           <!--/noindex-->
         
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/01/20/Citrix%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-CVE-2019-19781-%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/01/20/Citrix%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-CVE-2019-19781-%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">Citrix远程代码执行漏洞(CVE-2019-19781)分析</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-01-20 22:03:14" itemprop="dateCreated datePublished" datetime="2020-01-20T22:03:14+08:00">2020-01-20</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-03-15 22:08:32" itemprop="dateModified" datetime="2021-03-15T22:08:32+08:00">2021-03-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="一、漏洞介绍"><a href="#一、漏洞介绍" class="headerlink" title="一、漏洞介绍"></a>一、漏洞介绍</h1><p>Citrix Systems Citrix ADC and NetScaler Gateway等都是美国思杰系统（Citrix Systems）公司的产品。Citrix ADC and NetScaler Gateway是一款应用交付控制器。该产品具有应用交付控制和负载均衡等功能。 安全专家在Citrix Application Delivery Controller和Citrix Gateway产品中发现一个严重的代码执行漏洞，该漏洞使158个国家的超过8万家公司面临风险。由于利用该漏洞的攻击者无需身份验证即可访问公司的内部网络，因此该漏洞尤其危险。成功利用该漏洞可导致任意代码执行。</p>
+<h1 id="二、环境准备"><a href="#二、环境准备" class="headerlink" title="二、环境准备"></a>二、环境准备</h1><p>此产品不开源且下载需要特殊认证，网上暂未找到citrix adc的布置环境，且由于无shadon/fofa/etc会员，这边可获取的主机基本已修复，故这边暂不布置环境进行复现，直接进行分析。</p>
+<h1 id="三、漏洞复现"><a href="#三、漏洞复现" class="headerlink" title="三、漏洞复现"></a>三、漏洞复现</h1><p>待定</p>
+<h1 id="四、漏洞分析"><a href="#四、漏洞分析" class="headerlink" title="四、漏洞分析"></a>四、漏洞分析</h1><p>1、根据漏洞细节可知产品存在路径穿越，贴下poc</p>
+<p><img src="./image2020-1-13_14-50-24.png" alt="img"></p>
+<p>2、根据poc得知vpn是个与rce相关的重要文件夹，在apache后端http.conf中找到vpn的定义，发现<code>/vpn/portal/scripts/</code>由<code>NetScaler::Portal::Handler</code>这个Perl模块(Handler.pm)负责处理</p>
+<p><img src="./image2020-1-13_14-55-31.png" alt="img"></p>
+<p>3、重点关注文件读写相关操作，在usersprefs模块中找到代码如下</p>
+<p><img src="./image2020-1-13_15-4-1-5817137.png" alt="img">)<img src="./image2020-1-20_14-39-0-5817137.png" alt="img"></p>
+<p>发现username字段直接从请求头中的HTTP_NSC_USER获取，而且未做过滤操作，过滤检查已经被当成了注释。。</p>
+<p>更重要的是在最下面注释后面的内容，代码会根据从http_nsc_user获取的username字段构建路径保存在$filename变量中，所以任何调用这个csd函数的模块都存在路径遍历漏洞</p>
+<p>4、找到调用csd函数的所有文件，重点关注一下这个新建bookmark书签的功能模块newbm.pl</p>
+<p><img src="./image2020-1-13_15-7-34.png" alt="img">)<img src="./image2020-1-13_15-8-58.png" alt="img">)<img src="./image2020-1-20_14-48-16.png" alt="img">)<img src="./image2020-1-20_14-50-37.png" alt="img"></p>
+<p>当创建书签的时候，csd函数将会被触发，用户输入url、name、desc等信息，之后代码显示将根据$doc内容将数据写入创建在磁盘上的xml文件中，而存储路径就是之前根据username生成的filename路径，所以此处存在一个任意写操作，通过修改username的值来修改xml文件的保存路径，同时，攻击者可以通过修改title和desc字段的值来上传任意数据。</p>
+<p>5、最关键的一步，任意地址写之后如何rce。这边根据<a href="https://www.mdsec.co.uk/2020/01/deep-dive-to-citrix-adc-remote-code-execution-cve-2019-19781/文章透露发现漏洞是利用perl" target="_blank" rel="noopener">https://www.mdsec.co.uk/2020/01/deep-dive-to-citrix-adc-remote-code-execution-cve-2019-19781/文章透露发现漏洞是利用perl</a> template toolkit模板引擎来触发的。当把文件写入一个指定的目录比如“./portal/templates”的时候，一旦我们向其发送一个get请求，这个文件将会被perl template toolkit模板引擎当成是模板进行加载和渲染。</p>
+<p><img src="./image2020-1-13_15-22-15.png" alt="img"></p>
+<p>6、template toolkit有一个和代码执行相关的issue</p>
+<p><img src="./image2020-1-13_15-27-13.png" alt="img"></p>
+<p>只需要在push的data中构造代码执行相关的code上传到模板文件，就可以顺利进行代码执行了</p>
+<p>7、贴一下exploit代码</p>
+<p><img src="./image2020-1-13_16-6-43.png" alt="img"></p>
+<p>8、RCE</p>
+<p><img src="./image2020-1-13_15-28-50.png" alt="img"></p>
+<p>9、总结一下，这个漏洞的rce利用涉及三个方面</p>
+<p>1）要能发现一种方式去执行perl代码(这边是通过template模板渲染的方式)</p>
+<p>2）精心构造一个xml文件并利用路径穿越漏洞写到指定的模板目录中去</p>
+<p>3）向上传的xml文件发送请求，触发模板渲染，执行代码</p>
+<h1 id="五、补丁修复"><a href="#五、补丁修复" class="headerlink" title="五、补丁修复"></a>五、补丁修复</h1><p>1、citrix官方暂未发布补丁</p>
+<p>2、官方发布缓解措施</p>
+<p><a href="https://support.citrix.com/article/CTX267679" target="_blank" rel="noopener">https://support.citrix.com/article/CTX267679</a></p>
+<h1 id="六、漏洞扫描"><a href="#六、漏洞扫描" class="headerlink" title="六、漏洞扫描"></a>六、漏洞扫描</h1><p>1、攻击检测</p>
+<p>1）可以根据是否是get请求且url中是否带有vpns、../以及xml来判断 (触发模板渲染)</p>
+<p>strstr(request_uri,’.xml’)&amp;&amp;strstr(method,’get’)&amp;&amp;strstr(request_uri,’vpns’)</p>
+<p>2）根据post请求中header中的nsc_user字段是否包含templates以及url是否带有newbm.pl来判断 (任意文件上传)</p>
+<p>strstr(method,’post’)&amp;&amp;strstr(http_header,’templates’)&amp;&amp;strstr(http_header,’NSC_USER’)&amp;&amp;strstr(request_url,’newbm.pl’)</p>
+<p>2、漏洞检测</p>
+<p>向/vpn/../vpns/cfg/smb.conf发送get请求，如果path，则403，否则200 (检测路径穿越)</p>
+<rule addTime="2020-01-10 11:47:05" attachment="false" description="citrix_rce" id="1041" level="1" lockkey="${HOST}${PORT}_citirx_rce" name="citrix_rce" type="2020011011">
+  <input alert="true" autoFollow="false" express="ADD" method="GET" seq="1" value="/vpn/../vpns/cfg/smb.conf" varname="URLPATH">
+    <output finger="citrix" logic="AND">
+
+<p>​       <assert express="contains" value="[global]" varname="BODY"/></p>
+<p>​    </output><br>  </input><br></rule></p>
+<h1 id="七、解决措施"><a href="#七、解决措施" class="headerlink" title="七、解决措施"></a>七、解决措施</h1><p>1、等待官方补丁</p>
+<p>2、官方发布缓解措施</p>
+<p><a href="https://support.citrix.com/article/CTX267679" target="_blank" rel="noopener">https://support.citrix.com/article/CTX267679</a></p>
+
       
     </div>
 
@@ -1006,95 +1130,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/05/14/%E5%9F%BA%E4%BA%8EPython-flask%E7%9A%84%E4%B8%80%E6%AC%A1%E6%80%A7%E5%8F%A3%E4%BB%A4%E8%AE%A4%E8%AF%81%E7%B3%BB%E7%BB%9F/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/05/10/Z3%E5%88%9D%E6%8E%A2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/05/10/Z3%E5%88%9D%E6%8E%A2/" class="post-title-link" itemprop="url">Z3初探</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-05-10 00:18:51" itemprop="dateCreated datePublished" datetime="2019-05-10T00:18:51+08:00">2019-05-10</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-09-12 00:00:52" itemprop="dateModified" datetime="2020-09-12T00:00:52+08:00">2020-09-12</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%A0%94%E7%A9%B6/" itemprop="url" rel="index"><span itemprop="name">二进制研究</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="0x01-Z3简介"><a href="#0x01-Z3简介" class="headerlink" title="0x01  Z3简介"></a>0x01  Z3简介</h2><figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Z3 is a theorem prover from Microsoft Research. It is licensed under the MIT license.</span><br><span class="line">If you are not familiar with Z3, you can start here.</span><br><span class="line">Pre-built binaries for releases are available from here, and nightly builds from here.</span><br><span class="line">Z3 can be built using Visual Studio, a Makefile or using CMake. It provides bindings for several programming languages.</span><br><span class="line">See the release notes for notes on various stable releases of Z3.</span><br></pre></td></tr></table></figure>
-
-<p>Z3是微软研究院的一个定理证明工具(SMT求解)，它是根据MIT许可证授权的，能够解决给定约束条件来求解满足值的问题。通常用来检查表达式的逻辑是否满足。</p>
-<p>Z3在计算机领域常用于软件验证、逻辑分析等；CTF中常被用于密码学、二进制逆向、符号执行、Fuzz等领域。Angr中就内置了一个Z3约束求解器用来求解满足条件的路径约束。
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/05/10/Z3%E5%88%9D%E6%8E%A2/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://driverxdw.github.io/Users/xdw/Documents/xdwBlog.ink/source/_posts/Sysdig-Source-Code-Analysis/image-20210529182714338.png">
 <meta property="article:published_time" content="2021-05-29T09:46:27.000Z">
-<meta property="article:modified_time" content="2021-05-30T18:06:17.568Z">
+<meta property="article:modified_time" content="2021-05-30T18:07:16.745Z">
 <meta property="article:author" content="XDW">
 <meta property="article:tag" content="源码分析">
 <meta property="article:tag" content="二进制">
@@ -288,7 +288,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2021-05-31 02:06:17" itemprop="dateModified" datetime="2021-05-31T02:06:17+08:00">2021-05-31</time>
+        <time title="修改时间：2021-05-31 02:07:16" itemprop="dateModified" datetime="2021-05-31T02:07:16+08:00">2021-05-31</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -318,6 +318,8 @@
     
     <div class="post-body" itemprop="articleBody">
         <h1 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h1><p>公司hids平台目前的事件监控维度相对较少，于是老大借鉴sysdig手撸了一个内核模块从kernel解析syscall事件，以此增加监控的事件类型，也为后续的产品检测能力增强提供了数据基础。但是dalao手撸的内核模块存在一些bug，在帮dalao找bug、保证内核模块稳定性的过程中深入了解了sysdig这个项目本身的一些代码层面的东西，同时也解开了之前看falco时候的许多代码执行流程上的困惑，非常愉悦，这边做下记录和总结。</p>
+<a id="more"></a>
+
 <h1 id="二、架构"><a href="#二、架构" class="headerlink" title="二、架构"></a>二、架构</h1><p>放一下sysdig整体架构图并做下大概说明：</p>
 <p>主要是用户态、内核态两块，sysdig-probe在内核态通过tracepoint解析syscalls做事件收集，封装好的事件数据写入一个sysdig自己实现的ringbuffer；用户态scap从ringbuffer取数据放入特定结构体交给sinsp解析组成具体事件，sinsp将组装好的事件继续向上传递给sysdig CLI，由其根据用户输入的参数通过规则引擎对上传的事件进行过滤等，将用户想要的事件结果进行输出展示。sysdig最基本的流程和主要功能就是这样。</p>
 <p><img src="/Users/xdw/Documents/xdwBlog.ink/source/_posts/Sysdig-Source-Code-Analysis/image-20210529182714338.png" alt="image-20210529182714338"></p>

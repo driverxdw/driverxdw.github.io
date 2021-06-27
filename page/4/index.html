@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">86</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">88</span></a>
 
   </li>
   </ul>
@@ -190,7 +190,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-count">88</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -243,6 +243,173 @@
       
 
       
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/08/02/Libpcap%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/08/02/Libpcap%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">Libpcap性能问题总结</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-08-02 19:50:50" itemprop="dateCreated datePublished" datetime="2020-08-02T19:50:50+08:00">2020-08-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-08-09 21:54:08" itemprop="dateModified" datetime="2020-08-09T21:54:08+08:00">2020-08-09</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/HIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在进程网络日志捕获的技术选型这块的当初想了很久，备选方案有如下几种：<br>1、cn_proc<br>2、proc遍历<br>3、netfilter<br>4、auditd<br>5、libpcap<br>综合考虑得出利弊如下：<br>1、cn_proc用进程回调代替网络回调，只能抓到进程创建后立即产生网络连接的日志，对于具有潜伏特性或多线程发包的进程这种方式会存在大量漏报；<br>2、遍历/proc/net/tcp(6)，只能拿到inode，要做进程关联需要去做二次遍历，cpu消耗较大，走调度的话则会漏掉很多数据，无法做稍细的检测，不优雅；<br>3、netfilter是内核提供的机制，但调研显示不同系统的内核函数具有较大差异，需要做适配，且其hook内核tcp协议栈在大流量环境下会有一定性能影响，但比较好的一点是可以拿到数据包的关联进程信息，不用做二次遍历；<br>4、auditd同样是内核提供的机制，稳定是其一个优点，但由于是对所有内核系统调用去做过滤，不可避免对内核的负载会较高。<br>5、libpcap底层基于bpf，稳定是一个特点，但也同样存在无法执行关联进程、性能影响较大的问题。<br>因为曾经用到过libpcap，且在其性能问题上踩过坑，这边对libpcap的性能问题做下总结。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/08/02/Libpcap%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2020/08/02/%E6%8C%96%E7%9F%BF%E7%97%85%E6%AF%92%E7%9A%84%E4%BD%93%E7%B3%BB%E5%8C%96%E6%A3%80%E6%B5%8B%E6%B5%81%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/author.jpg">
+      <meta itemprop="name" content="XDW">
+      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/08/02/%E6%8C%96%E7%9F%BF%E7%97%85%E6%AF%92%E7%9A%84%E4%BD%93%E7%B3%BB%E5%8C%96%E6%A3%80%E6%B5%8B%E6%B5%81%E7%A8%8B/" class="post-title-link" itemprop="url">挖矿病毒的体系化检测流程</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2020-08-02 01:16:04 / 修改时间：04:31:18" itemprop="dateCreated datePublished" datetime="2020-08-02T01:16:04+08:00">2020-08-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/HIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="一、背景"><a href="#一、背景" class="headerlink" title="一、背景"></a>一、背景</h2><p>hw前面试的时候被问到这个问题，自我感觉回答的挺凌乱的，明明这块的经验也很多，但感觉自己做的还是不够好，缺少体系化的整理和思考，这边简单做下记录，顺带着理一下思路。</p>
+<h2 id="二、入侵检测"><a href="#二、入侵检测" class="headerlink" title="二、入侵检测"></a>二、入侵检测</h2><p>挖矿的直接特征相对僵木蠕来说比较单一和容易排查，即较高的CPU占用；当然也存在一些特意控制CPU不超过指定阈值的挖矿病毒，其经常出现在攻击者已经拿下域控之后的利用场景，这种你好我也好的挖矿方式相对比较隐蔽，特别是在拥有较大规模主机集群的内网中，这种挖矿很难引起管理员注意，也就不容易去排查，但需要注明的是其使用的入侵、挖矿等手段和前一种几乎是一样的，只是稍温和一点，一旦发现了异常，后续的检测也是一样的。<br>首先定位到异常主机，观察命令操作是否卡顿，查看CPU状态是否远超正常主机，若cpu资源占用高居不下，则有可能是中挖矿了；此时看下crontab里是否有被写连接未知服务器下载文件并执行的操作，若是，则90%以上是中挖矿了，之后进行溯源，主要对其入侵方式、恶意行为等进行整理，说白了就是检测怎么进来的，进来后干了什么，主要是这两个过程。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/08/02/%E6%8C%96%E7%9F%BF%E7%97%85%E6%AF%92%E7%9A%84%E4%BD%93%E7%B3%BB%E5%8C%96%E6%A3%80%E6%B5%8B%E6%B5%81%E7%A8%8B/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -913,179 +1080,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2019/10/29/DameWare-Remote-Support%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/10/22/BadUsb%E4%BB%8E%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90%E5%88%B0%E5%AE%9E%E6%88%98%E6%B8%97%E9%80%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/10/22/BadUsb%E4%BB%8E%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90%E5%88%B0%E5%AE%9E%E6%88%98%E6%B8%97%E9%80%8F/" class="post-title-link" itemprop="url">BadUsb从协议分析到实战渗透</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-10-22 23:58:39" itemprop="dateCreated datePublished" datetime="2019-10-22T23:58:39+08:00">2019-10-22</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-09-11 23:51:06" itemprop="dateModified" datetime="2020-09-11T23:51:06+08:00">2020-09-11</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%A0%94%E7%A9%B6/" itemprop="url" rel="index"><span itemprop="name">二进制研究</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="0x00-锲子"><a href="#0x00-锲子" class="headerlink" title="0x00 锲子"></a>0x00 锲子</h2><p>这篇博文缘起公司一位单片机dalao的月末技术分享，当时觉得是挺有意思的，顺带着自己目前的研究方向又是偏向硬件（无线）、协议这一块，又恰好之前公司接了一家公司的授权实地渗透，当时有想法是就是扔badusb（捂脸），这边仅记录下学习过程。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/10/22/BadUsb%E4%BB%8E%E5%8D%8F%E8%AE%AE%E5%88%86%E6%9E%90%E5%88%B0%E5%AE%9E%E6%88%98%E6%B8%97%E9%80%8F/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://driverxdw.github.io/2019/07/12/%E5%9F%BA%E4%BA%8Elua%E7%9A%84wireshark%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/author.jpg">
-      <meta itemprop="name" content="XDW">
-      <meta itemprop="description" content="一枚很菜但是仍在学习的二进制菜逼">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="in0va'S Blog  JustLearnM0re">
-    </span>
-
-    
-    
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/07/12/%E5%9F%BA%E4%BA%8Elua%E7%9A%84wireshark%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/" class="post-title-link" itemprop="url">基于lua的wireshark协议解析插件编写</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-07-12 13:43:59" itemprop="dateCreated datePublished" datetime="2019-07-12T13:43:59+08:00">2019-07-12</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2020-09-11 23:48:29" itemprop="dateModified" datetime="2020-09-11T23:48:29+08:00">2020-09-11</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%A0%94%E7%A9%B6/" itemprop="url" rel="index"><span itemprop="name">二进制研究</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="0x00-楔子"><a href="#0x00-楔子" class="headerlink" title="0x00 楔子"></a>0x00 楔子</h2><p>之前接到一个专网测试项目，其使用的是376.1协议进行通信，为了对其进行测试，这边选择对其进行协议分析，wireshark观察dump下来的数据包发现数据量并不多，所以打算写插件解析下。</p>
-<h2 id="0x01-协议介绍"><a href="#0x01-协议介绍" class="headerlink" title="0x01 协议介绍"></a>0x01 协议介绍</h2><p>376.1协议全称 <code>国家电网公司企业标准(Q/GDW 376.1-2009):电力用户用电信息采集系统通信协议</code> 目前最新的是2013版本。
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/07/12/%E5%9F%BA%E4%BA%8Elua%E7%9A%84wireshark%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90%E6%8F%92%E4%BB%B6%E7%BC%96%E5%86%99/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

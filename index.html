@@ -344,7 +344,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2021-06-29 23:17:39" itemprop="dateModified" datetime="2021-06-29T23:17:39+08:00">2021-06-29</time>
+        <time title="修改时间：2021-06-29 23:26:28" itemprop="dateModified" datetime="2021-06-29T23:26:28+08:00">2021-06-29</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -367,7 +367,7 @@
     
     <div class="post-body" itemprop="articleBody">
           <h1 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h1><p>前段时间老大说想对驱动做下benchmark，主要有如下几个原因：</p>
-<p>1、在（灰度）推广前对驱动在跟踪特定syscall event下的overhead（开销）有大致的了解，从而对某些造成tracepoint handler较高overhead的syscall event采取默认关闭策略，避免对业务产生影响</p>
+<p>1、在（灰度）推广前对驱动在跟踪特定syscall event下的overhead（开销）有大致的了解，从而对某些造成tracepoint handler较高overhead的syscall tracepoint采取默认关闭策略，避免对业务产生影响</p>
 <p>2、字节之前开源的Elkeid（前Agent-smith）中有输出driver的性能测试报告，可以与其做下对比，也好有个底（字节的驱动部署量级很高）</p>
 <p>目标确定后开始测试流程，一开始是参照Elkeid使用trace-cmd（ftrace） + LTP测TP90/95/99（Top Percentile），结果发现Elkeid的测试方式这边并不适用（主要是因为elkeid采用了kprobe选型，针对每一个syscall都有特定的kprobe handler，这些注册的hook函数可以被ftrace跟踪到；但是这边的驱动走的是tracepoint，而且是在sys_enter/sys_exit的系统调用总出入口处做的hook，所以在ftrace的观测视野中，只能看到对sys_enter/sys_exit对应tracepoint handler的执行耗时，但却没有办法将其对应到指定系统调用事件），中途踩了许多坑（主要是验证测试方式及数据可靠性上的，甚至一度放弃ftrace使用perf与systemtap，但是最终对比之下还是回到了ftrace上），甚至在测试过程中发现Elkeid自身的测试方式可能存在问题，过程还挺曲折//捂脸，最终将测试过程自动化，输出了一份性能测试报告；当然这些扯远了。之所以想记录这篇文章，主要是在测试过程中感受到了ftrace能力的强大，不仅可用于性能分析，还可以在日常研究学习中用于内核函数/代码执行流程观测，来代替动态调试的繁琐（当然主要还是得看场景，动调也有其自己的优势，但是如果只是想看控制流的话ftrace还是非常方便的），甚至ftrace从功能上来说本身都可直接用于IDS上（kprobe on ftrace的一些高级用法）；此篇主要记录ftrace观测kprobe和tracepoint函数的过程，目的主要是1、记录ftrace的使用方式 方便后面回忆 2、以可视化的方式（graph）展示kprobe与tracepoint的执行流程，加深对这两种机制的记忆与理解。</p>
           <!--noindex-->

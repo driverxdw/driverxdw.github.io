@@ -22,17 +22,19 @@
     var CONFIG = {"hostname":"driverxdw.github.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
 
-  <meta name="description" content="一枚很菜但是仍在学习的二进制菜逼">
+  <meta name="description" content="一、前言前段时间老大说想对驱动做下benchmark，主要有如下几个原因： 1、在（灰度）推广前对驱动在跟踪特定syscall event下的overhead（开销）有大致的了解，从而对某些造成tracepoint handler较高overhead的syscall event采取默认关闭策略，避免对业务产生影响 2、字节之前开源的Elkeid（前Agent-smith）中有输出driver的性能">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Observe Kprobe And Tracepoint Under Ftrace">
 <meta property="og:url" content="https://driverxdw.github.io/2021/06/27/Observe-Kprobe-And-Tracepoint-Under-Ftrace/index.html">
 <meta property="og:site_name" content="in0va&#39;S Blog  JustLearnM0re">
-<meta property="og:description" content="一枚很菜但是仍在学习的二进制菜逼">
+<meta property="og:description" content="一、前言前段时间老大说想对驱动做下benchmark，主要有如下几个原因： 1、在（灰度）推广前对驱动在跟踪特定syscall event下的overhead（开销）有大致的了解，从而对某些造成tracepoint handler较高overhead的syscall event采取默认关闭策略，避免对业务产生影响 2、字节之前开源的Elkeid（前Agent-smith）中有输出driver的性能">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-06-27T12:24:47.000Z">
-<meta property="article:modified_time" content="2021-06-27T12:24:47.735Z">
+<meta property="article:modified_time" content="2021-06-29T15:17:39.059Z">
 <meta property="article:author" content="XDW">
-<meta property="article:tag" content="hacker 底层 漏洞挖掘">
+<meta property="article:tag" content="二进制">
+<meta property="article:tag" content="内核">
+<meta property="article:tag" content="HIDS">
 <meta name="twitter:card" content="summary">
 
 
@@ -165,7 +167,7 @@
 
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -177,6 +179,7 @@
 
       <!--noindex-->
       <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、前言"><span class="nav-number">1.</span> <span class="nav-text">一、前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、原理"><span class="nav-number">2.</span> <span class="nav-text">二、原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、应用"><span class="nav-number">3.</span> <span class="nav-text">三、应用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#四、总结"><span class="nav-number">4.</span> <span class="nav-text">四、总结</span></a></li></ol></div>
       </section>
       <!--/noindex-->
 
@@ -279,6 +282,22 @@
 
       <time title="创建时间：2021-06-27 20:24:47" itemprop="dateCreated datePublished" datetime="2021-06-27T20:24:47+08:00">2021-06-27</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-06-29 23:17:39" itemprop="dateModified" datetime="2021-06-29T23:17:39+08:00">2021-06-29</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/HIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS</span></a>
+        </span>
+    </span>
 
   
     <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -297,7 +316,15 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        
+        <h1 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h1><p>前段时间老大说想对驱动做下benchmark，主要有如下几个原因：</p>
+<p>1、在（灰度）推广前对驱动在跟踪特定syscall event下的overhead（开销）有大致的了解，从而对某些造成tracepoint handler较高overhead的syscall event采取默认关闭策略，避免对业务产生影响</p>
+<p>2、字节之前开源的Elkeid（前Agent-smith）中有输出driver的性能测试报告，可以与其做下对比，也好有个底（字节的驱动部署量级很高）</p>
+<p>目标确定后开始测试流程，一开始是参照Elkeid使用trace-cmd（ftrace） + LTP测TP90/95/99（Top Percentile），结果发现Elkeid的测试方式这边并不适用（主要是因为elkeid采用了kprobe选型，针对每一个syscall都有特定的kprobe handler，这些注册的hook函数可以被ftrace跟踪到；但是这边的驱动走的是tracepoint，而且是在sys_enter/sys_exit的系统调用总出入口处做的hook，所以在ftrace的观测视野中，只能看到对sys_enter/sys_exit对应tracepoint handler的执行耗时，但却没有办法将其对应到指定系统调用事件），中途踩了许多坑（主要是验证测试方式及数据可靠性上的，甚至一度放弃ftrace使用perf与systemtap，但是最终对比之下还是回到了ftrace上），甚至在测试过程中发现Elkeid自身的测试方式可能存在问题，过程还挺曲折//捂脸，最终将测试过程自动化，输出了一份性能测试报告；当然这些扯远了。之所以想记录这篇文章，主要是在测试过程中感受到了ftrace能力的强大，不仅可用于性能分析，还可以在日常研究学习中用于内核函数/代码执行流程观测，来代替动态调试的繁琐（当然主要还是得看场景，动调也有其自己的优势，但是如果只是想看控制流的话ftrace还是非常方便的），甚至ftrace从功能上来说本身都可直接用于IDS上（kprobe on ftrace的一些高级用法）；此篇主要记录ftrace观测kprobe和tracepoint函数的过程，目的主要是1、记录ftrace的使用方式 方便后面回忆 2、以可视化的方式（graph）展示kprobe与tracepoint的执行流程，加深对这两种机制的记忆与理解。</p>
+<a id="more"></a>
+
+<h1 id="二、原理"><a href="#二、原理" class="headerlink" title="二、原理"></a>二、原理</h1><p>ing</p>
+<h1 id="三、应用"><a href="#三、应用" class="headerlink" title="三、应用"></a>三、应用</h1><h1 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h1><p>后面如果有时间会把性能测试过程中用到的其他工具也单独写文章记录，如perf（吹爆火焰图）、systemtap（更细粒度）等等</p>
+
     </div>
 
     
@@ -305,6 +332,11 @@
     
 
     <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/" rel="tag"># 二进制</a>
+              <a href="/tags/%E5%86%85%E6%A0%B8/" rel="tag"># 内核</a>
+              <a href="/tags/HIDS/" rel="tag"># HIDS</a>
+          </div>
 
         
 

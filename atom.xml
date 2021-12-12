@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>in0va&#39;S Blog  JustLearnM0re</title>
+  <icon>https://driverxdw.github.io/icon.png</icon>
+  <subtitle>犯二</subtitle>
+  <link href="https://driverxdw.github.io/atom.xml" rel="self"/>
+  
+  <link href="https://driverxdw.github.io/"/>
+  <updated>2021-07-18T07:23:31.680Z</updated>
+  <id>https://driverxdw.github.io/</id>
+  
+  <author>
+    <name>XDW</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>&lt;&lt;致黎锦熙信&gt;&gt;读后感</title>
+    <link href="https://driverxdw.github.io/2021/07/17/%E8%87%B4%E9%BB%8E%E9%94%A6%E7%86%99%E4%BF%A1-%E8%AF%BB%E5%90%8E%E6%84%9F/"/>
+    <id>https://driverxdw.github.io/2021/07/17/%E8%87%B4%E9%BB%8E%E9%94%A6%E7%86%99%E4%BF%A1-%E8%AF%BB%E5%90%8E%E6%84%9F/</id>
+    <published>2021-07-17T14:27:23.000Z</published>
+    <updated>2021-07-18T07:23:31.680Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;一、引子&quot;&gt;&lt;a href=&quot;#一、引子&quot; class=&quot;headerlink&quot; title=&quot;一、引子&quot;&gt;&lt;/a&gt;一、引子&lt;/h1&gt;&lt;p&gt;一个月前写过一篇总结，主要是对自己在前段时间遇到的一些问题的分析以及对破局之法的思考，其中解决措施这块的主要思想为“确立目标和航线”，目标是指自己人生道路上的终极目标，且必须为整体的、抽象的、本质的，“航线”为目标的拆分，是达到指定目标的方式，为局部的、具体的、可落地的；总结中回忆起了自己从小到大的经历，通过对过去每一件记忆中的小事进行分析，定位自己的初心，思考自我在人生层面上应当去确立和实现的目标，并在最终定下了专属于自我的独特人生意义，以及给出了一些具体可落地的未来规划；也希望在未来能将这些规划坚持执行下去，真正贯彻和落实自己人生总目标。半个月前，非常偶然读到了伟人青年时代写给友人的一封信，发现其部分所述和自己所想相合，读到精彩处更是非常惊讶，感叹历史上竟有人和自己思考过同一样事物，并产生了相似的看法；读完全文在感慨伟人之豪迈、眼光之长远、气量之大的同时也对伟人的生平产生了浓厚的兴趣，遂读&amp;lt;&amp;lt;毛泽东传&amp;gt;&amp;gt;，颇有感悟，目前已读到第一卷21章（国共建立统一战线联合抗日那个时期），后面难再读下去了，相比中年时代的伟人，青年时期的伟人经历和思想显然更吸引自己。扯远了，这边记录下伟人写给友人的信原文，并记录下感悟。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="读书笔记" scheme="https://driverxdw.github.io/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/"/>
+    
+    
+    <category term="总结" scheme="https://driverxdw.github.io/tags/%E6%80%BB%E7%BB%93/"/>
+    
+    <category term="浅谈随笔" scheme="https://driverxdw.github.io/tags/%E6%B5%85%E8%B0%88%E9%9A%8F%E7%AC%94/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Sysdig Source Code Analysis II</title>
+    <link href="https://driverxdw.github.io/2021/06/27/Sysdig-Source-Code-Analysis-II/"/>
+    <id>https://driverxdw.github.io/2021/06/27/Sysdig-Source-Code-Analysis-II/</id>
+    <published>2021-06-27T12:25:55.000Z</published>
+    <updated>2021-07-04T16:47:51.672Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;一、前言&quot;&gt;&lt;a href=&quot;#一、前言&quot; class=&quot;headerlink&quot; title=&quot;一、前言&quot;&gt;&lt;/a&gt;一、前言&lt;/h1&gt;&lt;p&gt;之前记录了sysdig驱动部分的源码理解，还缺少用户态的捕获解析过程的分析，这边补上。因为真实的项目中没有用到sysdig的CLI解析引擎，而是自研的，所以关于libsinsp部分针对具体事件的解析过滤逻辑相关的源码分析将不会去进行（或者是等后续需要的时候）。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/categories/HIDS/"/>
+    
+    
+    <category term="二进制" scheme="https://driverxdw.github.io/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/"/>
+    
+    <category term="内核" scheme="https://driverxdw.github.io/tags/%E5%86%85%E6%A0%B8/"/>
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/tags/HIDS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Observe Kprobe And Tracepoint Under Ftrace</title>
+    <link href="https://driverxdw.github.io/2021/06/27/Observe-Kprobe-And-Tracepoint-Under-Ftrace/"/>
+    <id>https://driverxdw.github.io/2021/06/27/Observe-Kprobe-And-Tracepoint-Under-Ftrace/</id>
+    <published>2021-06-27T12:24:47.000Z</published>
+    <updated>2021-07-01T16:38:43.593Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;一、前言&quot;&gt;&lt;a href=&quot;#一、前言&quot; class=&quot;headerlink&quot; title=&quot;一、前言&quot;&gt;&lt;/a&gt;一、前言&lt;/h1&gt;&lt;p&gt;前段时间老大说想对驱动做下benchmark，主要有如下几个原因：&lt;/p&gt;
+&lt;p&gt;1、在（灰度）推广前对驱动在跟踪特定syscall event下的overhead（开销）有大致的了解，从而对某些造成tracepoint handler较高overhead的syscall tracepoint采取默认关闭策略，避免对业务产生影响&lt;/p&gt;
+&lt;p&gt;2、字节之前开源的Elkeid（前Agent-smith）中有输出driver的性能测试报告，可以与其做下对比，也好有个底（字节的驱动部署量级很高）&lt;/p&gt;
+&lt;p&gt;目标确定后开始测试流程，一开始是参照Elkeid使用trace-cmd（ftrace） + LTP测TP90/95/99（Top Percentile），结果发现Elkeid的测试方式这边并不适用（主要是因为elkeid采用了kprobe选型，针对每一个syscall都有特定的kprobe handler，这些注册的hook函数可以被ftrace跟踪到；但是这边的驱动走的是tracepoint，而且是在sys_enter/sys_exit的系统调用总出入口处做的hook，所以在ftrace的观测视野中，只能看到对sys_enter/sys_exit对应tracepoint handler的执行耗时，但却没有办法将其对应到指定系统调用事件），中途踩了许多坑（主要是验证测试方式及数据可靠性上的，甚至一度放弃ftrace使用perf与systemtap，但是最终对比之下还是回到了ftrace上），甚至在测试过程中发现Elkeid自身的测试方式可能存在问题，过程还挺曲折//捂脸，最终将测试过程自动化，输出了一份性能测试报告；当然这些扯远了。之所以想记录这篇文章，主要是在测试过程中感受到了ftrace能力的强大，不仅可用于性能分析，还可以在日常研究学习中用于内核函数/代码执行流程观测，来代替动态调试的繁琐（当然主要还是得看场景，动调也有其自己的优势，但是如果只是想看控制流的话ftrace还是非常方便的），甚至ftrace从功能上来说本身都可直接用于IDS上（kprobe on ftrace的一些高级用法）；此篇主要记录ftrace观测kprobe和tracepoint函数的过程，目的主要是1、记录ftrace的使用方式 方便后面回忆 2、以可视化的方式（graph）展示kprobe与tracepoint的执行流程，加深对这两种机制的记忆与理解。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/categories/HIDS/"/>
+    
+    
+    <category term="二进制" scheme="https://driverxdw.github.io/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/"/>
+    
+    <category term="内核" scheme="https://driverxdw.github.io/tags/%E5%86%85%E6%A0%B8/"/>
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/tags/HIDS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Sysdig Source Code Analysis</title>
+    <link href="https://driverxdw.github.io/2021/05/29/Sysdig-Source-Code-Analysis/"/>
+    <id>https://driverxdw.github.io/2021/05/29/Sysdig-Source-Code-Analysis/</id>
+    <published>2021-05-29T09:46:27.000Z</published>
+    <updated>2021-06-02T16:25:12.613Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;一、前言&quot;&gt;&lt;a href=&quot;#一、前言&quot; class=&quot;headerlink&quot; title=&quot;一、前言&quot;&gt;&lt;/a&gt;一、前言&lt;/h1&gt;&lt;p&gt;公司hids平台目前的事件监控维度相对较少，于是老大借鉴sysdig手撸了一个内核模块从kernel解析syscall事件，以此增加监控的事件类型，也为后续的产品检测能力增强提供了数据基础。但是dalao手撸的内核模块存在一些bug，在帮dalao找bug、保证内核模块稳定性的过程中深入了解了sysdig这个项目本身的一些代码层面的东西，同时也解开了之前看falco时候的许多代码执行流程上的困惑，非常愉悦，这边做下记录和总结。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/categories/HIDS/"/>
+    
+    
+    <category term="源码分析" scheme="https://driverxdw.github.io/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    
+    <category term="二进制" scheme="https://driverxdw.github.io/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Docker Container Escapes Research</title>
+    <link href="https://driverxdw.github.io/2021/03/15/Docker-Container-Escapes-Research/"/>
+    <id>https://driverxdw.github.io/2021/03/15/Docker-Container-Escapes-Research/</id>
+    <published>2021-03-15T14:32:47.000Z</published>
+    <updated>2021-05-29T09:42:54.680Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;一、前言&quot;&gt;&lt;a href=&quot;#一、前言&quot; class=&quot;headerlink&quot; title=&quot;一、前言&quot;&gt;&lt;/a&gt;一、前言&lt;/h1&gt;</summary>
+    
+    
+    
+    <category term="容器安全" scheme="https://driverxdw.github.io/categories/%E5%AE%B9%E5%99%A8%E5%AE%89%E5%85%A8/"/>
+    
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/tags/HIDS/"/>
+    
+    <category term="云安全" scheme="https://driverxdw.github.io/tags/%E4%BA%91%E5%AE%89%E5%85%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Linux Mmap Use Analysis</title>
+    <link href="https://driverxdw.github.io/2021/03/11/Linux-Mmap-Use-Analysis/"/>
+    <id>https://driverxdw.github.io/2021/03/11/Linux-Mmap-Use-Analysis/</id>
+    <published>2021-03-10T16:27:56.000Z</published>
+    <updated>2021-03-14T13:20:08.716Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;当agent涉及内核模块捕获事件时，具体事件如何吐给工作在用户态的agent事件捕获引擎并由其进行后续的事件处理？这个问题涉及到linux内核中一个非常经典的部分，即进程间通信；linux进程间通信的方式非常多，在入侵检测领域下这种内核态-用户态的通信需求场景中最常用到的通信手段包括但不限于如下三种：1、netlink 2、共享内存 3、ioctl；使用netlink最典型的例子是yulong，这块在之前的博客中有&lt;a href=&quot;https://driverxdw.github.io/2020/10/22/Yulong-Hids-Process-Monitor-Principle-Analysis/#more&quot;&gt;记录&lt;/a&gt;，yulong在driver层会将事件放到skb中通过netlink发送到用户态监听指定端口的进程，是目前效率最高且优雅的一种内核-用户通信方式；其次是mmap共享内存，常见的如agent-smith、sysdig等都是使用这种通信模式将内核事件类消息发送出去，是效率高，但缺少消息同步机制；最后是ioctl，这种通信方式比较老，文档齐全、编码简单，但是存在拷贝动作，不适合大批量数据的传输，且必须用户态程序先发出ioctl信号，常用于用户态对驱动模块的控制等；这篇文章记录下共享内存这块的学习过程和相关资料。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/categories/HIDS/"/>
+    
+    
+    <category term="二进制" scheme="https://driverxdw.github.io/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/"/>
+    
+    <category term="内核" scheme="https://driverxdw.github.io/tags/%E5%86%85%E6%A0%B8/"/>
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/tags/HIDS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kprobe principle analysis</title>
+    <link href="https://driverxdw.github.io/2021/02/27/Kprobe-principle-analysis/"/>
+    <id>https://driverxdw.github.io/2021/02/27/Kprobe-principle-analysis/</id>
+    <published>2021-02-27T04:00:00.000Z</published>
+    <updated>2021-02-27T12:12:02.610Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;kprobes简介&quot;&gt;&lt;a href=&quot;#kprobes简介&quot; class=&quot;headerlink&quot; title=&quot;kprobes简介&quot;&gt;&lt;/a&gt;kprobes简介&lt;/h1&gt;&lt;figure class=&quot;highlight livecodeserver&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;KProbes is &lt;span class=&quot;keyword&quot;&gt;a&lt;/span&gt; debugging mechanism &lt;span class=&quot;keyword&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; Linux kernel which can also be used &lt;span class=&quot;keyword&quot;&gt;for&lt;/span&gt; monitoring events inside &lt;span class=&quot;keyword&quot;&gt;a&lt;/span&gt; production &lt;span class=&quot;keyword&quot;&gt;system&lt;/span&gt;. You can use &lt;span class=&quot;keyword&quot;&gt;it&lt;/span&gt; &lt;span class=&quot;built_in&quot;&gt;to&lt;/span&gt; weed out performance bottlenecks, &lt;span class=&quot;built_in&quot;&gt;log&lt;/span&gt; specific events, trace problems etc. KProbes was developed &lt;span class=&quot;keyword&quot;&gt;by&lt;/span&gt; IBM &lt;span class=&quot;keyword&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;an&lt;/span&gt; underlying mechanism &lt;span class=&quot;keyword&quot;&gt;for&lt;/span&gt; another higher level tracing tool called DProbes. DProbes adds &lt;span class=&quot;keyword&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;built_in&quot;&gt;number&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;of&lt;/span&gt; features, including its own scripting language &lt;span class=&quot;keyword&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; writing &lt;span class=&quot;keyword&quot;&gt;of&lt;/span&gt; probe handlers. However, only KProbes has been merged &lt;span class=&quot;keyword&quot;&gt;into&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; standard kernel.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;...&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;The figure &lt;span class=&quot;built_in&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;literal&quot;&gt;right&lt;/span&gt; describes &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; architecture &lt;span class=&quot;keyword&quot;&gt;of&lt;/span&gt; KProbes. On &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; x86, KProbes makes use &lt;span class=&quot;keyword&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; exception handling mechanisms &lt;span class=&quot;keyword&quot;&gt;and&lt;/span&gt; modifies &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; standard &lt;span class=&quot;built_in&quot;&gt;breakpoint&lt;/span&gt;, debug &lt;span class=&quot;keyword&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;a&lt;/span&gt; few other exception handlers &lt;span class=&quot;keyword&quot;&gt;for&lt;/span&gt; its own purpose. Most &lt;span class=&quot;keyword&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; handling &lt;span class=&quot;keyword&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; probes is done &lt;span class=&quot;keyword&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; context &lt;span class=&quot;keyword&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;built_in&quot;&gt;breakpoint&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; debug exception handlers which make up &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; KProbes architecture dependent layer. The KProbes architecture independent layer is &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; KProbes manager which is used &lt;span class=&quot;built_in&quot;&gt;to&lt;/span&gt; register &lt;span class=&quot;keyword&quot;&gt;and&lt;/span&gt; unregister probes. Users provide probe handlers &lt;span class=&quot;keyword&quot;&gt;in&lt;/span&gt; kernel modules which register probes through &lt;span class=&quot;keyword&quot;&gt;the&lt;/span&gt; KProbes manager.&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+
+&lt;p&gt;Kprobes是Linux内核的一种调试机制，可以用来在生产环境中监控内核事件，其允许使用者在内核指定位置注册自定义的回调函数，捕捉内核事件、对内核信息进行过滤、分析，达到内核观测的效果。kprobes这种内核追踪机制常用于性能、安全监控领域，最常见的，比如用于hids/cwpp/edr的agent；本质上，他和替换系统调用表这种比较暴力的开膛破腹式的监控手段不同（典型的如yulong），内核机制的支持使其相对比较稳定和优雅（虽然不如ebpf），如果probe点合适（字段不经常变更），且兼容性足够好，那么将kprobes用在agent模块上则会使agent获得性能、安全（绕过相对用户态较难）的双重优势，典型如开源项目agent-smith，目前agent已在字节大量部署，据说部署规模有10w+；不再赘述，记录下核心知识点的学习过程。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/categories/HIDS/"/>
+    
+    
+    <category term="二进制" scheme="https://driverxdw.github.io/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/"/>
+    
+    <category term="内核" scheme="https://driverxdw.github.io/tags/%E5%86%85%E6%A0%B8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Inter-Process Communication Learning</title>
+    <link href="https://driverxdw.github.io/2021/01/10/Inter-Process-Communication-Learning/"/>
+    <id>https://driverxdw.github.io/2021/01/10/Inter-Process-Communication-Learning/</id>
+    <published>2021-01-10T03:37:43.000Z</published>
+    <updated>2021-01-10T03:37:43.319Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Linux Container Isolation Mechanisms Learning</title>
+    <link href="https://driverxdw.github.io/2021/01/10/Linux-Container-Isolation-Mechanisms-Learning/"/>
+    <id>https://driverxdw.github.io/2021/01/10/Linux-Container-Isolation-Mechanisms-Learning/</id>
+    <published>2021-01-10T03:37:01.000Z</published>
+    <updated>2021-01-10T03:43:56.450Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Falco Security Audit Analysis</title>
+    <link href="https://driverxdw.github.io/2021/01/10/Falco-Security-Audit-Analysis/"/>
+    <id>https://driverxdw.github.io/2021/01/10/Falco-Security-Audit-Analysis/</id>
+    <published>2021-01-10T03:36:53.000Z</published>
+    <updated>2021-01-10T03:36:53.195Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Falco Source Code Analysis</title>
+    <link href="https://driverxdw.github.io/2021/01/10/Falco-Source-Code-Analysis/"/>
+    <id>https://driverxdw.github.io/2021/01/10/Falco-Source-Code-Analysis/</id>
+    <published>2021-01-10T03:36:46.000Z</published>
+    <updated>2021-01-10T03:36:46.390Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Falco Design Principle Analysis</title>
+    <link href="https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/"/>
+    <id>https://driverxdw.github.io/2021/01/10/Falco-Design-Principle-Analysis/</id>
+    <published>2021-01-10T03:36:38.000Z</published>
+    <updated>2021-01-12T16:11:18.878Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;一、缘起&quot;&gt;&lt;a href=&quot;#一、缘起&quot; class=&quot;headerlink&quot; title=&quot;一、缘起&quot;&gt;&lt;/a&gt;一、缘起&lt;/h1&gt;&lt;p&gt;云原生大大改变了原有的软件部署结构，容器、容器云平台、服务网格、DevOps等技术的发展加快了企业拥抱云原生的步伐。云原生其独有的特点也给传统的基于边界检测及纯主机EDR检测的方式带来了极大的挑战，安全行业迎来了一场革新。以Falco为代表的一系列云原生容器运行时安全检测项目应运而生，本篇博客记录下此项目的学习过程。&lt;/p&gt;
+&lt;p&gt;Falco最初是由Sysdig公司构建的开源运行时安全工具项目，在云原生火后下载量飙升，作为唯一的容器运行时安全项目被批准加入了CNCF（云原生计算基金会）下的项目孵化器，同时，Falco也作为顶级的云安全子项目出现在了CNCF云原生全景图中。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="云原生" scheme="https://driverxdw.github.io/categories/%E4%BA%91%E5%8E%9F%E7%94%9F/"/>
+    
+    
+    <category term="容器运行时安全" scheme="https://driverxdw.github.io/tags/%E5%AE%B9%E5%99%A8%E8%BF%90%E8%A1%8C%E6%97%B6%E5%AE%89%E5%85%A8/"/>
+    
+    <category term="k8s" scheme="https://driverxdw.github.io/tags/k8s/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Learning Notes - Application Deployment</title>
+    <link href="https://driverxdw.github.io/2021/01/10/Kubernetes-Learning-Notes-Application-Deployment/"/>
+    <id>https://driverxdw.github.io/2021/01/10/Kubernetes-Learning-Notes-Application-Deployment/</id>
+    <published>2021-01-10T03:36:29.000Z</published>
+    <updated>2021-01-10T03:36:29.959Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Learning Notes - Attack And Defense Research</title>
+    <link href="https://driverxdw.github.io/2021/01/10/Kubernetes-Learning-Notes-Attack-And-Defense-Research/"/>
+    <id>https://driverxdw.github.io/2021/01/10/Kubernetes-Learning-Notes-Attack-And-Defense-Research/</id>
+    <published>2021-01-10T03:36:20.000Z</published>
+    <updated>2021-01-10T03:36:20.786Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Learing Notes - Function Analysis</title>
+    <link href="https://driverxdw.github.io/2021/01/10/Kubernetes-Learing-Notes-Function-Analysis/"/>
+    <id>https://driverxdw.github.io/2021/01/10/Kubernetes-Learing-Notes-Function-Analysis/</id>
+    <published>2021-01-10T03:36:03.000Z</published>
+    <updated>2021-01-10T03:36:03.104Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Kubernetes Learning Notes - Installation Process Record</title>
+    <link href="https://driverxdw.github.io/2021/01/10/Kubernetes-Learning-Notes-Installation-Process-Record/"/>
+    <id>https://driverxdw.github.io/2021/01/10/Kubernetes-Learning-Notes-Installation-Process-Record/</id>
+    <published>2021-01-10T03:35:27.000Z</published>
+    <updated>2021-01-10T06:24:10.647Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;一、起源&quot;&gt;&lt;a href=&quot;#一、起源&quot; class=&quot;headerlink&quot; title=&quot;一、起源&quot;&gt;&lt;/a&gt;一、起源&lt;/h1&gt;&lt;p&gt;云将会是未来技术的热点与风口，云安全也将逐渐体现它的重要性，技术栈开始慢慢从主机安全往云原生相关去靠拢，本章记录下k8s的安装流程（虚拟机部署，master和node各一台，master为centos7，node为ubuntu18.04）&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="云原生" scheme="https://driverxdw.github.io/categories/%E4%BA%91%E5%8E%9F%E7%94%9F/"/>
+    
+    
+    <category term="容器运行时安全" scheme="https://driverxdw.github.io/tags/%E5%AE%B9%E5%99%A8%E8%BF%90%E8%A1%8C%E6%97%B6%E5%AE%89%E5%85%A8/"/>
+    
+    <category term="k8s" scheme="https://driverxdw.github.io/tags/k8s/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Felicia Hids Demo Design</title>
+    <link href="https://driverxdw.github.io/2020/12/14/Felicia-Hids-Demo-Design/"/>
+    <id>https://driverxdw.github.io/2020/12/14/Felicia-Hids-Demo-Design/</id>
+    <published>2020-12-13T17:21:36.000Z</published>
+    <updated>2020-12-17T17:04:42.284Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;一、起源&quot;&gt;&lt;a href=&quot;#一、起源&quot; class=&quot;headerlink&quot; title=&quot;一、起源&quot;&gt;&lt;/a&gt;一、起源&lt;/h1&gt;&lt;p&gt;当时想着写这个项目的原因主要有如下几点：&lt;/p&gt;
+&lt;p&gt;1、自身代码化的能力较弱，想通过项目驱动提升自己的代码化能力与熟练度&lt;/p&gt;
+&lt;p&gt;2、毕业前其实没有真正去写过一个完整的开源项目，一直挺遗憾的&lt;/p&gt;
+&lt;p&gt;3、也可以算作入主机安全领域这段时间下来的一个小沉淀、小总结&lt;/p&gt;
+&lt;p&gt;4、虽然非常简单，但包含着自己对主机安全这块的理解与思考，可以作为自己能力的一部分&lt;/p&gt;
+&lt;p&gt;虽然事情很多，但最终还是决定去写这个项目，项目取名”Felicia”，源自小时候很喜欢的一款单机RPG游戏中的女二的名字（翻译过来应该是叫”菲利西亚”），从小喜欢到现在的女角色；给自己第一个项目取这个名字还是带着一点想法的，寓意是激励自己，希望对一切都能保持单纯与热情（就像对这个游戏一样），并在开源这条道路上坚定的走下去。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="HIDS" scheme="https://driverxdw.github.io/categories/HIDS/"/>
+    
+    
+    <category term="二进制" scheme="https://driverxdw.github.io/tags/%E4%BA%8C%E8%BF%9B%E5%88%B6/"/>
+    
+    <category term="开源" scheme="https://driverxdw.github.io/tags/%E5%BC%80%E6%BA%90/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Osquery Source Analysis | Part 5</title>
+    <link href="https://driverxdw.github.io/2020/10/28/Osquery-Source-Analysis-Part-5/"/>
+    <id>https://driverxdw.github.io/2020/10/28/Osquery-Source-Analysis-Part-5/</id>
+    <published>2020-10-27T16:04:22.000Z</published>
+    <updated>2020-10-27T16:04:22.656Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Osquery Source Analysis | Part 4</title>
+    <link href="https://driverxdw.github.io/2020/10/28/Osquery-Source-Analysis-Part-4/"/>
+    <id>https://driverxdw.github.io/2020/10/28/Osquery-Source-Analysis-Part-4/</id>
+    <published>2020-10-27T16:04:16.000Z</published>
+    <updated>2020-10-27T16:04:16.591Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Osquery Source Analysis | Part 3</title>
+    <link href="https://driverxdw.github.io/2020/10/28/Osquery-Source-Analysis-Part-3/"/>
+    <id>https://driverxdw.github.io/2020/10/28/Osquery-Source-Analysis-Part-3/</id>
+    <published>2020-10-27T16:04:14.000Z</published>
+    <updated>2020-10-27T16:04:14.488Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+</feed>
